@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">Hotel Services</string>
+
+    <string name="reception">طلب تصفية الحساب</string>
+    <string name="restaurant">المطعم</string>
+    <string name="laundry">المغسلة</string>
+    <string name="cleanUp">تنظيف الغرفة</string>
+    <string name="sos">طوارئ</string>
+    <string name="gym">النادي</string>
+    <string name="roomService">خدمة الغرف</string>
+    <string name="openDoor">افتح الباب</string>
+    <string name="title_activity_restaurant">المطعم</string>
+    <string name="title_activity_log_in">تسجيل الغرف</string>
+    <string name="RegistButton">تسجيل</string>
+    <string name="RoomNumber">أدخل رقم الغرفة</string>
+    <string name="Password">أدخل كلمة المرور</string>
+    <string name="Floor">أدخل رقم الطابق</string>
+    <string name="confermationDialog_Caption">تأكيد</string>
+    <string name="confermationDialog_text">هل أنت متأكد</string>
+
+</resources>

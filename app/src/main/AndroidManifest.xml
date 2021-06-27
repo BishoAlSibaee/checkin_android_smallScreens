@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.syriasoft.hotelservices">
+
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" /> <!-- sdcard -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission
+        android:name="android.permission.READ_PHONE_STATE"
+        android:required="false" /> <!-- 网络 -->
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission
+        android:name="android.permission.WAKE_LOCK"
+        android:required="false" /> <!-- added from 2.7.2 -->
+    <uses-permission
+        android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE"
+        android:required="false" /> <!-- camera need -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:minSdkVersion="8"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme"
+        android:usesCleartextTraffic="true"
+        tools:replace="android:allowBackup,android:supportsRtl">
+        <activity
+            android:name=".Minibar_Menu"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_minibar__menu"
+            android:theme="@style/AppTheme.Fullscreen"></activity>
+        <activity android:name=".RESTAURANTS"
+            android:theme="@style/Theme.AppCompat.NoActionBar"/>
+        <activity
+            android:name=".TUYA.Tuya_Devices"
+            android:configChanges="orientation|keyboard|keyboardHidden" />
+        <activity
+            android:name=".TUYA.Tuya_Login"
+            android:configChanges="orientation|keyboard|keyboardHidden" />
+
+        <meta-data
+            android:name="TUYA_SMART_APPKEY"
+            android:value="hjucvkp8crmjt5vvevre" />
+        <meta-data
+            android:name="TUYA_SMART_SECRET"
+            android:value="netymnmhf4mvnvantyd9mhhqaahnc8ea" />
+
+        <activity
+            android:name=".RestaurantMenues"
+            android:configChanges="orientation|keyboard|keyboardHidden"
+            android:screenOrientation="landscape"
+            android:theme="@style/Theme.AppCompat.NoActionBar"/>
+        <activity
+            android:name=".Cart"
+            android:configChanges="orientation|keyboard|keyboardHidden"
+            android:label="السلة"
+            android:theme="@style/Theme.AppCompat.NoActionBar"/>
+        <activity
+            android:name=".RestaurantActivity"
+            android:configChanges="orientation|keyboard|keyboardHidden"
+            android:screenOrientation="landscape"
+            android:theme="@style/Theme.AppCompat.NoActionBar"/>
+
+        <service
+            android:name=".messagingService"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <activity
+            android:name=".LogIn"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/app_name"
+            android:screenOrientation="landscape"
+            android:theme="@style/FullscreenTheme">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.HOME"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.MONKEY"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".Restaurant"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_restaurant"
+            android:screenOrientation="landscape"
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
+        <activity
+            android:name=".FullscreenActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/app_name"
+            android:screenOrientation="landscape"
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
+        <activity
+            android:name=".lock.AuthActivity"
+            android:configChanges="orientation|keyboard|keyboardHidden" />
+        <activity
+            android:name=".lock.IndexActivity"
+            android:configChanges="orientation|keyboard|keyboardHidden" />
+        <activity
+            android:name=".lock.UserLockActivity"
+            android:configChanges="orientation|keyboard|keyboardHidden" />
+        <activity
+            android:name=".lock.ScanLockActivity"
+            android:configChanges="orientation|keyboard|keyboardHidden" />
+        <activity
+            android:name=".lock.GatewayActivity"
+            android:configChanges="orientation|keyboard|keyboardHidden" />
+        <activity
+            android:name=".lock.UserGatewayActivity"
+            android:configChanges="orientation|keyboard|keyboardHidden" />
+        <activity
+            android:name=".lock.InitGatewayActivity"
+            android:configChanges="orientation|keyboard|keyboardHidden" />
+    </application>
+
+</manifest>

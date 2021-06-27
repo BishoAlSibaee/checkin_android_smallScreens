@@ -1,0 +1,25 @@
+<resources>
+    <string name="app_name">Hotel Services</string>
+
+    <string name="reception">Check Out</string>
+    <string name="restaurant">Restaurant</string>
+    <string name="laundry">Laundry</string>
+    <string name="cleanUp">Clean Up</string>
+    <string name="sos">SOS</string>
+    <string name="gym">Gym</string>
+    <string name="roomService">Room Service</string>
+    <string name="openDoor">Open Door</string>
+    <string name="title_activity_restaurant">Restaurant</string>
+    <string name="title_activity_log_in">Register</string>
+    <string name="RegistButton">Regist</string>
+    <string name="RoomNumber">Enter Room Number</string>
+    <string name="Password">Enter Password</string>
+    <string name="Floor">Enter Floor Number</string>
+    <string name="confermationDialog_Caption">Confermation Dialog</string>
+    <string name="confermationDialog_text">Are You Sure</string>
+    <string name="title_activity_minibar__menu">FullscreenActivity</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+
+
+</resources>

@@ -1,0 +1,2 @@
+include ':hotelservicesstandalone'
+include ':app', ':laundryscreen', ':cleanup'

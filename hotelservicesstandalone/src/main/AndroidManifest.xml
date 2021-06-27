@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.example.hotelservicesstandalone">
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.HotelServices"
+        tools:replace="android:allowBackup,android:supportsRtl">
+        <meta-data
+            android:name="TUYA_SMART_APPKEY"
+            android:value="hjucvkp8crmjt5vvevre" />
+        <meta-data
+            android:name="TUYA_SMART_SECRET"
+            android:value="netymnmhf4mvnvantyd9mhhqaahnc8ea" />
+        <activity android:name=".RoomManager"></activity>
+        <activity android:name=".Rooms" />
+        <activity android:name=".Login">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>
