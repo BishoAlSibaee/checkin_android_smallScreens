@@ -5,10 +5,18 @@
 
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"><![CDATA[
+    android:background="@color/black_overlay"
+    android:orientation="vertical"
+    android:padding="10dp"><![CDATA[
     //tools:context="com.syriasoft.hotelservices.lock.UserLockActivity">xmlns:tools="http://schemas.android.com/tools"
 
     ]]>
+
+    <ImageView
+        android:id="@+id/imageView26"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:srcCompat="@drawable/logo_android" />
 
     <Button
         android:id="@+id/btn_scan_gw"
@@ -36,7 +44,8 @@
                 android:id="@+id/rv_lock_list"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"></androidx.recyclerview.widget.RecyclerView>
+                android:layout_marginTop="10dp"
+                android:background="@color/light_blue_A200"></androidx.recyclerview.widget.RecyclerView>
 
             <Button
                 android:id="@+id/button22"

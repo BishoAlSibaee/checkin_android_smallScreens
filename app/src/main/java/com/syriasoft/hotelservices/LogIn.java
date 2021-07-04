@@ -44,6 +44,7 @@ import com.tuya.smart.home.sdk.TuyaHomeSdk;
 import com.tuya.smart.home.sdk.bean.HomeBean;
 import com.tuya.smart.home.sdk.callback.ITuyaGetHomeListCallback;
 import com.tuya.smart.sdk.api.INeedLoginListener;
+import com.wang.avi.AVLoadingIndicatorView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -66,8 +67,8 @@ import retrofit2.Callback;
 public class LogIn extends AppCompatActivity
 {
 
-    public static String URL = "https://ratco-solutions.com/HotelServicesTest/TestProject/p/";
-    private String Project = "Test";
+    public static String URL = "https://ratco-solutions.com/Checkin/P0001/php/";
+    private String Project = "P0001";
     private int SelectedHotel = 1 ;
     public static roomDataBase room ;
     private String password ;
@@ -494,11 +495,11 @@ public class LogIn extends AppCompatActivity
         {
             if (room.isLogedIn())
             {
-                LoadingDialog d = new LoadingDialog(act);
+                //LoadingDialog d = new LoadingDialog(act);
                 StringRequest re = new StringRequest(Request.Method.GET, getTheRoom + LogIn.room.getRoomDBid(), new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                        d.stop();
+                        //d.stop();
                         JSONArray arr = null;
                         try
                         {
@@ -577,13 +578,34 @@ public class LogIn extends AppCompatActivity
                     }
                 });
                 Volley.newRequestQueue(act).add(re);
-
             }
             else
             {
-                Login.setVisibility(View.VISIBLE);
-                LoginImage.setVisibility(View.GONE);
+
                 Volley.newRequestQueue(act).add(request1);
+                Runnable r = new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            Thread.sleep(2000);
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Login.setVisibility(View.VISIBLE);
+                                    AVLoadingIndicatorView loading = (AVLoadingIndicatorView) findViewById(R.id.loadingIcon);
+                                    loading.setVisibility(View.GONE);
+                                    //Volley.newRequestQueue(act).add(request1);
+                                }
+                            });
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                };
+                Thread t = new Thread(r);
+                t.start();
+
+
             }
         }
     }
@@ -713,6 +735,7 @@ public class LogIn extends AppCompatActivity
             {
                 String json = response.body();
                 accountInfo = GsonUtil.toObject(json, AccountInfo.class);
+                Log.d("accountInfo" , accountInfo.getAccess_token());
                 if (accountInfo != null)
                 {
                     if (accountInfo.errcode == 0)

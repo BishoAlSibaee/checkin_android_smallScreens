@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Gradle: com.tuya.smart:tuyasmart-sweeper:3.22.0@aar">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/0c1977544e9eb163d5c94b2a93da83bd/jetified-tuyasmart-sweeper-3.22.0/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/0c1977544e9eb163d5c94b2a93da83bd/jetified-tuyasmart-sweeper-3.22.0/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/0c1977544e9eb163d5c94b2a93da83bd/jetified-tuyasmart-sweeper-3.22.0/AndroidManifest.xml" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.tuya.smart/tuyasmart-sweeper/3.22.0/594c49d8cfb3d9a570d2671061b382acd023aae/tuyasmart-sweeper-3.22.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

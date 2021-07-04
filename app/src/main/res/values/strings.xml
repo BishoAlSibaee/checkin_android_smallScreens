@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Hotel Services</string>
+    <string name="app_name">CHECKIN</string>
 
     <string name="reception">Check Out</string>
     <string name="restaurant">Restaurant</string>

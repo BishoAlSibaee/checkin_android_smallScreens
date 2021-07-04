@@ -9,12 +9,12 @@ import android.widget.TextView;
 public class messageDialog
 
 {
-    private String title ;
-    private String message ;
-    private Context c ;
+     String title ;
+     String message ;
+     Context c ;
     Dialog d ;
 
-    messageDialog( String message , String title , Context c)
+    public messageDialog(String message, String title, Context c)
     {
         this.message = message ;
         this.title = title ;

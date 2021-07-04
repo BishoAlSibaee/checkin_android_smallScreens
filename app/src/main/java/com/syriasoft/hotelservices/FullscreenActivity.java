@@ -196,8 +196,6 @@ public class FullscreenActivity extends AppCompatActivity {
                     }
                 });
         KeepScreenFull();
-
-
     }
 
     @Override
@@ -245,7 +243,6 @@ public class FullscreenActivity extends AppCompatActivity {
         RestaurantBtn = (CardView) findViewById(R.id.Restaurant);
         GymBtn = (Button) findViewById(R.id.button6);
         LaundryBtn = (CardView) findViewById(R.id.laundry_btn);
-
         OpenDoor = (CardView) findViewById(R.id.Door_Button);
         ServicesBtn = (CardView) findViewById(R.id.ServicesBtn_cardview);
         ServicesBtn.setOnClickListener(new View.OnClickListener() {
@@ -7046,11 +7043,11 @@ public class FullscreenActivity extends AppCompatActivity {
                             }
                             if (Minibar.size()>0)
                             {
-                                ShowMiniBar.setVisibility(View.VISIBLE);
+                                //ShowMiniBar.setVisibility(View.VISIBLE);
                             }
                             else
                             {
-                                ShowMiniBar.setVisibility(View.INVISIBLE);
+                                //ShowMiniBar.setVisibility(View.INVISIBLE);
                             }
                         }
                         catch (JSONException e)
@@ -7086,6 +7083,7 @@ public class FullscreenActivity extends AppCompatActivity {
                 @Override
                 public void onResponse(String response)
                 {
+                    loading.stop();
                     if (response.equals("0"))
                     {
                         ToastMaker.MakeToast("No Items Recorded" , act );
@@ -7106,7 +7104,7 @@ public class FullscreenActivity extends AppCompatActivity {
                         {
                             e.printStackTrace();
                         }
-                        loading.stop();
+
                         if (list.size()>0)
                         {
                             MINIBAR_ADAPTER adapter = new MINIBAR_ADAPTER(list);
@@ -7122,7 +7120,7 @@ public class FullscreenActivity extends AppCompatActivity {
                 @Override
                 public void onErrorResponse(VolleyError error)
                 {
-
+                    loading.stop();
                 }
             })
             {
@@ -7297,6 +7295,10 @@ public class FullscreenActivity extends AppCompatActivity {
         home.setVisibility(View.GONE);
         laundryPriceList.setVisibility(View.GONE);
         l.setVisibility(View.GONE);
+        LinearLayout minibarLayout = (LinearLayout) findViewById(R.id.Minibar_layout);
+        LinearLayout minibarBtn = (LinearLayout) findViewById(R.id.minibar_priceList);
+        minibarLayout.setVisibility(View.GONE);
+        minibarBtn.setVisibility(View.GONE);
     }
 
     public void goToLights(View view) {
@@ -7346,9 +7348,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
     void startBackHomeThread() {
         Log.d("backThread" , "started");
-
             backHomeThread.run();
-
     }
 
     void stopBackThread(){

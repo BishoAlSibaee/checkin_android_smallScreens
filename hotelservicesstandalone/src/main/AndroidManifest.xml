@@ -19,11 +19,14 @@
             android:value="netymnmhf4mvnvantyd9mhhqaahnc8ea" />
         <activity android:name=".RoomManager"></activity>
         <activity android:name=".Rooms" />
-        <activity android:name=".Login">
+        <activity android:name=".Login"
+            android:theme="@style/Theme.AppCompat.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.HOME"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.MONKEY"/>
             </intent-filter>
         </activity>
     </application>

@@ -46,7 +46,7 @@ public class Login extends AppCompatActivity
     private List<HOTEL> HotelsList ;
     private int [] ids ;
     private Activity act = this ;
-    static HOTEL SelectedHotel = new HOTEL(1,"Test","Riyadh","https://ratco-solutions.com/HotelServicesTest/TestProject/p/");
+    static HOTEL SelectedHotel = new HOTEL(1,"P0001","Riyadh","https://ratco-solutions.com/Checkin/P0001/php/");
     private String getProjectsUrl = SelectedHotel.URL+"getProjects.php";
     private String LogInUrl = SelectedHotel.URL+"logInToHotel.php";
     private EditText password ;
@@ -69,21 +69,59 @@ public class Login extends AppCompatActivity
         if (Login.THEHOTELDB.isLoggedIn())
         {
             Log.d("loginorocess" , "logged");
-            setTuyaApplication();
-            LoggedInFunction();
+            Runnable r = new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Thread.sleep(2000);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                setTuyaApplication();
+                                LoggedInFunction();
+                            }
+                        });
+
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            };
+            Thread t = new Thread(r);
+            t.start();
+
         }
         else
         {
+            Runnable r = new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Thread.sleep(2000);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                setTuyaApplication();
+                                LinearLayout loginLayout = (LinearLayout) findViewById(R.id.login_layout);
+                                LinearLayout loadingLayout = (LinearLayout) findViewById(R.id.loading_layout);
+                                loadingLayout.setVisibility(View.GONE);
+                                loginLayout.setVisibility(View.VISIBLE);
+                                Hotels = (Spinner)findViewById(R.id.spinner);
+                                homes = (Spinner)findViewById(R.id.spinner2);
+                                password = (EditText) findViewById(R.id.editTextTextPersonName);
+                                HotelsList = new ArrayList<HOTEL>();
+                            }
+                        });
+
+
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            };
             Log.d("loginorocess" , "not logged");
-            setTuyaApplication();
-            LinearLayout loginLayout = (LinearLayout) findViewById(R.id.login_layout);
-            LinearLayout loadingLayout = (LinearLayout) findViewById(R.id.loading_layout);
-            loadingLayout.setVisibility(View.GONE);
-            loginLayout.setVisibility(View.VISIBLE);
-            Hotels = (Spinner)findViewById(R.id.spinner);
-            homes = (Spinner)findViewById(R.id.spinner2);
-            password = (EditText) findViewById(R.id.editTextTextPersonName);
-            HotelsList = new ArrayList<HOTEL>();
+            Thread t = new Thread(r);
+            t.start();
             //getHotels();
             /*Hotels.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override

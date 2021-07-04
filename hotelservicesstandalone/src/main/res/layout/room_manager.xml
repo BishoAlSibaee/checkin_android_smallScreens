@@ -5,6 +5,7 @@
     android:id="@+id/room_Ac"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/dark_gray"
     android:orientation="vertical"
     tools:context=".RoomManager">
 
@@ -16,7 +17,7 @@
         android:layout_marginEnd="10dp"
         android:padding="10dp"
         android:text="TextView"
-        android:textColor="@color/black"
+        android:textColor="@color/white"
         android:textSize="24sp" />
 
     <LinearLayout
@@ -28,6 +29,14 @@
         android:orientation="horizontal"
         android:padding="10dp">
 
+        <ImageView
+            android:id="@+id/imageView3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_weight="6"
+            app:srcCompat="@drawable/logo_android" />
+
         <TextView
             android:id="@+id/textView3"
             android:layout_width="match_parent"
@@ -37,7 +46,8 @@
             android:gravity="center"
             android:text="Current Devices"
             android:textColor="@color/white"
-            android:textSize="18sp" />
+            android:textSize="18sp"
+            android:visibility="gone" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -335,7 +345,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical" >
+            android:orientation="vertical">
 
             <LinearLayout
                 android:id="@+id/wifi_layout"

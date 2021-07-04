@@ -1,7 +1,9 @@
 package com.syriasoft.hotelservices.lock;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -26,6 +28,7 @@ import com.syriasoft.hotelservices.ROOM;
 import com.syriasoft.hotelservices.TUYA.Tuya_Login;
 import com.syriasoft.hotelservices.ToastMaker;
 import com.syriasoft.hotelservices.LoadingDialog;
+import com.syriasoft.hotelservices.messageDialog;
 import com.ttlock.bl.sdk.util.GsonUtil;
 
 import org.json.JSONArray;
@@ -46,14 +49,14 @@ import retrofit2.Callback;
 
 public class UserLockActivity extends AppCompatActivity {
 
-    private int pageNo = 1;
-    private int pageSize = 100;
-    private UserLockListAdapter mListApapter;
+    static int pageNo = 1;
+    static int pageSize = 100;
+    static UserLockListAdapter mListApapter;
     //ActivityUserLockBinding binding;
     static Activity act ;
     public static final String CLIENT_ID = "439063e312444f1f85050a52efcecd2e";
-    ArrayList<LockObj> lockObjs ;
-    RecyclerView locks ;
+    static ArrayList<LockObj> lockObjs ;
+    static RecyclerView locks ;
     public static LockObj myLock ;
     public static List<ROOM>  ROOMS ;
 
@@ -86,9 +89,9 @@ public class UserLockActivity extends AppCompatActivity {
         startActivity(i);
     }
 
-    private void lockList()
+    static void lockList()
     {
-        Dialog d = new Dialog(this);
+        Dialog d = new Dialog(act);
         d.setContentView(R.layout.loading_layout);
         d.setCancelable(false);
         d.show();
@@ -122,7 +125,7 @@ public class UserLockActivity extends AppCompatActivity {
                 }
                 else
                 {
-                    ToastMaker.MakeToast(json,act);
+                    //ToastMaker.MakeToast(json,act);
                 }
 
             }
@@ -131,7 +134,7 @@ public class UserLockActivity extends AppCompatActivity {
             public void onFailure(Call<String> call, Throwable t)
             {
                 d.dismiss();
-               ToastMaker.MakeToast(t.getMessage(),act);
+               //ToastMaker.MakeToast(t.getMessage(),act);
                 Calendar c = Calendar.getInstance(Locale.getDefault());
                 long time = c.getTimeInMillis();
                 ErrorRegister.rigestError(act ,LogIn.room.getProjectName(),LogIn.room.getRoomNumber(),time,007,t.getMessage(),"error Getting Locks List");
@@ -145,11 +148,11 @@ public class UserLockActivity extends AppCompatActivity {
         act.startActivity(i);
     }
 
-    void checkIfLockRegestired()
+    static void checkIfLockRegestired()
     {
         if (LogIn.room.getLockName().equals("0"))
         {
-            Toast.makeText(this,LogIn.room.getLockName(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(act,LogIn.room.getLockName(), Toast.LENGTH_SHORT).show();
         }
         else
         {
@@ -159,7 +162,7 @@ public class UserLockActivity extends AppCompatActivity {
                     if (LogIn.room.getLockName().equals(lockObjs.get(i).getLockName()))
                     {
                         myLock = lockObjs.get(i);
-                        Toast.makeText(this,"here "+ myLock.getLockName(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(act,"here "+ myLock.getLockName(), Toast.LENGTH_SHORT).show();
                         go();
                     }
                 }
@@ -170,12 +173,51 @@ public class UserLockActivity extends AppCompatActivity {
     {
         if (LogIn.room.getLockName().equals("0"))
         {
-            ToastMaker.MakeToast("Please Select Lock Or Intialize One",act);
+            AlertDialog.Builder builder = new AlertDialog.Builder(act);
+            builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                    Intent in = new Intent(act , Tuya_Login.class );
+                    startActivity(in);
+                }
+            });
+            builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                    com.syriasoft.hotelservices.messageDialog m = new messageDialog("Please Select Lock Or Initialize One","add Lock",act);
+                }
+            });
+            builder.setTitle("Lock .. ?");
+            builder.setMessage("Do you want to install Lock ..?");
+            builder.create();
+            builder.show();
+            //ToastMaker.MakeToast("Please Select Lock Or Intialize One",act);
         }
         else if (LogIn.room.getLockGateway().equals("0"))
         {
-            Intent in = new Intent(act , UserGatewayActivity.class );
-            startActivity(in);
+            AlertDialog.Builder builder = new AlertDialog.Builder(act);
+            builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                    Intent in = new Intent(act , Tuya_Login.class );
+                    startActivity(in);
+                }
+            });
+            builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                    Intent in = new Intent(act , UserGatewayActivity.class );
+                    startActivity(in);
+                }
+            });
+            builder.setTitle("GatWay .. ?");
+            builder.setMessage("Do you want to install Lock Gateway ..?");
+            builder.create();
+            builder.show();
         }
         else
         {

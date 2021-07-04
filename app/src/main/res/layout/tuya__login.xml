@@ -4,9 +4,16 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_margin="10dp"
+    android:background="@color/black_overlay"
     android:orientation="vertical"
+    android:padding="20dp"
     tools:context=".TUYA.Tuya_Login">
+
+    <ImageView
+        android:id="@+id/imageView25"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:srcCompat="@drawable/logo_android" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -15,14 +22,15 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical" >
+            android:orientation="vertical">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@android:color/darker_gray"
                 android:orientation="vertical"
-                android:padding="5dp">
+                android:padding="5dp"
+                android:visibility="gone">
 
                 <TextView
                     android:id="@+id/textView18"
@@ -84,7 +92,7 @@
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/family_Recycler"
                     android:layout_width="match_parent"
-                    android:layout_height="100dp"
+                    android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
                     android:background="@android:color/darker_gray">
 
@@ -92,10 +100,18 @@
 
             </LinearLayout>
 
+            <Button
+                android:id="@+id/button11"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:onClick="goToDeviceSearch"
+                android:text="Launch New Device" />
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="20dp"
                 android:orientation="vertical">
 
                 <TextView
@@ -104,7 +120,7 @@
                     android:layout_height="wrap_content"
                     android:background="@color/header_color"
                     android:padding="5dp"
-                    android:text="Add Hotel"
+                    android:text="Add New Hotel"
                     android:textColor="@color/colorAccent"
                     android:textSize="18sp" />
 
@@ -124,14 +140,6 @@
                     android:text="Add Hotel" />
 
             </LinearLayout>
-
-            <Button
-                android:id="@+id/button11"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:onClick="goToDeviceSearch"
-                android:text="Launch New Device" />
 
         </LinearLayout>
     </ScrollView>

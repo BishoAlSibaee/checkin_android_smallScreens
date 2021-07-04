@@ -1,6 +1,8 @@
 package com.syriasoft.hotelservices.lock;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -16,6 +18,7 @@ import com.syriasoft.hotelservices.R;
 import com.syriasoft.hotelservices.TUYA.Tuya_Login;
 import com.syriasoft.hotelservices.ToastMaker;
 import com.syriasoft.hotelservices.LoadingDialog;
+import com.syriasoft.hotelservices.messageDialog;
 import com.ttlock.bl.sdk.util.GsonUtil;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -123,7 +126,27 @@ public class UserGatewayActivity extends AppCompatActivity {
         }
         else if (LogIn.room.getLockGateway().equals("0"))
         {
-            ToastMaker.MakeToast("Please Select Gatway Or Intialize One",act);
+            AlertDialog.Builder builder = new AlertDialog.Builder(act);
+            builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                    Intent in = new Intent(act , Tuya_Login.class );
+                    startActivity(in);
+                }
+            });
+            builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                    com.syriasoft.hotelservices.messageDialog m = new messageDialog("Install Gatway","Please Select Gatway Or Intialize One",act);
+                }
+            });
+            builder.setTitle("Gateway .. ?");
+            builder.setMessage("Do you want to install Lock Gateway");
+            builder.create();
+            builder.show();
+            //ToastMaker.MakeToast("Please Select Gatway Or Intialize One",act);
         }
         else
         {

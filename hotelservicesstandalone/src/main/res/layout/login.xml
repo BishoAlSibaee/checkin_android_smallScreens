@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/dark_gray"
     android:orientation="vertical"
     tools:context=".Login">
 
@@ -21,7 +22,7 @@
             android:layout_width="match_parent"
             android:layout_height="100dp"
             android:layout_marginTop="100dp"
-            app:srcCompat="@drawable/logo" />
+            app:srcCompat="@drawable/logo_android" />
 
         <com.wang.avi.AVLoadingIndicatorView
             android:id="@+id/AVLoadingIndicatorView"

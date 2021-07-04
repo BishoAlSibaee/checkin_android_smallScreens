@@ -38,6 +38,7 @@ import com.syriasoft.hotelservices.R;
 import com.syriasoft.hotelservices.ROOM;
 import com.syriasoft.hotelservices.ToastMaker;
 import com.syriasoft.hotelservices.LoadingDialog;
+import com.syriasoft.hotelservices.messageDialog;
 import com.tuya.smart.android.hardware.bean.HgwBean;
 import com.tuya.smart.home.sdk.TuyaHomeSdk;
 import com.tuya.smart.home.sdk.api.IGwSearchListener;
@@ -84,13 +85,14 @@ public class Tuya_Devices extends AppCompatActivity {
     LoadingDialog dd ;
     LinearLayoutManager  ll;
     RecyclerView devices ;
-    public static DeviceBean ACbean , powerBean , zgatwayBean , zdeviceBean[] ;
+    public static DeviceBean CurrentGateway , ACbean , powerBean , zgatwayBean , zdeviceBean[] ;
     public static List<DeviceBean> zigbeeDevices ;
     Calendar ca = Calendar.getInstance(Locale.getDefault());
     Spinner DeviceType ;
     public static ROOM THEROOM ;
     ITuyaActivator mTuyaGWActivator ;
     ITuyaActivator mTuyaActivator ;
+    Device_List_Adapter adapter ;
 
 
 
@@ -178,25 +180,36 @@ public class Tuya_Devices extends AppCompatActivity {
     {
         if (DeviceType.getSelectedItem().toString() != null )
         {
-            LoadingDialog d = new LoadingDialog(act);
-            CurrentDevice.renameDevice(DeviceType.getSelectedItem().toString(), new IResultCallback() {
-                @Override
-                public void onError(String code, String error)
-                {
-                    // Renaming failed
-                    d.stop();
-                    ToastMaker.MakeToast(error , act);
-                    long time = ca.getTimeInMillis();
-                    ErrorRegister.rigestError(act,LogIn.room.getProjectName(),LogIn.room.getRoomNumber(),time,13,error,"error changing Device Name ");
-                }
-                @Override
-                public void onSuccess()
-                {
-                    // Renaming succeeded
-                    d.stop();
-                    ToastMaker.MakeToast("Name Changed Successfully" , act );
-                }
-            });
+            if (CurrentDevice == null && CurrentGateway != null ) {
+                CurrentGateway.setName(DeviceType.getSelectedItem().toString());
+                messageDialog d = new messageDialog("Rename Done" , "Rename Done Successfully" , act) ;
+                CurrentGateway = null ;
+            }
+            else if (CurrentDevice != null && CurrentGateway == null ) {
+                LoadingDialog d = new LoadingDialog(act);
+                CurrentDevice.renameDevice(DeviceType.getSelectedItem().toString(), new IResultCallback() {
+                    @Override
+                    public void onError(String code, String error)
+                    {
+                        // Renaming failed
+                        d.stop();
+                        ToastMaker.MakeToast(error , act);
+                        long time = ca.getTimeInMillis();
+                        ErrorRegister.rigestError(act,LogIn.room.getProjectName(),LogIn.room.getRoomNumber(),time,13,error,"error changing Device Name ");
+                    }
+                    @Override
+                    public void onSuccess()
+                    {
+                        // Renaming succeeded
+                        d.stop();
+                        ToastMaker.MakeToast("Name Changed Successfully" , act );
+                        CurrentDevice = null ;
+                    }
+                });
+            }
+            else if (CurrentGateway == null && CurrentDevice == null ) {
+                messageDialog d = new messageDialog("No Device " , "No Device Found To Rename" , act);
+            }
         }
         else
         {
@@ -225,6 +238,7 @@ public class Tuya_Devices extends AppCompatActivity {
                                                  @Override
                                                  public void onError(String errorCode, String errorMsg)
                                                  {
+                                                     d.stop();
                                                      long time = ca.getTimeInMillis();
                                                      ErrorRegister.rigestError(act,LogIn.room.getProjectName(),LogIn.room.getRoomNumber(),time,14,errorMsg,"error Searching Wire Zigbee Gateway");
                                                  }
@@ -233,7 +247,8 @@ public class Tuya_Devices extends AppCompatActivity {
                                                  public void onActiveSuccess(DeviceBean devResp)
                                                  {
                                                      d.stop();
-                                                    mgate = TuyaHomeSdk.newGatewayInstance(devResp.devId);
+                                                     CurrentGateway = devResp ;
+                                                     mgate = TuyaHomeSdk.newGatewayInstance(devResp.devId);
                                                      DeviceName.setText(devResp.getName());
                                                      Toast.makeText(act, "Device Saved", Toast.LENGTH_LONG).show();
                                                      renameLayout.setVisibility(View.VISIBLE);
@@ -242,7 +257,7 @@ public class Tuya_Devices extends AppCompatActivity {
 
                                                  @Override
                                                  public void onStep(String step, Object data) {
-
+                                                    d.stop();
                                                  }
                                              }
                                 ));
@@ -267,28 +282,32 @@ public class Tuya_Devices extends AppCompatActivity {
             public void onSuccess(HomeBean homeBean)
             {
                 loading.stop();
-                List<DeviceBean> lis = new ArrayList<DeviceBean>();
-                lis = homeBean.getDeviceList();
-                if (lis.size() == 0)
+                //TheDevicesList.clear();
+                List<DeviceBean> TheDevicesList = homeBean.getDeviceList();
+                adapter = new Device_List_Adapter(TheDevicesList);
+                devices.setLayoutManager(ll);
+                devices.setAdapter(adapter);
+                if (TheDevicesList.size() == 0)
                 {
                     ToastMaker.MakeToast("no devices" , act );
                 }
                 else
                 {
-                    for (int i=0;i<lis.size();i++)
+                    //ToastMaker.MakeToast(TheDevicesList.get(0).name,act);
+                    for (int i=0;i<TheDevicesList.size();i++)
                     {
-                        if (lis.get(i).getName().equals(LogIn.room.getRoomNumber()+"Power"))
+                        if (TheDevicesList.get(i).getName().equals(LogIn.room.getRoomNumber()+"Power"))
                         {
-                            powerBean = lis.get(i);
+                            powerBean = TheDevicesList.get(i);
                             mDevice = TuyaHomeSdk.newDeviceInstance(powerBean.devId);
                             THEROOM.setPOWER_B(powerBean);
                             THEROOM.setPOWER(TuyaHomeSdk.newDeviceInstance(powerBean.devId));
                             POWER.setText("YES");
                             POWER.setTextColor(Color.GREEN);
                         }
-                        else if (lis.get(i).getName().equals(LogIn.room.getRoomNumber()+"ZGatway"))
+                        else if (TheDevicesList.get(i).getName().equals(LogIn.room.getRoomNumber()+"ZGatway"))
                         {
-                            zgatwayBean = lis.get(i);
+                            zgatwayBean = TheDevicesList.get(i);
                             mgate = TuyaHomeSdk.newGatewayInstance(Tuya_Devices.zgatwayBean.devId);
                             GATEWAY.setText("YES");
                             GATEWAY.setTextColor(Color.GREEN);
@@ -367,9 +386,9 @@ public class Tuya_Devices extends AppCompatActivity {
                                 }
                             });
                         }
-                        else if(lis.get(i).getName().equals(LogIn.room.getRoomNumber()+"AC"))
+                        else if(TheDevicesList.get(i).getName().equals(LogIn.room.getRoomNumber()+"AC"))
                         {
-                            ACbean = lis.get(i);
+                            ACbean = TheDevicesList.get(i);
                             AC = TuyaHomeSdk.newDeviceInstance(Tuya_Devices.ACbean.devId);
                             THEROOM.setAC_B(ACbean);
                             THEROOM.setAC(TuyaHomeSdk.newDeviceInstance(Tuya_Devices.ACbean.devId));
@@ -384,10 +403,7 @@ public class Tuya_Devices extends AppCompatActivity {
                     }
                     else
                     {
-                        //ToastMaker.MakeToast(String.valueOf(lis.size()),act);
-                        Device_List_Adapter adapter = new Device_List_Adapter(lis);
-                        devices.setLayoutManager(ll);
-                        devices.setAdapter(adapter);
+                        adapter.notifyDataSetChanged();
                     }
 
                 }
@@ -405,6 +421,7 @@ public class Tuya_Devices extends AppCompatActivity {
 
     public void searchZDevice(View view)
     {
+        if (zgatwayBean.getDevId() != null ) {
         LoadingDialog d = new LoadingDialog(act);
         TuyaGwSubDevActivatorBuilder builder = new TuyaGwSubDevActivatorBuilder()
                 .setDevId(Tuya_Devices.zgatwayBean.devId)
@@ -440,9 +457,15 @@ public class Tuya_Devices extends AppCompatActivity {
                                  }
                              }
                 );
-        mTuyaGWActivator = TuyaHomeSdk.getActivatorInstance(). newGwSubDevActivator(builder);
+
+            mTuyaGWActivator = TuyaHomeSdk.getActivatorInstance(). newGwSubDevActivator(builder);
 // Start network configuration
-        mTuyaGWActivator.start();
+            mTuyaGWActivator.start();
+        }
+        else {
+            com.syriasoft.hotelservices.messageDialog d = new messageDialog("Install Gateway First","No Gatway Detected" ,act) ;
+        }
+
     }
 
     public void searchWifiNetworks(View view)
@@ -977,16 +1000,13 @@ public class Tuya_Devices extends AppCompatActivity {
         zigbeeDevices = new ArrayList<DeviceBean>();
         DeviceType = (Spinner) findViewById(R.id.spinner_devicetype);
         String [] Types = new String[]{LogIn.room.getRoomNumber()+"Power",LogIn.room.getRoomNumber()+"ZGatway",LogIn.room.getRoomNumber()+"AC",LogIn.room.getRoomNumber()+"DoorSensor",LogIn.room.getRoomNumber()+"MotionSensor",LogIn.room.getRoomNumber()+"Curtain",LogIn.room.getRoomNumber()+"ServiceSwitch",LogIn.room.getRoomNumber()+"Switch1",LogIn.room.getRoomNumber()+"Switch2",LogIn.room.getRoomNumber()+"Switch3",LogIn.room.getRoomNumber()+"Switch3",LogIn.room.getRoomNumber()+"Switch4"};
-        ArrayAdapter x =  new ArrayAdapter<String>(act ,android.R.layout.simple_spinner_item ,Types);
+        ArrayAdapter x =  new ArrayAdapter<String>(act ,R.layout.spinner_item ,Types);
         DeviceType.setAdapter(x);
     }
 
     public void doRename(View view)
     {
-        if (CurrentDevice != null)
-        {
             Rename();
-        }
     }
 
     class WifiReceiver extends BroadcastReceiver

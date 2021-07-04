@@ -6,6 +6,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -45,12 +46,17 @@ import com.ttlock.bl.sdk.entity.ControlLockResult;
 import com.ttlock.bl.sdk.entity.LockError;
 import com.ttlock.bl.sdk.util.DigitUtil;
 import com.ttlock.bl.sdk.util.GsonUtil;
+import com.tuya.smart.android.device.api.ITuyaDeviceMultiControl;
+import com.tuya.smart.android.device.bean.MultiControlBean;
+import com.tuya.smart.android.device.bean.MultiControlLinkBean;
 import com.tuya.smart.home.sdk.TuyaHomeSdk;
 import com.tuya.smart.home.sdk.bean.HomeBean;
 import com.tuya.smart.home.sdk.callback.ITuyaHomeResultCallback;
+import com.tuya.smart.home.sdk.callback.ITuyaResultCallback;
 import com.tuya.smart.sdk.api.IDeviceListener;
 import com.tuya.smart.sdk.api.INeedLoginListener;
 import com.tuya.smart.sdk.api.IResultCallback;
+import com.tuya.smart.sdk.api.ITuyaDataCallback;
 import com.tuya.smart.sdk.bean.DeviceBean;
 
 import org.json.JSONArray;
@@ -63,6 +69,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Random;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -73,6 +80,7 @@ public class Rooms extends AppCompatActivity
     private ListView devicesListView , roomsListView ;
     static List<ROOM> list ;
     private String getRoomsUrl = Login.SelectedHotel.URL+"getAllRooms.php" ;
+    private String getUnregisteredRooms = Login.SelectedHotel.URL+"getAllUnregisteredRooms.php" ;
     private Activity act = this ;
     private ListView  RoomsRecycler ;
     static ArrayList<LockObj> Locks ;
@@ -95,6 +103,7 @@ public class Rooms extends AppCompatActivity
     private long[] start , period , DoorStart , DoorPeriod ;
     private String[] ClientTemp , TempSetPoint ;
     private Rooms_Adapter_Base adapter ;
+    ITuyaDeviceMultiControl iTuyaDeviceMultiControl ;
 
 
     @Override
@@ -130,13 +139,14 @@ public class Rooms extends AppCompatActivity
         devicesListView = (ListView) findViewById(R.id.DevicesListView);
         database = FirebaseDatabase.getInstance("https://hotelservices-ebe66.firebaseio.com/");
         FireRooms = new ArrayList<DatabaseReference>();
+        iTuyaDeviceMultiControl = TuyaHomeSdk.getDeviceMultiControlInstance();
     }
 
     private void getRooms()
     {
 
         final lodingDialog loading = new lodingDialog(act);
-        StringRequest re = new StringRequest(Request.Method.POST, getRoomsUrl, new Response.Listener<String>()
+        StringRequest re = new StringRequest(Request.Method.POST, getUnregisteredRooms, new Response.Listener<String>()
         {
             @Override
             public void onResponse(String response)
@@ -476,13 +486,12 @@ public class Rooms extends AppCompatActivity
                                 {
                                     list.get(j).setGATEWAY(TuyaHomeSdk.newDeviceInstance(list.get(j).getGATEWAY_B().devId));
                                     list.get(j).setWiredZBGateway(TuyaHomeSdk.newGatewayInstance(list.get(j).getGATEWAY_B().devId));
+                                    setZBGatewayStatus(list.get(j),"1");
                                 }
                                 catch (Exception e)
                                 {
 
                                 }
-
-
                             }
                             else if (Devices.get(i).getName().equals(list.get(j).RoomNumber+"AC"))
                             {
@@ -542,6 +551,11 @@ public class Rooms extends AppCompatActivity
                             {
                                 UnRecognizedDevices_B.add(Devices.get(i));
                             }
+
+                            setSwitch1DB1(list.get(j));
+                            setSwitch1DB2(list.get(j));
+                            setSwitch1DB3(list.get(j));
+                            setSwitch1DB4(list.get(j));
                         }
                     }
                     if (UnRecognizedDevices_B.size() > 0 )
@@ -2493,6 +2507,455 @@ public class Rooms extends AppCompatActivity
         }
         catch (Exception e)
         {
+
+        }
+    }
+
+    void setZBGatewayStatus(ROOM Room , String status)
+    {
+        try
+        {
+            lodingDialog loading = new lodingDialog(act);
+            String url = Login.SelectedHotel.URL+"setGatewayStatusValue.php";
+            StringRequest tabR = new StringRequest(Request.Method.POST, url, new Response.Listener<String>()
+            {
+                @Override
+                public void onResponse(String response)
+                {
+                    loading.stop();
+                    if (response.equals("1"))
+                    {
+                        for (int i=0; i<list.size();i++){
+                             if (list.get(i).RoomNumber == Room.RoomNumber) {
+                                 list.get(i).ZBGateway = 1 ;
+                                 FireRooms.get(i).child("ZBGateway").setValue("1");
+                             }
+                        }
+                    }
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error)
+                {
+                    loading.stop();
+                    //ToastMaker.MakeToast(error.getMessage() , act);
+                    //Log.e("Tablet" , error.getMessage() );
+                }
+            })
+            {
+                @Override
+                protected Map<String, String> getParams() throws AuthFailureError
+                {
+                    Map<String,String> Params = new HashMap<String,String>();
+                    Params.put("room", String.valueOf(Room.RoomNumber));
+                    Params.put("id",String.valueOf(Room.id) );
+                    Params.put("value" , status);
+                    return Params;
+                }
+            };
+            Volley.newRequestQueue(act).add(tabR);
+        }
+        catch (Exception e)
+        {
+
+        }
+    }
+
+
+    void setSwitch1DB1(ROOM THEROOM){
+        if (THEROOM.getSWITCH1_B() != null && THEROOM.getSWITCH2_B() != null) {
+
+            iTuyaDeviceMultiControl.queryLinkInfoByDp(THEROOM.getSWITCH1_B().devId, "1", new ITuyaDataCallback<MultiControlLinkBean>() {
+                @Override
+                public void onSuccess(MultiControlLinkBean result) {
+
+                    if (result.getMultiGroup() == null )
+                    {
+                        Log.d("S1D1RES " , "null");
+                        iTuyaDeviceMultiControl.queryLinkInfoByDp(THEROOM.getSWITCH2_B().devId, "1", new ITuyaDataCallback<MultiControlLinkBean>() {
+                            @Override
+                            public void onSuccess(MultiControlLinkBean result) {
+
+                                if (result.getMultiGroup() == null ){
+                                    Log.d("S2D1RES" , "null");
+                                    Random r = new Random();
+                                    int x = r.nextInt(30);
+                                    JSONObject groupdetailes1 = new JSONObject(), groupdetailes2 = new JSONObject();
+                                    try {
+                                        groupdetailes1.put("devId", THEROOM.getSWITCH1_B().devId);
+                                        groupdetailes1.put("dpId", 1);
+                                        groupdetailes1.put("id", x);
+                                        groupdetailes1.put("enable", true);
+
+                                    } catch (JSONException e) {
+                                    }
+                                    try {
+                                        groupdetailes2.put("devId", THEROOM.getSWITCH2_B().devId);
+                                        groupdetailes2.put("dpId", 1);
+                                        groupdetailes2.put("id", x);
+                                        groupdetailes2.put("enable", true);
+
+                                    } catch (JSONException e) {
+                                    }
+                                    JSONArray arr = new JSONArray();
+                                    arr.put(groupdetailes2);
+                                    arr.put(groupdetailes1);
+                                    JSONObject multiControlBean = new JSONObject();
+                                    try {
+                                        multiControlBean.put("groupName", THEROOM.RoomNumber + "Lighting" + x);
+                                        multiControlBean.put("groupType", 1);
+                                        multiControlBean.put("groupDetail", arr);
+                                        multiControlBean.put("id", x);
+                                    } catch (JSONException e) {
+
+                                    }
+                                    iTuyaDeviceMultiControl.saveDeviceMultiControl(Login.THEHOME.getHomeId(), multiControlBean.toString(), new ITuyaResultCallback<MultiControlBean>() {
+                                        @Override
+                                        public void onSuccess(MultiControlBean result) {
+                                            //ToastUtil.shortToast(mContext,"success");
+                                            Log.d("switch1Dp1", result.getGroupName());
+                                            iTuyaDeviceMultiControl.enableMultiControl(x, new ITuyaResultCallback<Boolean>() {
+                                                @Override
+                                                public void onSuccess(Boolean result) {
+                                                    //ToastUtil.shortToast(mContext,"success");
+                                                    Log.d("switch1Dp1", result.toString());
+                                                }
+
+                                                @Override
+                                                public void onError(String errorCode, String errorMessage) {
+                                                    //ToastUtil.shortToast(mContext,errorMessage);
+                                                    Log.d("switch1Dp1", errorMessage);
+                                                }
+                                            });
+                                        }
+
+                                        @Override
+                                        public void onError(String errorCode, String errorMessage) {
+                                            //ToastUtil.shortToast(mContext,errorMessage);
+                                            Log.d("switch1Dp1", errorMessage + "here "+x);
+                                        }
+                                    });
+                                }
+                                else
+                                {
+                                    Log.d("S2D1RES " , result.getMultiGroup().getGroupName());
+                                }
+                            }
+
+                            @Override
+                            public void onError(String errorCode, String errorMessage) {
+
+                            }
+                        });
+                    }
+                    else
+                    {
+                        Log.d("S1D1RES " , result.getMultiGroup().getGroupName());
+                    }
+                }
+
+                @Override
+                public void onError(String errorCode, String errorMessage) {
+
+                }
+            });
+
+
+        }
+    }
+    void setSwitch1DB2(ROOM THEROOM){
+        if (THEROOM.getSWITCH1_B() != null && THEROOM.getSWITCH2_B() != null) {
+
+            iTuyaDeviceMultiControl.queryLinkInfoByDp(THEROOM.getSWITCH1_B().devId, "2", new ITuyaDataCallback<MultiControlLinkBean>() {
+                @Override
+                public void onSuccess(MultiControlLinkBean result) {
+
+                    if (result.getMultiGroup() == null ){
+                        Log.d("S1D2RES " , "null");
+                        iTuyaDeviceMultiControl.queryLinkInfoByDp(THEROOM.getSWITCH2_B().devId, "2", new ITuyaDataCallback<MultiControlLinkBean>() {
+                            @Override
+                            public void onSuccess(MultiControlLinkBean result) {
+
+                                if (result.getMultiGroup() == null ){
+                                    Log.d("S2D2RES " , "null");
+                                    Random r = new Random();
+                                    int y = r.nextInt(30);
+                                    JSONObject groupdetailes1 = new JSONObject(), groupdetailes2 = new JSONObject();
+                                    try {
+                                        groupdetailes1.put("devId", THEROOM.getSWITCH1_B().devId);
+                                        groupdetailes1.put("dpId", 2);
+                                        groupdetailes1.put("id", y);
+                                        groupdetailes1.put("enable", true);
+
+                                    } catch (JSONException e) {
+                                    }
+                                    try {
+                                        groupdetailes2.put("devId", THEROOM.getSWITCH2_B().devId);
+                                        groupdetailes2.put("dpId", 2);
+                                        groupdetailes2.put("id", y);
+                                        groupdetailes2.put("enable", true);
+
+                                    } catch (JSONException e) {
+                                    }
+                                    JSONArray arr = new JSONArray();
+                                    arr.put(groupdetailes2);
+                                    arr.put(groupdetailes1);
+                                    JSONObject multiControlBean = new JSONObject();
+                                    try {
+                                        multiControlBean.put("groupName", THEROOM.RoomNumber + "Lighting" + y);
+                                        multiControlBean.put("groupType", 2);
+                                        multiControlBean.put("groupDetail", arr);
+                                        multiControlBean.put("id", y);
+                                    } catch (JSONException e) {
+
+                                    }
+                                    iTuyaDeviceMultiControl.saveDeviceMultiControl(Login.THEHOME.getHomeId(), multiControlBean.toString(), new ITuyaResultCallback<MultiControlBean>() {
+                                        @Override
+                                        public void onSuccess(MultiControlBean result) {
+                                            //ToastUtil.shortToast(mContext,"success");
+                                            Log.d("switch1DeviceDp2", result.getGroupName());
+                                            iTuyaDeviceMultiControl.enableMultiControl(y, new ITuyaResultCallback<Boolean>() {
+                                                @Override
+                                                public void onSuccess(Boolean result) {
+                                                    //ToastUtil.shortToast(mContext,"success");
+                                                    Log.d("switch1DeviceDp2", result.toString());
+                                                }
+
+                                                @Override
+                                                public void onError(String errorCode, String errorMessage) {
+                                                    //ToastUtil.shortToast(mContext,errorMessage);
+                                                    Log.d("switch1DeviceDp2", errorMessage);
+                                                }
+                                            });
+                                        }
+
+                                        @Override
+                                        public void onError(String errorCode, String errorMessage) {
+                                            //ToastUtil.shortToast(mContext,errorMessage);
+                                            Log.d("switch1DeviceDp2", errorMessage+" "+y);
+                                        }
+                                    });
+                                }
+                                else
+                                {
+                                    Log.d("S2D2RES " , result.getMultiGroup().getGroupName());
+                                }
+                            }
+
+                            @Override
+                            public void onError(String errorCode, String errorMessage) {
+
+                            }
+                        });
+                    }
+                    else
+                    {
+                        Log.d("S1D2RES " , result.getMultiGroup().getGroupName());
+                    }
+                }
+
+                @Override
+                public void onError(String errorCode, String errorMessage) {
+
+                }
+            });
+
+        }
+    }
+    void setSwitch1DB3(ROOM THEROOM){
+        if (THEROOM.getSWITCH1_B() != null && THEROOM.getSWITCH2_B() != null) {
+
+            iTuyaDeviceMultiControl.queryLinkInfoByDp(THEROOM.getSWITCH1_B().devId, "3", new ITuyaDataCallback<MultiControlLinkBean>() {
+                @Override
+                public void onSuccess(MultiControlLinkBean result) {
+
+                    if (result.getMultiGroup() == null ){
+                        Log.d("S1D3RES " , "null");
+                        iTuyaDeviceMultiControl.queryLinkInfoByDp(THEROOM.getSWITCH2_B().devId, "3", new ITuyaDataCallback<MultiControlLinkBean>() {
+                            @Override
+                            public void onSuccess(MultiControlLinkBean result) {
+
+                                if (result.getMultiGroup() == null ){
+                                    Log.d("S2D3RES " , "null");
+                                    Random r = new Random();
+                                    int x = r.nextInt(30);
+                                    JSONObject groupdetailes1 = new JSONObject(), groupdetailes2 = new JSONObject();
+                                    try {
+                                        groupdetailes1.put("devId", THEROOM.getSWITCH1_B().devId);
+                                        groupdetailes1.put("dpId", 3);
+                                        groupdetailes1.put("id", x);
+                                        groupdetailes1.put("enable", true);
+
+                                    } catch (JSONException e) {
+                                    }
+                                    try {
+                                        groupdetailes2.put("devId", THEROOM.getSWITCH2_B().devId);
+                                        groupdetailes2.put("dpId", 3);
+                                        groupdetailes2.put("id", x);
+                                        groupdetailes2.put("enable", true);
+
+                                    } catch (JSONException e) {
+                                    }
+                                    JSONArray arr = new JSONArray();
+                                    arr.put(groupdetailes2);
+                                    arr.put(groupdetailes1);
+                                    JSONObject multiControlBean = new JSONObject();
+                                    try {
+                                        multiControlBean.put("groupName", THEROOM.RoomNumber + "Lighting" + x);
+                                        multiControlBean.put("groupType", 3);
+                                        multiControlBean.put("groupDetail", arr);
+                                        multiControlBean.put("id", x);
+                                    } catch (JSONException e) {
+
+                                    }
+                                    iTuyaDeviceMultiControl.saveDeviceMultiControl(Login.THEHOME.getHomeId(), multiControlBean.toString(), new ITuyaResultCallback<MultiControlBean>() {
+                                        @Override
+                                        public void onSuccess(MultiControlBean result) {
+                                            //ToastUtil.shortToast(mContext,"success");
+                                            Log.d("switch1DeviceDp3", result.getGroupName());
+                                            iTuyaDeviceMultiControl.enableMultiControl(x, new ITuyaResultCallback<Boolean>() {
+                                                @Override
+                                                public void onSuccess(Boolean result) {
+                                                    //ToastUtil.shortToast(mContext,"success");
+                                                    Log.d("switch1DeviceDp3", result.toString());
+                                                }
+
+                                                @Override
+                                                public void onError(String errorCode, String errorMessage) {
+                                                    //ToastUtil.shortToast(mContext,errorMessage);
+                                                    Log.d("switch1DeviceDp3", errorMessage);
+                                                }
+                                            });
+                                        }
+
+                                        @Override
+                                        public void onError(String errorCode, String errorMessage) {
+                                            //ToastUtil.shortToast(mContext,errorMessage);
+                                            Log.d("switch1DeviceDp3", errorMessage+" "+x);
+                                        }
+                                    });
+                                }
+                                else
+                                {
+                                    Log.d("S2D3RES " , result.getMultiGroup().getGroupName());
+                                }
+                            }
+
+                            @Override
+                            public void onError(String errorCode, String errorMessage) {
+
+                            }
+                        });
+                    }
+                    else
+                    {
+                        Log.d("S1D3RES " , result.getMultiGroup().getGroupName());
+                    }
+                }
+
+                @Override
+                public void onError(String errorCode, String errorMessage) {
+
+                }
+            });
+
+        }
+    }
+    void setSwitch1DB4(ROOM THEROOM){
+        if (THEROOM.getSWITCH1_B() != null && THEROOM.getSWITCH2_B() != null) {
+            iTuyaDeviceMultiControl.queryLinkInfoByDp(THEROOM.getSWITCH1_B().devId, "4", new ITuyaDataCallback<MultiControlLinkBean>() {
+                @Override
+                public void onSuccess(MultiControlLinkBean result) {
+
+                    if (result.getMultiGroup() == null ){
+                        Log.d("S1D4RES " , "null");
+                        iTuyaDeviceMultiControl.queryLinkInfoByDp(THEROOM.getSWITCH2_B().devId, "4", new ITuyaDataCallback<MultiControlLinkBean>() {
+                            @Override
+                            public void onSuccess(MultiControlLinkBean result) {
+
+                                if (result.getMultiGroup() == null ){
+                                    Log.d("S2D4RES " , "null");
+                                    Random r = new Random();
+                                    int x = r.nextInt(30);
+                                    JSONObject groupdetailes1 = new JSONObject(), groupdetailes2 = new JSONObject();
+                                    try {
+                                        groupdetailes1.put("devId", THEROOM.getSWITCH1_B().devId);
+                                        groupdetailes1.put("dpId", 4);
+                                        groupdetailes1.put("id", x);
+                                        groupdetailes1.put("enable", true);
+
+                                    } catch (JSONException e) {
+                                    }
+                                    try {
+                                        groupdetailes2.put("devId", THEROOM.getSWITCH2_B().devId);
+                                        groupdetailes2.put("dpId", 4);
+                                        groupdetailes2.put("id", x);
+                                        groupdetailes2.put("enable", true);
+
+                                    } catch (JSONException e) {
+                                    }
+                                    JSONArray arr = new JSONArray();
+                                    arr.put(groupdetailes2);
+                                    arr.put(groupdetailes1);
+                                    JSONObject multiControlBean = new JSONObject();
+                                    try {
+                                        multiControlBean.put("groupName", THEROOM.RoomNumber + "Lighting" + x);
+                                        multiControlBean.put("groupType", 4);
+                                        multiControlBean.put("groupDetail", arr);
+                                        multiControlBean.put("id", x);
+                                    } catch (JSONException e) {
+
+                                    }
+                                    iTuyaDeviceMultiControl.saveDeviceMultiControl(Login.THEHOME.getHomeId(), multiControlBean.toString(), new ITuyaResultCallback<MultiControlBean>() {
+                                        @Override
+                                        public void onSuccess(MultiControlBean result) {
+                                            //ToastUtil.shortToast(mContext,"success");
+                                            Log.d("switch1DeviceDp4", result.getGroupName());
+                                            iTuyaDeviceMultiControl.enableMultiControl(x, new ITuyaResultCallback<Boolean>() {
+                                                @Override
+                                                public void onSuccess(Boolean result) {
+                                                    //ToastUtil.shortToast(mContext,"success");
+                                                    Log.d("switch1DeviceDp4", result.toString());
+                                                }
+
+                                                @Override
+                                                public void onError(String errorCode, String errorMessage) {
+                                                    //ToastUtil.shortToast(mContext,errorMessage);
+                                                    Log.d("switch1DeviceDp4", errorMessage);
+                                                }
+                                            });
+                                        }
+
+                                        @Override
+                                        public void onError(String errorCode, String errorMessage) {
+                                            //ToastUtil.shortToast(mContext,errorMessage);
+                                            Log.d("switch1DeviceDp4", errorMessage+" "+x);
+                                        }
+                                    });
+                                }
+                                else
+                                {
+                                    Log.d("S2D4RES " , result.getMultiGroup().getGroupName());
+                                }
+                            }
+
+                            @Override
+                            public void onError(String errorCode, String errorMessage) {
+
+                            }
+                        });
+                    }
+                    else
+                    {
+                        Log.d("S1D4RES " , result.getMultiGroup().getGroupName());
+                    }
+                }
+
+                @Override
+                public void onError(String errorCode, String errorMessage) {
+
+                }
+            });
 
         }
     }

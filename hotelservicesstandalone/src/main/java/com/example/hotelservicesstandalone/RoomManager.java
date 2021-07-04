@@ -1770,31 +1770,35 @@ public class RoomManager extends AppCompatActivity
                     .setListener(new ITuyaSmartActivatorListener() {
 
                                      @Override
-                                     public void onError(String errorCode, String errorMsg)
-                                     {
+                                     public void onError(String errorCode, String errorMsg) {
                                          d.stop();
                                          mTuyaGWActivator.stop();
+                                         Log.d("ZBdeviceSearch" , "errm "+errorMsg +"errc "+errorCode);
+                                         Toast.makeText(act,errorMsg,Toast.LENGTH_LONG).show();
                                      }
 
                                      @Override
-                                     public void onActiveSuccess(DeviceBean devResp)
-                                     {
+                                     public void onActiveSuccess(DeviceBean devResp) {
                                          d.stop();
                                          FOUND = devResp ;
                                          FOUNDD = TuyaHomeSdk.newDeviceInstance(devResp.getDevId());
                                          Toast.makeText(act,"Device Saved" , Toast.LENGTH_LONG).show();
                                          foundZbeeDevice.setText(devResp.getName());
                                          mTuyaGWActivator.stop();
+                                         Log.d("ZBdeviceSearch" , devResp.name);
                                      }
 
                                      @Override
-                                     public void onStep(String step, Object data)
-                                     {
+                                     public void onStep(String step, Object data) {
                                          d.stop();
                                          mTuyaGWActivator.stop();
+                                         Log.d("ZBdeviceSearch" , "step "+step);
+                                         Toast.makeText(act,"Old Device",Toast.LENGTH_LONG).show();
                                      }
                                  }
                     );
+
+
             mTuyaGWActivator = TuyaHomeSdk.getActivatorInstance(). newGwSubDevActivator(builder);
 // Start network configuration
             mTuyaGWActivator.start();
@@ -1805,13 +1809,15 @@ public class RoomManager extends AppCompatActivity
             lodingDialog d = new lodingDialog(act);
             TuyaGwSubDevActivatorBuilder builder = new TuyaGwSubDevActivatorBuilder()
                     .setDevId(Room.getGATEWAY_B().devId)
-                    .setTimeOut(100)
+                    .setTimeOut(150)
                     .setListener(new ITuyaSmartActivatorListener() {
 
                                      @Override
                                      public void onError(String errorCode, String errorMsg)
                                      {
                                          d.stop();
+                                         mTuyaGWActivator.stop();
+                                         Log.d("ZBdeviceSearch" , "errm "+errorMsg +" errc "+errorCode);
                                      }
 
                                      @Override
@@ -1822,12 +1828,16 @@ public class RoomManager extends AppCompatActivity
                                          FOUNDD = TuyaHomeSdk.newDeviceInstance(devResp.getDevId());
                                          Toast.makeText(act,"Device Saved" , Toast.LENGTH_LONG).show();
                                          foundZbeeDevice.setText(devResp.getName());
+                                         mTuyaGWActivator.stop();
+                                         Log.d("ZBdeviceSearch" , devResp.name);
                                      }
 
                                      @Override
                                      public void onStep(String step, Object data)
                                      {
                                          d.stop();
+                                         mTuyaGWActivator.stop();
+                                         Log.d("ZBdeviceSearch" , "step "+step);
                                      }
                                  }
                     );
@@ -1936,18 +1946,17 @@ public class RoomManager extends AppCompatActivity
             @Override
             public void onDevFind(HgwBean hgwBean)
             {
-                d.stop();
-                Log.e("wiregateway" , "id "+hgwBean.gwId);
+
+                Log.e("wiregateway" , "id "+hgwBean.gwId + " " +Login.THEHOME.getName() );
                 TuyaHomeSdk.getActivatorInstance().getActivatorToken(Login.THEHOME.getHomeId(), new ITuyaActivatorGetToken() {
                     @Override
                     public void onSuccess(String token)
                     {
                         Token = token ;
                         Log.e("wiregateway" , "token "+Token);
-                        mITuyaActivator = TuyaHomeSdk.getActivatorInstance().newGwActivator(
-                                new TuyaGwActivatorBuilder()
+                                TuyaGwActivatorBuilder builder = new TuyaGwActivatorBuilder()
                                         .setToken(Token)
-                                        .setTimeOut(100)
+                                        .setTimeOut(200)
                                         .setContext(act)
                                         .setHgwBean(hgwBean)
                                         .setListener(new ITuyaSmartActivatorListener() {
@@ -1956,34 +1965,38 @@ public class RoomManager extends AppCompatActivity
                                                          public void onError(String errorCode, String errorMsg)
                                                          {
                                                              d.stop();
-                                                             Log.e("wiregateway" , "error "+errorMsg);
+                                                             Log.e("wiregateway" , "error "+errorMsg+" "+errorCode);
                                                              //long time = ca.getTimeInMillis();
                                                              //ErrorRegister.rigestError(act,LogIn.room.getProjectName(),LogIn.room.getRoomNumber(),time,14,errorMsg,"error Searching Wire Zigbee Gateway");
                                                              mITuyaActivator.stop();
+                                                             Toast.makeText(act,errorMsg,Toast.LENGTH_LONG).show();
                                                          }
 
                                                          @Override
                                                          public void onActiveSuccess(DeviceBean devResp)
                                                          {
                                                              Log.e("wiregateway" ,"name "+ devResp.name);
-                                                             //d.stop();
+                                                             d.stop();
                                                              FOUND = devResp ;
                                                              FOUNDG = TuyaHomeSdk.newGatewayInstance(devResp.devId);
                                                              foundwireZbGateway.setText(FOUND.getName());
                                                              //foundwireZbGateway.setTextColor(Color.GREEN);
                                                              wirezbGatewayNewName.setText(Room.RoomNumber+"ZGatway");
                                                              mITuyaActivator.stop();
+                                                             Toast.makeText(act,"Gateway Found",Toast.LENGTH_LONG).show();
                                                          }
 
                                                          @Override
                                                          public void onStep(String step, Object data)
                                                          {
-                                                             Log.e("wiregateway" , "step "+step);
+                                                             d.stop();
+                                                             Log.e("wiregateway" , "step "+step+ " "+data.toString());
                                                              mITuyaActivator.stop();
+                                                             Toast.makeText(act,"old gateway",Toast.LENGTH_LONG).show();
                                                          }
-                                                     }
-                                        ));
+                                                     });
 
+                        mITuyaActivator = TuyaHomeSdk.getActivatorInstance().newGwActivator(builder);
                         mITuyaActivator.start() ;
                     }
                     @Override
@@ -1991,7 +2004,6 @@ public class RoomManager extends AppCompatActivity
                         Log.e("wiregateway" , errorMsg);
                     }
                 });
-
             }
         });
     }

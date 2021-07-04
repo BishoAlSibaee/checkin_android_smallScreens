@@ -4,7 +4,7 @@
     android:layout_height="wrap_content"
     android:background="@color/gray"
     android:orientation="vertical"
-    android:padding="10dp">
+    android:padding="30dp">
 
     <TextView
         android:id="@+id/messageDialog_title"

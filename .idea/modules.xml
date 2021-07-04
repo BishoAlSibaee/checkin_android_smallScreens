@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Checkin_android_P0001.iml" filepath="$PROJECT_DIR$/.idea/modules/Checkin_android_P0001.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/Checkin_android_P0001.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/Checkin_android_P0001.app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/cleanup/Checkin_android_P0001.cleanup.iml" filepath="$PROJECT_DIR$/.idea/modules/cleanup/Checkin_android_P0001.cleanup.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/hotelservicesstandalone/Checkin_android_P0001.hotelservicesstandalone.iml" filepath="$PROJECT_DIR$/.idea/modules/hotelservicesstandalone/Checkin_android_P0001.hotelservicesstandalone.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/laundryscreen/Checkin_android_P0001.laundryscreen.iml" filepath="$PROJECT_DIR$/.idea/modules/laundryscreen/Checkin_android_P0001.laundryscreen.iml" />
+    </modules>
+  </component>
+</project>

@@ -21,12 +21,17 @@ import com.syriasoft.hotelservices.LogIn;
 import com.syriasoft.hotelservices.R;
 import com.syriasoft.hotelservices.ToastMaker;
 import com.syriasoft.hotelservices.LoadingDialog;
+import com.syriasoft.hotelservices.messageDialog;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
-;
+;import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
 
 /**
  * Created on  2019/4/12 0012 14:19
@@ -148,6 +153,47 @@ public class UserLockListAdapter extends  RecyclerView.Adapter<UserLockListAdapt
                     ToastMaker.MakeToast("this Lock is already Taken For Another Room" , _holder.itemView.getContext());
                 }
 
+            }
+        });
+
+        _holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(_holder.itemView.getContext());
+                builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+                builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Calendar c = Calendar.getInstance(Locale.getDefault());
+                        ApiService apiService = RetrofitAPIManager.provideClientApi();
+                        Call<ResponseBody> call = apiService.deleteLock(ApiService.CLIENT_ID,LogIn.acc.getAccess_token(),mDataList.get(position).getLockId(),c.getTimeInMillis());
+                        call.enqueue(new Callback<ResponseBody>() {
+                            @Override
+                            public void onResponse(Call<ResponseBody> call, retrofit2.Response<ResponseBody> response) {
+                                Log.d("deleteLockResponse" , response.message()+" "+response.isSuccessful());
+                                com.syriasoft.hotelservices.messageDialog m = new messageDialog("Lock Deleted","Lock Deleted",_holder.itemView.getContext());
+                                UserLockActivity.lockList();
+                                dialog.dismiss();
+                            }
+
+                            @Override
+                            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                                Log.d("deleteLockResponse" , t.getMessage() );
+                                com.syriasoft.hotelservices.messageDialog m = new messageDialog("Error .. ","Lock Can not delete",_holder.itemView.getContext());
+                            }
+                        });
+                    }
+                });
+                builder.setTitle("Delete Lock ..?");
+                builder.setMessage("Are you sure to delete " + mDataList.get(position).getLockName()+" ..?");
+                builder.create();
+                builder.show();
+                return false;
             }
         });
     }
