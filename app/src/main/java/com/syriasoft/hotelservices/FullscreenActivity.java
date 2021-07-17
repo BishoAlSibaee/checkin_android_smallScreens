@@ -9,6 +9,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Color;
+import android.media.AudioAttributes;
+import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -16,6 +18,7 @@ import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -99,11 +102,13 @@ public class FullscreenActivity extends AppCompatActivity {
     private static String insertServiceOrderUrl = LogIn.URL+"insertServiceOrder.php";
     private static String removeServiceOrderUrl = LogIn.URL+"removeServiceOrder.php";
     private static String roomServiceOrderUrl = LogIn.URL+"insertRoomServiceOrder.php";
+    private String getServiceEmpsUrl = LogIn.URL+"getServiceEmps.php";
+    private String LogInUrl = LogIn.URL+"logInToHotel.php";
     final String TAG = "NOTIFICATION TAG";
     static Button  GymBtn , curtainBtn ;
     static long  laundryOrderId , cleanupOrderId , roomServiceOrderId , sosId = 0 , checkOutId , dndId = 0 ;
     private FirebaseDatabase database ;
-    static public DatabaseReference  myRefLogo,myRefCheckOutDuration,myRefCheckInDuration, myRefDoorWarning,myRefSetpointInterval,myRefSetpoint,myRefFacility,myRefRoomServiceText,myRefServiceSwitch,myRefPowerSwitch, myRefId, myRefRorS,myRefTemp,myRefdep,myRefStatus,myRefReservation ,myRefPower ,myRefCurtain , myRefDoor ,myRefRoomStatus , Room , myRefDND, myRefTabStatus, myRefLaundry , myRefCleanup , myRefRoomService , myRefSos , myRefRestaurant , myRefGym , myRefCheckout ,myRefDoorSensor,myRefMotionSensor,myRefCurtainSwitch,myRefSwitch1,myRefSwitch2,myRefSwitch3,myRefSwitch4,myRefThermostat,myRefLock;
+    static public DatabaseReference  ServiceUsers,myRefLogo,myRefCheckOutDuration,myRefCheckInDuration, myRefDoorWarning,myRefSetpointInterval,myRefSetpoint,myRefFacility,myRefRoomServiceText,myRefServiceSwitch,myRefPowerSwitch, myRefId, myRefRorS,myRefTemp,myRefdep,myRefStatus,myRefReservation ,myRefPower ,myRefCurtain , myRefDoor ,myRefRoomStatus , Room , myRefDND, myRefTabStatus, myRefLaundry , myRefCleanup , myRefRoomService , myRefSos , myRefRestaurant , myRefGym , myRefCheckout ,myRefDoorSensor,myRefMotionSensor,myRefCurtainSwitch,myRefSwitch1,myRefSwitch2,myRefSwitch3,myRefSwitch4,myRefThermostat,myRefLock;
     static boolean DNDStatus = false , LaundryStatus , CleanupStatus , RoomServiceStatus , SosStatus , RestaurantStatus , GymStatus = false , CheckoutStatus = false;
     static String roomServiceOrder ="";
     TextView time , date;
@@ -141,7 +146,7 @@ public class FullscreenActivity extends AppCompatActivity {
     static List<Activity> RestaurantActivities ;
     static ImageView laundryImage , laundryIcon ,dndImage,dndIcon , sosImage , sosIcon,cleanupImage ,cleanupIcon ,checkoutimage,checkouticon,roomserviceimage,roomserviceicon , restaurantIcon;
     static TextView laundryText ,dndText , sosText,cleanupText,text,roomservicetext;
-    private LinearLayout laundryPriceList , minibarPriceList ;
+    private LinearLayout laundryPriceList , minibarPriceList  ;
     static Resources RESOURCES ;
     private Runnable backHomeThread ;
     static long x = 0 ;
@@ -153,6 +158,8 @@ public class FullscreenActivity extends AppCompatActivity {
     static String registerDoorOpenUrl="https://ratco-solutions.com/HotelServicesTest/TestProject/p/insertDoorOpen.php";
     private int WelcomeLight = 0 ;
     private LinearLayoutManager Laundrymanager ;
+    public static MediaPlayer mediaPlayer , lightPlayer;
+    private static List<ServiceEmps> Emps ;
 
 
     @SuppressLint("InvalidWakeLockTag")
@@ -235,11 +242,14 @@ public class FullscreenActivity extends AppCompatActivity {
         getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         getLaundries();
         RestaurantActivities = new ArrayList<Activity>();
+        Emps = new ArrayList<ServiceEmps>();
         //getRestaurants();
         //getGyms();
         //getMiniBar();
         RESOURCES = getResources();
         getHotelTempSetpoint();
+        mediaPlayer = MediaPlayer.create(getBaseContext(), R.raw.click);
+        lightPlayer = MediaPlayer.create(getBaseContext(), R.raw.light_click);
         RestaurantBtn = (CardView) findViewById(R.id.Restaurant);
         GymBtn = (Button) findViewById(R.id.button6);
         LaundryBtn = (CardView) findViewById(R.id.laundry_btn);
@@ -301,6 +311,13 @@ public class FullscreenActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 x=0;
+            }
+        });
+        mainLayout.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                hideSystemUI();
+                return false;
             }
         });
         LinearLayout Services = (LinearLayout) findViewById(R.id.ServicesLayout);
@@ -663,6 +680,8 @@ public class FullscreenActivity extends AppCompatActivity {
             }
         });
         database = FirebaseDatabase.getInstance("https://hotelservices-ebe66.firebaseio.com/");
+        ServiceUsers = database.getReference(LogIn.room.getProjectName()+"ServiceUsers");
+        getServiceUsersFromFirebase();
         Room = database.getReference(LogIn.room.getProjectName()+"/B"+LogIn.room.getBuilding()+"/F"+LogIn.room.getFloor()+"/R"+LogIn.room.getRoomNumber());
         myRefLaundry = Room.child("Laundry");//
         myRefCleanup = Room.child("Cleanup");//
@@ -1277,23 +1296,85 @@ public class FullscreenActivity extends AppCompatActivity {
         roomnumber.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                final Dialog d = new Dialog(act);
-                d.setContentView(R.layout.small_confermation_dialog);
-                Button ok = (Button) d.findViewById(R.id.messageDialog_ok);
-                Button can = (Button) d.findViewById(R.id.confermationDialog_cancel);
-                can.setOnClickListener(new View.OnClickListener() {
+
+                Dialog  dd = new Dialog(act);
+                dd.setContentView(R.layout.logout_of_room_dialog);
+                Button cancel = (Button) dd.findViewById(R.id.confermationDialog_cancel);
+                Button lock = (Button) dd.findViewById(R.id.messageDialog_ok);
+                EditText password = (EditText) dd.findViewById(R.id.editTextTextPassword);
+                cancel.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        d.dismiss();
+                        dd.dismiss();
                     }
                 });
-                ok.setOnClickListener(new View.OnClickListener() {
+                lock.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        logout();
+                        final LoadingDialog loading = new LoadingDialog(act);
+                        final String pass = password.getText().toString() ;
+                        StringRequest re = new StringRequest(Request.Method.POST, LogInUrl, new Response.Listener<String>()
+                        {
+                            @Override
+                            public void onResponse(String response)
+                            {
+                                Log.d("LoginResult" , response +" "+ LogInUrl );
+                                loading.stop();
+                                if (response.equals("1"))
+                                {
+                                    logout();
+                                    dd.dismiss();
+                                }
+                                else if (response.equals("0"))
+                                {
+                                    Toast.makeText(act,"Lock Failed",Toast.LENGTH_LONG).show();
+                                }
+                                else
+                                {
+                                    Toast.makeText(act,"No Params",Toast.LENGTH_LONG).show();
+                                }
+
+                            }
+                        }, new Response.ErrorListener() {
+                            @Override
+                            public void onErrorResponse(VolleyError error)
+                            {
+                                loading.stop();
+                            }
+                        })
+                        {
+                            @Override
+                            protected Map<String, String> getParams() throws AuthFailureError
+                            {
+                                Map<String,String> par = new HashMap<String, String>();
+                                par.put( "password" , pass ) ;
+                                par.put( "hotel" , "1" ) ;
+                                return par;
+                            }
+                        };
+                        Volley.newRequestQueue(act).add(re);
                     }
                 });
-                d.show();
+                dd.show();
+
+
+//                final Dialog d = new Dialog(act);
+//                d.setContentView(R.layout.small_confermation_dialog);
+//                Button ok = (Button) d.findViewById(R.id.messageDialog_ok);
+//                Button can = (Button) d.findViewById(R.id.confermationDialog_cancel);
+//                can.setOnClickListener(new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View v) {
+//                        d.dismiss();
+//                    }
+//                });
+//                ok.setOnClickListener(new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View v) {
+//                        logout();
+//                    }
+//                });
+//                d.show();
                 return false;
             }
 
@@ -1302,8 +1383,8 @@ public class FullscreenActivity extends AppCompatActivity {
         if (THEROOM.getWiredZBGateway() == null )
         {
             ZBRouterStatus = false ;
-            ShowLighting.setVisibility(View.INVISIBLE);
-            curtainBtn.setVisibility(View.INVISIBLE);
+            ShowLighting.setVisibility(View.GONE);
+            curtainBtn.setVisibility(View.GONE);
             THEROOM.setWiredZBGateway(null);
         }
         else
@@ -2071,6 +2152,19 @@ public class FullscreenActivity extends AppCompatActivity {
                                                 if (dpStr.get("switch_1").toString().equals("true")){
                                                     Button b1 = (Button)findViewById(R.id.button15);
                                                     b1.setBackgroundResource(R.drawable.light_on);
+                                                    if (Switch1Bean.dps.get("3").toString().equals("true")) {
+                                                        Switch1.publishDps("{\" 3\":false}", new IResultCallback() {
+                                                            @Override
+                                                            public void onError(String code, String error) {
+
+                                                            }
+
+                                                            @Override
+                                                            public void onSuccess() {
+
+                                                            }
+                                                        });
+                                                    }
                                                 }
                                                 else {
                                                     Button b1 = (Button)findViewById(R.id.button15);
@@ -2081,6 +2175,19 @@ public class FullscreenActivity extends AppCompatActivity {
                                                 if (dpStr.get("switch_2").toString().equals("true")){
                                                     Button b1 = (Button)findViewById(R.id.button14);
                                                     b1.setBackgroundResource(R.drawable.light_on);
+                                                    if (Switch1Bean.dps.get("3").toString().equals("true")) {
+                                                        Switch1.publishDps("{\" 3\":false}", new IResultCallback() {
+                                                            @Override
+                                                            public void onError(String code, String error) {
+
+                                                            }
+
+                                                            @Override
+                                                            public void onSuccess() {
+
+                                                            }
+                                                        });
+                                                    }
                                                 }
                                                 else {
                                                     Button b1 = (Button)findViewById(R.id.button14);
@@ -2088,25 +2195,53 @@ public class FullscreenActivity extends AppCompatActivity {
                                                 }
                                             }
                                             if (dpStr.get("switch_3") != null ){
-                                                if (dpStr.get("switch_3").toString().equals("true")){
-                                                    Button b1 = (Button)findViewById(R.id.button17);
-                                                    b1.setBackgroundResource(R.drawable.light_on);
-                                                }
-                                                else {
-                                                    Button b1 = (Button)findViewById(R.id.button17);
-                                                    b1.setBackgroundResource(R.drawable.group_62);
+//                                                if (dpStr.get("switch_3").toString().equals("true")){
+//                                                    Button b1 = (Button)findViewById(R.id.button17);
+//                                                    b1.setBackgroundResource(R.drawable.light_on);
+//                                                }
+//                                                else {
+//                                                    Button b1 = (Button)findViewById(R.id.button17);
+//                                                    b1.setBackgroundResource(R.drawable.group_62);
+//                                                }
+                                                if (dpStr.get("switch_3").toString().equals("true")) {
+                                                    if (Switch1Bean.dps.get("1").toString().equals("true")) {
+                                                        Switch1.publishDps("{\" 1\":false}", new IResultCallback() {
+                                                            @Override
+                                                            public void onError(String code, String error) {
+
+                                                            }
+
+                                                            @Override
+                                                            public void onSuccess() {
+
+                                                            }
+                                                        });
+                                                    }
+                                                    if (Switch1Bean.dps.get("2").toString().equals("true")) {
+                                                        Switch1.publishDps("{\" 2\":false}", new IResultCallback() {
+                                                            @Override
+                                                            public void onError(String code, String error) {
+
+                                                            }
+
+                                                            @Override
+                                                            public void onSuccess() {
+
+                                                            }
+                                                        });
+                                                    }
                                                 }
                                             }
-                                            if (dpStr.get("switch_4") != null ){
-                                                if (dpStr.get("switch_4").toString().equals("true")){
-                                                    Button b1 = (Button)findViewById(R.id.button19);
-                                                    b1.setBackgroundResource(R.drawable.light_on);
-                                                }
-                                                else {
-                                                    Button b1 = (Button)findViewById(R.id.button19);
-                                                    b1.setBackgroundResource(R.drawable.group_62);
-                                                }
-                                            }
+//                                            if (dpStr.get("switch_4") != null ){
+//                                                if (dpStr.get("switch_4").toString().equals("true")){
+//                                                    Button b1 = (Button)findViewById(R.id.button19);
+//                                                    b1.setBackgroundResource(R.drawable.light_on);
+//                                                }
+//                                                else {
+//                                                    Button b1 = (Button)findViewById(R.id.button19);
+//                                                    b1.setBackgroundResource(R.drawable.group_62);
+//                                                }
+//                                            }
                                         }
                                         @Override
                                         public void onRemoved(String devId) {
@@ -2568,7 +2703,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
                             if (!Switch1Status && !Switch2Status && !Switch3Status && !Switch4Status)
                             {
-                                ShowLighting.setVisibility(View.INVISIBLE);
+                                ShowLighting.setVisibility(View.GONE);
                             }
                             else if (Switch1Status || Switch2Status || Switch3Status || Switch4Status)
                             {
@@ -3271,6 +3406,7 @@ public class FullscreenActivity extends AppCompatActivity {
     // Buttons
     public void goToLaundry(View view)
     {
+        mediaPlayer.start();
         if (CURRENT_ROOM_STATUS == 2)
         {
             if (LaundryStatus == false)
@@ -3334,6 +3470,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
     public static void requestCleanUp(View view)
     {
+        mediaPlayer.start();
         if (CURRENT_ROOM_STATUS == 2)
         {
             if (CleanupStatus == false)
@@ -3357,6 +3494,7 @@ public class FullscreenActivity extends AppCompatActivity {
                     {
                         d.dismiss();
                         addCleanupOrderInDataBase();
+
                     }
                 });
                 d.show();
@@ -3382,6 +3520,7 @@ public class FullscreenActivity extends AppCompatActivity {
                     {
                         d.dismiss();
                         removeCleanupOrderInDataBase();
+
                     }
                 });
                 d.show();
@@ -3397,6 +3536,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
     public static void roomServiceShowDialog(View view)
     {
+        mediaPlayer.start();
         try
         {
             if (CURRENT_ROOM_STATUS == 2)
@@ -3448,6 +3588,7 @@ public class FullscreenActivity extends AppCompatActivity {
                         {
                             d.dismiss();
                             addRoomServiceOrderInDataBase();
+
                         }
                     });
                     d.show();
@@ -3468,81 +3609,111 @@ public class FullscreenActivity extends AppCompatActivity {
 
     public static void SOS(View view)
     {
+        mediaPlayer.start();
         try
         {
             if (CURRENT_ROOM_STATUS == 2)
             {
                 if (SosStatus == false)
                 {
-
-                    final String depo = "SOS";
-                    Calendar x = Calendar.getInstance(Locale.getDefault());
-                    long timee =  x.getTimeInMillis();
-
-                    StringRequest addOrder = new StringRequest(Request.Method.POST, insertServiceOrderUrl , new Response.Listener<String>() {
+                    final Dialog d = new Dialog(act);
+                    d.setContentView(R.layout.confermation_dialog);
+                    TextView message = (TextView) d.findViewById(R.id.confermationDialog_Text);
+                    message.setText("Send Emergency Order .. ?                   ");
+                    Button cancel = (Button)d.findViewById(R.id.confermationDialog_cancel);
+                    cancel.setOnClickListener(new View.OnClickListener() {
                         @Override
-                        public void onResponse(String response)
+                        public void onClick(View v)
                         {
-                            if (Integer.parseInt(response) > 0 )
-                            {
-                                sosId = Integer.parseInt(response);
-                                myRefSos.setValue(timee);
-                                myRefdep.setValue(depo);
-                                myRefDND.addListenerForSingleValueEvent(new ValueEventListener() {
-                                    @Override
-                                    public void onDataChange(@NonNull DataSnapshot snapshot)
+                            d.dismiss();
+                        }
+                    });
+                    Button ok = (Button)d.findViewById(R.id.messageDialog_ok);
+                    ok.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v)
+                        {
+                            d.dismiss();
+                            final String depo = "SOS";
+                            Calendar x = Calendar.getInstance(Locale.getDefault());
+                            long timee =  x.getTimeInMillis();
+                            LoadingDialog dd = new LoadingDialog(act);
+                            StringRequest addOrder = new StringRequest(Request.Method.POST, insertServiceOrderUrl , new Response.Listener<String>() {
+                                @Override
+                                public void onResponse(String response)
+                                {
+                                    dd.stop();
+                                    if (Integer.parseInt(response) > 0 )
                                     {
-                                        if (Long.parseLong(snapshot.getValue().toString()) > 0)
-                                        {
-                                            myRefDND.setValue(0);
-                                        }
+                                        sosId = Integer.parseInt(response);
+                                        myRefSos.setValue(timee);
+                                        myRefdep.setValue(depo);
+                                        myRefDND.addListenerForSingleValueEvent(new ValueEventListener() {
+                                            @Override
+                                            public void onDataChange(@NonNull DataSnapshot snapshot)
+                                            {
+                                                if (Long.parseLong(snapshot.getValue().toString()) > 0)
+                                                {
+                                                    myRefDND.setValue(0);
+                                                }
+
+                                            }
+
+                                            @Override
+                                            public void onCancelled(@NonNull DatabaseError error) {
+
+                                            }
+                                        });
+                                        ToastMaker.MakeToast("تم ارسال طلب " +"SOS" , act);
+                                        Calendar x = Calendar.getInstance(Locale.getDefault());
+                                        long time =  x.getTimeInMillis();
+                                        SosStatus = true ;
+                                        sosOn();
 
                                     }
-
-                                    @Override
-                                    public void onCancelled(@NonNull DatabaseError error) {
-
+                                    else
+                                    {
+                                        Toast.makeText(act , response,Toast.LENGTH_LONG).show();
                                     }
-                                });
-                                ToastMaker.MakeToast("تم ارسال طلب " +"SOS" , act);
-                                Calendar x = Calendar.getInstance(Locale.getDefault());
-                                long time =  x.getTimeInMillis();
-                                SosStatus = true ;
-                                sosOn();
 
-                            }
-                            else
+                                }
+                            }, new Response.ErrorListener() {
+                                @Override
+                                public void onErrorResponse(VolleyError error)
+                                {
+                                    dd.stop();
+                                    //Toast.makeText(act , error.getMessage(),Toast.LENGTH_LONG).show();
+                                }
+                            })
                             {
-                                Toast.makeText(act , response,Toast.LENGTH_LONG).show();
+                                @Override
+                                protected Map<String, String> getParams() throws AuthFailureError
+                                {
+                                    Map<String,String> params = new HashMap<String, String>();
+                                    params.put("roomNumber" ,String.valueOf(LogIn.room.getRoomNumber()));
+                                    params.put("time" ,String.valueOf(timee));
+                                    params.put("dep" ,depo);
+                                    params.put("Hotel" , String.valueOf(LogIn.room.getHotel()));
+                                    params.put("RorS" ,String.valueOf( RoomOrSuite));
+                                    params.put("Reservation" ,String.valueOf( RESERVATION));
+                                    return params;
+                                }
+
+                            };
+                            Volley.newRequestQueue(act).add(addOrder);
+
+                            for(ServiceEmps emp : Emps) {
+                                if (emp.department.equals("Service") || emp.department.equals("RoomService") || emp.department.equals("Cleanup")) {
+                                    emp.makemessage(emp.token,"SOS",true,act);
+                                }
                             }
-
                         }
-                    }, new Response.ErrorListener() {
-                        @Override
-                        public void onErrorResponse(VolleyError error)
-                        {
-                            //Toast.makeText(act , error.getMessage(),Toast.LENGTH_LONG).show();
-                        }
-                    })
-                    {
-                        @Override
-                        protected Map<String, String> getParams() throws AuthFailureError
-                        {
-                            Map<String,String> params = new HashMap<String, String>();
-                            params.put("roomNumber" ,String.valueOf(LogIn.room.getRoomNumber()));
-                            params.put("time" ,String.valueOf(timee));
-                            params.put("dep" ,depo);
-                            params.put("Hotel" , String.valueOf(LogIn.room.getHotel()));
-                            params.put("RorS" ,String.valueOf( RoomOrSuite));
-                            params.put("Reservation" ,String.valueOf( RESERVATION));
-                            return params;
-                        }
-
-                    };
-                    Volley.newRequestQueue(act).add(addOrder);
+                    });
+                    d.show();
                 }
                 else
                 {
+                    LoadingDialog ddd = new LoadingDialog(act);
                     myRefSos.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot snapshot)
@@ -3562,6 +3733,7 @@ public class FullscreenActivity extends AppCompatActivity {
                         @Override
                         public void onResponse(String response)
                         {
+                            ddd.stop();
                             if (response.equals("1")  )
                             {
                                 //sos.setBackgroundResource(R.drawable.sos_icon1);
@@ -3584,6 +3756,7 @@ public class FullscreenActivity extends AppCompatActivity {
                         @Override
                         public void onErrorResponse(VolleyError error)
                         {
+                            ddd.stop();
                             // Toast.makeText(act , error.getMessage(),Toast.LENGTH_LONG).show();
                         }
                     })
@@ -3600,6 +3773,11 @@ public class FullscreenActivity extends AppCompatActivity {
                         }
                     };
                     Volley.newRequestQueue(act).add(removOrder);
+                    for(ServiceEmps emp : Emps) {
+                        if (emp.department.equals("Service") || emp.department.equals("RoomService") || emp.department.equals("Cleanup")) {
+                            emp.makemessage(emp.token,"SOS",false,act);
+                        }
+                    }
                 }
             }
             else
@@ -3616,6 +3794,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
     public void goToRestaurant(View view)
     {
+        mediaPlayer.start();
         if (CURRENT_ROOM_STATUS == 2)
         {
             Intent i = new Intent(act , RESTAURANTS.class);
@@ -3710,6 +3889,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
     public  void makecheckOut(View view)
     {
+        mediaPlayer.start();
         try
         {
             if (CURRENT_ROOM_STATUS == 2 )
@@ -4058,7 +4238,7 @@ public class FullscreenActivity extends AppCompatActivity {
 //--------------------------------------------------------------
     //Send Cloud Message
 
-    static void sendNotification(final JSONObject notification ,final String dep)
+    static void sendNotification(final JSONObject notification )
     {
 
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(FCM_MESSAGE_URL, notification,
@@ -4066,18 +4246,13 @@ public class FullscreenActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(JSONObject response)
                     {
-                        //Log.i(TAG, "onResponse: " + response.toString());
-
-                            //Toast.makeText(act ,   "تم ارسال طلب "+ dep,Toast.LENGTH_LONG).show();
-                           // ToastMaker.MakeToast("تم ارسال طلب "+ dep,act);
 
                     }
                 },
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        //Toast.makeText(act, "Request error", Toast.LENGTH_LONG).show();
-                        //Log.i(TAG, "onErrorResponse: Didn't work");
+
                     }
                 }){
             @Override
@@ -4092,11 +4267,18 @@ public class FullscreenActivity extends AppCompatActivity {
 
     }
 
-    public static void makemessage(String t , boolean status , int orderNumber ,String dep , long date )
+    public static void makemessage(String t ,String Order , boolean addOrRemove)
     {
-        String TOPIC = t;
-        String NOTIFICATION_TITLE = "New Order";
-        String NOTIFICATION_MESSAGE = "New " + dep + " Order From Room "+LogIn.room.getRoomNumber();
+
+        String NOTIFICATION_TITLE = Order ;
+        String NOTIFICATION_MESSAGE = "" ;
+        if (addOrRemove) {
+            NOTIFICATION_MESSAGE = "New " + Order + " Order From Room "+LogIn.room.getRoomNumber();
+        }
+        else {
+            NOTIFICATION_MESSAGE = "Cancelled " + Order + " Order From Room "+LogIn.room.getRoomNumber();
+        }
+
 
         JSONObject notification = new JSONObject();
         JSONObject notifcationBody = new JSONObject();
@@ -4104,16 +4286,12 @@ public class FullscreenActivity extends AppCompatActivity {
             notifcationBody.put("title", NOTIFICATION_TITLE);
             notifcationBody.put("message", NOTIFICATION_MESSAGE);
             notifcationBody.put("RoomNumber", LogIn.room.getRoomNumber());
-            notifcationBody.put("orderAction", status);
-            notifcationBody.put("orderNumber", orderNumber);
-            notifcationBody.put("date", date);
-            notifcationBody.put("dep", dep);
-            notification.put("to", TOPIC);
+            notification.put("to", t);
             notification.put("data", notifcationBody);
         } catch (JSONException e) {
-            //Log.e(TAG, "onCreate: " + e.getMessage() );
+
         }
-        sendNotification(notification , dep);
+        sendNotification(notification);
     }
 
 //--------------------------------------------------------------
@@ -4149,6 +4327,11 @@ public class FullscreenActivity extends AppCompatActivity {
                                     });
                                 }
                             }
+                            for(ServiceEmps emp : Emps) {
+                                if (emp.department.equals("Service") || emp.department.equals("Laundry")) {
+                                    emp.makemessage(emp.token,"Laundry",true,act);
+                                }
+                            }
                             LaundryStatus = true ;
                             ToastMaker.MakeToast( dep + " Order Sent Successfully" , act);
                             laundryOrderId = Integer.parseInt(response);
@@ -4158,7 +4341,7 @@ public class FullscreenActivity extends AppCompatActivity {
                                 @Override
                                 public void onDataChange(@NonNull DataSnapshot snapshot)
                                 {
-                                    if (Integer.parseInt(snapshot.getValue().toString()) > 0)
+                                    if (Long.parseLong(snapshot.getValue().toString()) > 0)
                                     {
                                         myRefDND.setValue(0);
                                     }
@@ -4253,6 +4436,11 @@ public class FullscreenActivity extends AppCompatActivity {
                                 }
 
                             }
+                            for(ServiceEmps emp : Emps) {
+                                if (emp.department.equals("Service") || emp.department.equals("Laundry")) {
+                                    emp.makemessage(emp.token,"Laundry",false,act);
+                                }
+                            }
                             LaundryStatus = false ;
                             myRefLaundry.setValue(0);
                             laundryOff();
@@ -4325,6 +4513,11 @@ public class FullscreenActivity extends AppCompatActivity {
                                     });
                                 }
                             }
+                            for(ServiceEmps emp : Emps) {
+                                if (emp.department.equals("Service") || emp.department.equals("Cleanup")) {
+                                    emp.makemessage(emp.token,"Cleanup",true,act);
+                                }
+                            }
                             cleanupOrderId = Integer.parseInt(response);
                             ToastMaker.MakeToast(dep+ " Order Sent Successfully" , act);
                             myRefCleanup.setValue(timee);
@@ -4334,7 +4527,7 @@ public class FullscreenActivity extends AppCompatActivity {
                                 @Override
                                 public void onDataChange(@NonNull DataSnapshot snapshot)
                                 {
-                                    if (Integer.parseInt(snapshot.getValue().toString()) > 0)
+                                    if (Long.parseLong(snapshot.getValue().toString()) > 0)
                                     {
                                         myRefDND.setValue(0);
                                     }
@@ -4428,12 +4621,13 @@ public class FullscreenActivity extends AppCompatActivity {
                                 });
                             }
                         }
-                        Calendar x = Calendar.getInstance(Locale.getDefault());
-                        long time =  x.getTimeInMillis();
+                        for(ServiceEmps emp : Emps) {
+                            if (emp.department.equals("Service") || emp.department.equals("Cleanup")) {
+                                emp.makemessage(emp.token,"Cleanup",false,act);
+                            }
+                        }
                         myRefCleanup.setValue(0);
-
                         ToastMaker.MakeToast( dep+" Order Cancelled" , act);
-
                     }
                     else
                     {
@@ -4626,7 +4820,7 @@ public class FullscreenActivity extends AppCompatActivity {
                                         @Override
                                         public void onDataChange(@NonNull DataSnapshot snapshot)
                                         {
-                                            if (Integer.parseInt(snapshot.getValue().toString()) > 0)
+                                            if (Long.parseLong(snapshot.getValue().toString()) > 0)
                                             {
                                                 myRefDND.setValue(0);
                                             }
@@ -4638,8 +4832,11 @@ public class FullscreenActivity extends AppCompatActivity {
                                         }
                                     });
                                     ToastMaker.MakeToast(dep+ " Order Sent Successfully" , act);
-                                    //makemessage("/topics/RoomService", RoomServiceStatus, roomServiceOrderId, "RoomService "+roomServiceOrder, timee);
-                                    //makemessage("/topics/Service", RoomServiceStatus, roomServiceOrderId, "RoomService "+roomServiceOrder, timee);
+                                    for(ServiceEmps emp : Emps) {
+                                        if (emp.department.equals("Service") || emp.department.equals("RoomService")) {
+                                            emp.makemessage(emp.token,"RoomService",true,act);
+                                        }
+                                    }
                                     d.dismiss();
                                 }
 
@@ -4666,7 +4863,6 @@ public class FullscreenActivity extends AppCompatActivity {
                             }
                         };
                         Volley.newRequestQueue(act).add(request);
-
                     }
                     else
                     {
@@ -4710,12 +4906,14 @@ public class FullscreenActivity extends AppCompatActivity {
                                 Calendar x = Calendar.getInstance(Locale.getDefault());
                                 long time =  x.getTimeInMillis();
                                 RoomServiceStatus = false ;
-                                //makemessage("/topics/RoomService" , RoomServiceStatus , roomServiceOrderId , dep,time);
-                                //makemessage("/topics/Service" , RoomServiceStatus , roomServiceOrderId , dep,time);
+                                for(ServiceEmps emp : Emps) {
+                                    if (emp.department.equals("Service") || emp.department.equals("RoomService")) {
+                                        emp.makemessage(emp.token,"RoomService",false,act);
+                                    }
+                                }
                             }
                             else
                             {
-                                //Toast.makeText(act , response,Toast.LENGTH_LONG).show();
                             }
 
                         }
@@ -4901,7 +5099,7 @@ public class FullscreenActivity extends AppCompatActivity {
                         }
                         @Override
                         public void onSuccess() {
-                            Toast.makeText(act, "turn on the light success", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(act, "turn Off 1 success "+THEROOM.RoomNumber, Toast.LENGTH_SHORT).show();
                             //myRefPower.setValue(0);
                         }
                     });
@@ -4913,10 +5111,47 @@ public class FullscreenActivity extends AppCompatActivity {
                         @Override
                         public void onSuccess()
                         {
-                            Toast.makeText(act, "turn on the light success", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(act, "turn Off 2 success "+THEROOM.RoomNumber, Toast.LENGTH_SHORT).show();
 
                         }
                     });
+                }
+
+            }
+        });
+    }
+
+    public static void PowerOn()
+    {
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override
+            public void run()
+            {
+                if (THEROOM.getPOWER() != null )
+                {
+                    THEROOM.getPOWER().publishDps("{\"1\": true}", new IResultCallback() {
+                        @Override
+                        public void onError(String code, String error) {
+                            Toast.makeText(act, "turn on the light failure", Toast.LENGTH_SHORT).show();
+                        }
+                        @Override
+                        public void onSuccess() {
+                            Toast.makeText(act, "turn on 1 success "+THEROOM.RoomNumber, Toast.LENGTH_SHORT).show();
+                            //myRefPower.setValue(0);
+                        }
+                    });
+//                    THEROOM.getPOWER().publishDps("{\"2\": false}", new IResultCallback() {
+//                        @Override
+//                        public void onError(String code, String error) {
+//                            Toast.makeText(act, "turn on the light failure", Toast.LENGTH_SHORT).show();
+//                        }
+//                        @Override
+//                        public void onSuccess()
+//                        {
+//                            Toast.makeText(act, "turn Off 2 success "+THEROOM.RoomNumber, Toast.LENGTH_SHORT).show();
+//
+//                        }
+//                    });
                 }
 
             }
@@ -4933,6 +5168,7 @@ public class FullscreenActivity extends AppCompatActivity {
         else {
             Duration = "60" ;
         }
+        Log.d("checkoutDuration" , Duration);
         if (PowerControllerStatus)
         {
             String finalDuration = Duration;
@@ -5036,9 +5272,10 @@ public class FullscreenActivity extends AppCompatActivity {
             Duration = String.valueOf(checkInModeTime*60);
         }
         else
-            {
-                Duration = "60" ;
-            }
+        {
+            Duration = "60" ;
+        }
+        Log.d("checkoutDuration" , Duration);
 
         if (THEROOM.getPOWER_B() != null){
             THEROOM.getPOWER().publishDps("{\"7\": "+Duration+"}", new IResultCallback() {
@@ -5072,6 +5309,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
     public static void OpenTheDoor(View view)
     {
+        mediaPlayer.start();
         if(myTestLockEKey == null)
         {
             ToastMaker.MakeToast(" you should get your key list first " , act);
@@ -5106,7 +5344,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
     public static void OpenDoorAndSaveIt (View view){
 
-
+        mediaPlayer.start();
         final LoadingDialog dd = new LoadingDialog(act);
         StringRequest request = new StringRequest(Request.Method.POST, registerDoorOpenUrl, new Response.Listener<String>() {
             @Override
@@ -5185,7 +5423,7 @@ public class FullscreenActivity extends AppCompatActivity {
                 try
                 {
                     String s = dataSnapshot.getValue().toString();
-                    if ( Integer.parseInt(s) > 0 )
+                    if ( Long.parseLong(s) > 0 )
                     {
                         LaundryStatus = true ;
                         laundryOn();
@@ -5210,7 +5448,7 @@ public class FullscreenActivity extends AppCompatActivity {
                 try
                 {
                     String s = dataSnapshot.getValue().toString();
-                    if ( Integer.parseInt(s) > 0 )
+                    if ( Long.parseLong(s) > 0 )
                     {
                         CleanupStatus = true ;
                         cleanupOn();
@@ -5236,7 +5474,7 @@ public class FullscreenActivity extends AppCompatActivity {
                 try
                 {
                     String s = dataSnapshot.getValue().toString();
-                    if ( Integer.parseInt(s) > 0 )
+                    if ( Long.parseLong(s) > 0 )
                     {
                         RoomServiceStatus = true ;
                         roomServiceOn();
@@ -5263,7 +5501,7 @@ public class FullscreenActivity extends AppCompatActivity {
                 {
                     Log.e("SOS" , dataSnapshot.getValue().toString() );
                     String s = dataSnapshot.getValue().toString();
-                    if ( Integer.parseInt(s) > 0 )
+                    if ( Long.parseLong(s) > 0 )
                     {
                         SosStatus = true ;
                         sosOn();
@@ -5288,7 +5526,7 @@ public class FullscreenActivity extends AppCompatActivity {
                 try
                 {
                     String s = dataSnapshot.getValue().toString();
-                    if ( Integer.parseInt(s) > 0 )
+                    if ( Long.parseLong(s) > 0 )
                     {
                         RestaurantStatus = true ;
                         //RestaurantBtn.setBackgroundResource(R.drawable.restaurant_icon2);
@@ -5314,7 +5552,7 @@ public class FullscreenActivity extends AppCompatActivity {
                 try
                 {
                     String s = dataSnapshot.getValue().toString();
-                    if ( Integer.parseInt(s) > 0 )
+                    if ( Long.parseLong(s) > 0 )
                     {
                         CheckoutStatus = true ;
                         checkoutOn();
@@ -5338,7 +5576,7 @@ public class FullscreenActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot snapshot)
             {
                 String s = snapshot.getValue().toString();
-                if ( Integer.parseInt(s) > 0 )
+                if ( Long.parseLong(s) > 0 )
                 {
                     DNDStatus = true ;
                     dndOn();
@@ -5389,7 +5627,7 @@ public class FullscreenActivity extends AppCompatActivity {
             @Override
             public void run() {
                 try {
-                    Thread.sleep(1);
+                    Thread.sleep(100);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -5550,6 +5788,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
     public void s1click(View view)
     {
+        lightPlayer.start();
         if (Switch1Bean != null )
         {
             if (Switch1Bean.dps.get("1") != null){
@@ -5606,6 +5845,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
     public void s2click(View view)
     {
+        lightPlayer.start();
         if (Switch1Bean != null )
         {
             if (Switch1Bean.dps.get("2") != null){
@@ -5662,6 +5902,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
     public void s3click(View view)
     {
+        lightPlayer.start();
         if (Switch1Bean != null )
         {
             if (Switch1Bean.dps.get("3") != null){
@@ -5717,6 +5958,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
     public void s4click(View view)
     {
+        lightPlayer.start();
         if (Switch1Bean != null )
         {
             if (Switch1Bean.dps.get("4") != null){
@@ -5997,6 +6239,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
     public static void setDND(View view)
     {
+        mediaPlayer.start();
         String dep = "DND";
         Calendar x = Calendar.getInstance(Locale.getDefault());
         long timee =  x.getTimeInMillis();
@@ -6070,7 +6313,11 @@ public class FullscreenActivity extends AppCompatActivity {
                                 } catch (Exception e) {
                                     Log.e("DND", e.getMessage());
                                 }
-
+                                for(ServiceEmps emp : Emps) {
+                                    if (emp.department.equals("Service") || emp.department.equals("Cleanup") || emp.department.equals("Laundry") || emp.department.equals("RoomService")) {
+                                        emp.makemessage(emp.token,"DND",true,act);
+                                    }
+                                }
                             }
                         }
                                 , new Response.ErrorListener() {
@@ -6142,7 +6389,11 @@ public class FullscreenActivity extends AppCompatActivity {
                                     //dnd.setBackgroundResource(R.drawable.dnd_off0);
                                     dndOff();
                                 }
-
+                                for(ServiceEmps emp : Emps) {
+                                    if (emp.department.equals("Service") || emp.department.equals("Cleanup") || emp.department.equals("Laundry")) {
+                                        emp.makemessage(emp.token,"DND",false,act);
+                                    }
+                                }
                             }
                         }, new Response.ErrorListener() {
                             @Override
@@ -6847,7 +7098,7 @@ public class FullscreenActivity extends AppCompatActivity {
                             }
                             else
                             {
-                                RestaurantBtn.setVisibility(View.INVISIBLE);
+                                RestaurantBtn.setVisibility(View.GONE);
                             }
                         }
                         catch (JSONException e)
@@ -7274,6 +7525,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
 
     public void backToMain(View view) {
+        mediaPlayer.start();
         ImageView Logo = (ImageView) findViewById(R.id.HotelLogo);
         LinearLayout Btns = (LinearLayout)findViewById(R.id.MainBtns_Layout);
         TextView Caption = (TextView)findViewById(R.id.textView12);
@@ -7302,6 +7554,7 @@ public class FullscreenActivity extends AppCompatActivity {
     }
 
     public void goToLights(View view) {
+        mediaPlayer.start();
         ImageView Logo = (ImageView) findViewById(R.id.HotelLogo);
         LinearLayout Btns = (LinearLayout)findViewById(R.id.MainBtns_Layout);
         TextView text = (TextView)findViewById(R.id.textView12);
@@ -7762,6 +8015,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
     public void showHideLaundryList(View view)
     {
+        mediaPlayer.start();
         //ToastMaker.MakeToast("i am pressed",act);
         LinearLayout btns = (LinearLayout) findViewById(R.id.Service_Btns);
         LinearLayout l = (LinearLayout) findViewById(R.id.laundryList_Layout);
@@ -7770,18 +8024,20 @@ public class FullscreenActivity extends AppCompatActivity {
             getLaundryMenu(Laundries.get(0).id);
             btns.setVisibility(View.GONE);
             l.setVisibility(View.VISIBLE);
-            caption.setText("Back To Services");
+            //caption.setText("Back To Services");
         }
         else
         {
             btns.setVisibility(View.VISIBLE);
             l.setVisibility(View.GONE);
-            caption.setText("Laundry PriceList");
+            //caption.setText("Laundry PriceList");
         }
+        x=0;
     }
 
     public void showHideMinibarPriceList(View view)
     {
+        mediaPlayer.start();
         LinearLayout btns = (LinearLayout) findViewById(R.id.Service_Btns);
         LinearLayout m = (LinearLayout) findViewById(R.id.Minibar_layout);
         TextView caption = (TextView) findViewById(R.id.textView48);
@@ -7789,14 +8045,95 @@ public class FullscreenActivity extends AppCompatActivity {
             getMiniBarMenu(Minibar.get(0).id);
             btns.setVisibility(View.GONE);
             m.setVisibility(View.VISIBLE);
-            caption.setText("Back To Services");
+            //caption.setText("Back To Services");
         }
         else
         {
             btns.setVisibility(View.VISIBLE);
             m.setVisibility(View.GONE);
-            caption.setText("Minibar PriceList");
+            //caption.setText("Minibar PriceList");
         }
+        x=0;
+    }
 
+    void getServiceEmps() {
+        StringRequest request = new StringRequest(Request.Method.POST, getServiceEmpsUrl, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                if (response != null && !response.equals("0")) {
+                    try {
+                        JSONArray arr = new JSONArray(response);
+                        for (int i=0;i<arr.length();i++) {
+                            JSONObject row = arr.getJSONObject(i);
+                            ServiceEmps emp = new ServiceEmps(row.getInt("id"),row.getInt("projectId"),row.getString("name"),row.getInt("jobNumber"),row.getString("department"),row.getString("mobile"),row.getString("token"));
+                            Emps.add(emp);
+                        }
+                        Log.d("EmpsCount" , Emps.size()+"");
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+                else {
+                    ToastMaker.MakeToast("No service emps",act);
+                }
+
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
+            }
+        })
+        {
+
+        };
+        Volley.newRequestQueue(act).add(request);
+    }
+
+    void getServiceUsersFromFirebase() {
+        ServiceUsers.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.getValue() != null ) {
+                    Emps.clear();
+                    //Log.d("EmpsAre ",snapshot.getValue().toString());
+                    for (DataSnapshot child : snapshot.getChildren()) {
+                        //Log.d("EmpsAre ",child.getValue().toString());
+                        int id = 0;
+                        if (child.child("id").getValue() != null ) {
+                            id = Integer.parseInt( child.child("id").getValue().toString());
+                        }
+                        String name = "";
+                        if (child.child("name").getValue() != null ) {
+                            name = child.child("name").getValue().toString();
+                        }
+                        int jobnum = 0 ;
+                        if (child.child("jobNumber").getValue() != null ) {
+                            jobnum = Integer.parseInt(child.child("jobNumber").getValue().toString());
+                        }
+                        String department = "";
+                        if (child.child("department").getValue() != null ) {
+                            department = child.child("department").getValue().toString();
+                        }
+                        String mobile = "" ;
+                        if (child.child("Mobile").getValue() != null ) {
+                            mobile = child.child("Mobile").getValue().toString();
+                        }
+                        String token = "";
+                        if (child.child("token").getValue() != null ) {
+                            token = child.child("token").getValue().toString() ;
+                        }
+                        Emps.add(new ServiceEmps(id,1,name,jobnum,department,mobile,token));
+                    }
+                    //Toast.makeText(act,Emps.size()+"",Toast.LENGTH_LONG).show();
+                    Log.d("EmpsAre ",Emps.size()+"");
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
     }
 }

@@ -6,13 +6,25 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
+import android.preference.PreferenceManager;
 import android.util.Log;
+import android.util.LogPrinter;
+import android.view.MotionEvent;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RatingBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,8 +35,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
+import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.hotelservicesstandalone.TUYA.Tuya_Login;
@@ -33,11 +47,14 @@ import com.example.hotelservicesstandalone.lock.ApiService;
 import com.example.hotelservicesstandalone.lock.GatewayObj;
 import com.example.hotelservicesstandalone.lock.LockObj;
 import com.example.hotelservicesstandalone.lock.RetrofitAPIManager;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.gson.reflect.TypeToken;
 import com.ttlock.bl.sdk.api.TTLockClient;
 import com.ttlock.bl.sdk.callback.ControlLockCallback;
@@ -57,6 +74,7 @@ import com.tuya.smart.sdk.api.IDeviceListener;
 import com.tuya.smart.sdk.api.INeedLoginListener;
 import com.tuya.smart.sdk.api.IResultCallback;
 import com.tuya.smart.sdk.api.ITuyaDataCallback;
+import com.tuya.smart.sdk.api.ITuyaDevice;
 import com.tuya.smart.sdk.bean.DeviceBean;
 
 import org.json.JSONArray;
@@ -76,12 +94,15 @@ import retrofit2.Callback;
 
 public class Rooms extends AppCompatActivity
 {
+    public static final String FCM_MESSAGE_URL = "https://fcm.googleapis.com/fcm/send";
+    final static private String serverKey = "key=" + "AAAAQmygXvw:APA91bFt5CiONiZPDDj4_kz9hmKXlL1cjfTa_ZNGfobMPmt0gamhzEoN2NHiOxypCDr_r5yfpLvJy-bQSgrykXvaqKkThAniTr-0hpXPBrXm7qWThMmkiaN9o6qaUqfIUwStMMuNedTw";
+    final static private String contentType = "application/json";
     private TextView hotelName ;
     private ListView devicesListView , roomsListView ;
     static List<ROOM> list ;
     private String getRoomsUrl = Login.SelectedHotel.URL+"getAllRooms.php" ;
     private String getUnregisteredRooms = Login.SelectedHotel.URL+"getAllUnregisteredRooms.php" ;
-    private Activity act = this ;
+    static Activity act ;
     private ListView  RoomsRecycler ;
     static ArrayList<LockObj> Locks ;
     static List<GatewayObj> LockGateways ;
@@ -95,7 +116,7 @@ public class Rooms extends AppCompatActivity
     private static String removeServiceOrderUrl = Login.SelectedHotel.URL+"removeServiceOrder.php";
     private FirebaseDatabase database ;
     private List<DatabaseReference> FireRooms ;
-    private boolean[] CLEANUP , LAUNDRY , DND ;
+    private boolean[] CLEANUP , LAUNDRY , DND , CHECKOUT ;
     private Runnable[] TempRonnableList , DoorRunnable ;
     private Handler[] Handlers ;
     private long THE_AC_INTERVAL_TIME = 1000*30 , THEDOORWARNING_INTERVAL = 1000*60*5 ;
@@ -104,6 +125,16 @@ public class Rooms extends AppCompatActivity
     private String[] ClientTemp , TempSetPoint ;
     private Rooms_Adapter_Base adapter ;
     ITuyaDeviceMultiControl iTuyaDeviceMultiControl ;
+    static int checkInModeTime = 0 ;
+    static int checkOutModeTime = 0 ;
+    private LockDB lockDB ;
+    Button toggle , resetDevices ;
+    LinearLayout logoLayout , btnsLayout ,mainLogo ;
+    private String LogInUrl = Login.SelectedHotel.URL+"logInToHotel.php";
+    private RequestQueue requestQueue;
+    private String getServiceEmpsUrl = Login.SelectedHotel.URL+"getServiceEmps.php";
+    private static List<ServiceEmps> Emps ;
+    private DatabaseReference ServiceUsers ;
 
 
     @Override
@@ -111,9 +142,29 @@ public class Rooms extends AppCompatActivity
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.rooms);
+        act = this ;
         setActivity();
         setTuyaApplication();
         getRooms();
+        getServiceUsersFromFirebase();
+        FirebaseMessaging.getInstance().getToken()
+                .addOnCompleteListener(new OnCompleteListener<String>()
+                {
+                    @Override
+                    public void onComplete(@NonNull Task<String> task)
+                    {
+                        if (!task.isSuccessful())
+                        {
+                            //Log.w(TAG, "Fetching FCM registration token failed", task.getException());
+                            return;
+                        }
+                        // Get new FCM registration token
+                        String token = task.getResult();
+                        Log.e("tokeneee" , token);
+                        sendRegistrationToServer(token);
+                    }
+                });
+        hideSystemUI();
     }
 
     @Override
@@ -126,6 +177,17 @@ public class Rooms extends AppCompatActivity
 
     private void setActivity()
     {
+        lockDB = new LockDB(act);
+        if (!lockDB.isLoggedIn()) {
+            lockDB.removeAll();
+            lockDB.insertLock("off");
+        }
+        Emps = new ArrayList<ServiceEmps>();
+        toggle = (Button) findViewById(R.id.button9);
+        mainLogo = (LinearLayout) findViewById(R.id.logoLyout) ;
+        resetDevices = (Button) findViewById(R.id.button2);
+        logoLayout = (LinearLayout) findViewById(R.id.logoLyout);
+        btnsLayout = (LinearLayout) findViewById(R.id.btnsLayout);
         hotelName = (TextView) findViewById(R.id.hotelName);
         hotelName.setText(Login.THEHOTELDB.getHotelName());
         list = new ArrayList<ROOM>();
@@ -138,8 +200,176 @@ public class Rooms extends AppCompatActivity
         roomsListView = (ListView) findViewById(R.id.RoomsListView);
         devicesListView = (ListView) findViewById(R.id.DevicesListView);
         database = FirebaseDatabase.getInstance("https://hotelservices-ebe66.firebaseio.com/");
+        ServiceUsers = database.getReference(Login.SelectedHotel.ProjectName+"ServiceUsers");
         FireRooms = new ArrayList<DatabaseReference>();
         iTuyaDeviceMultiControl = TuyaHomeSdk.getDeviceMultiControlInstance();
+        //roomsListView.setNestedScrollingEnabled(false);
+        //devicesListView.setNestedScrollingEnabled(false);
+        devicesListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                Dialog d = new Dialog(act);
+                d.setContentView(R.layout.rename_device_dialog);
+                Spinner s = (Spinner) d.findViewById(R.id.devicerenamespinner);
+                Spinner rr = (Spinner) d.findViewById(R.id.roomsspinner);
+                String [] Types = new String[]{"Power","ZGatway","AC","DoorSensor","MotionSensor","Curtain","ServiceSwitch","Switch1","Switch2","Switch3","Switch4"};
+                String [] therooms = new String [list.size()];
+                for (int i=0; i<list.size() ; i++) {
+                    therooms[i] = String.valueOf( list.get(i).RoomNumber );
+                }
+                ArrayAdapter<String> a = new ArrayAdapter<String>(act,R.layout.spinners_item,Types);
+                ArrayAdapter<String> r = new ArrayAdapter<String>(act,R.layout.spinners_item,therooms);
+                s.setAdapter(a);
+                rr.setAdapter(r);
+                Button cancel = (Button) d.findViewById(R.id.cancel_diallog);
+                Button rename = (Button) d.findViewById(R.id.DoTheRename);
+                Button delete = (Button) d.findViewById(R.id.deleteDevice);
+                cancel.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        d.dismiss();
+                    }
+                });
+                rename.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        ITuyaDevice Device = TuyaHomeSdk.newDeviceInstance(Devices.get(position).getDevId());
+                        Device.renameDevice(rr.getSelectedItem().toString()+s.getSelectedItem().toString(), new IResultCallback() {
+                            @Override
+                            public void onError(String code, String error) {
+                                Toast.makeText(act,"Error. "+error,Toast.LENGTH_LONG).show();
+                            }
+
+                            @Override
+                            public void onSuccess() {
+                                Toast.makeText(act,"Device Renamed .",Toast.LENGTH_LONG).show();
+                                d.dismiss();
+                            }
+                        });
+                    }
+                });
+                delete.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        ITuyaDevice Device = TuyaHomeSdk.newDeviceInstance(Devices.get(position).getDevId());
+                        Device.removeDevice(new IResultCallback() {
+                            @Override
+                            public void onError(String code, String error) {
+                                Toast.makeText(act,"Error. "+error,Toast.LENGTH_LONG).show();
+                            }
+
+                            @Override
+                            public void onSuccess() {
+                                Toast.makeText(act,"Device Deleted .",Toast.LENGTH_LONG).show();
+                                d.dismiss();
+                            }
+                        });
+                    }
+                });
+                d.show();
+                return false;
+            }
+        });
+        mainLogo.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+
+                Dialog  dd = new Dialog(act);
+                dd.setContentView(R.layout.lock_unlock_dialog);
+                Button cancel = (Button) dd.findViewById(R.id.confermationDialog_cancel);
+                Button lock = (Button) dd.findViewById(R.id.messageDialog_ok);
+                EditText password = (EditText) dd.findViewById(R.id.editTextTextPassword);
+                cancel.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        dd.dismiss();
+                    }
+                });
+                lock.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+
+                        final lodingDialog loading = new lodingDialog(act);
+                        final String pass = password.getText().toString() ;
+                        StringRequest re = new StringRequest(Request.Method.POST, LogInUrl, new Response.Listener<String>()
+                        {
+                            @Override
+                            public void onResponse(String response)
+                            {
+                                Log.d("LoginResult" , response );
+                                loading.stop();
+                                if (response.equals("1"))
+                                {
+                                    lockDB.modifyValue("off");
+                                    roomsListView.setVisibility(View.VISIBLE);
+                                    devicesListView.setVisibility(View.GONE);
+                                    btnsLayout.setVisibility(View.VISIBLE);
+                                    logoLayout.setVisibility(View.GONE);
+                                    dd.dismiss();
+                                }
+                                else if (response.equals("0"))
+                                {
+                                    Toast.makeText(act,"UnLock Failed",Toast.LENGTH_LONG).show();
+                                }
+                                else
+                                {
+                                    Toast.makeText(act,"No Params",Toast.LENGTH_LONG).show();
+                                }
+
+                            }
+                        }, new Response.ErrorListener() {
+                            @Override
+                            public void onErrorResponse(VolleyError error)
+                            {
+                                loading.stop();
+                            }
+                        })
+                        {
+                            @Override
+                            protected Map<String, String> getParams() throws AuthFailureError
+                            {
+                                Map<String,String> par = new HashMap<String, String>();
+                                par.put( "password" , pass ) ;
+                                par.put( "hotel" , "1" ) ;
+                                return par;
+                            }
+                        };
+                        Volley.newRequestQueue(act).add(re);
+                    }
+                });
+                dd.show();
+                return false;
+            }
+        });
+        mainLogo.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                hideSystemUI();
+                return false;
+            }
+        });
+        logoLayout.setVisibility(View.GONE);
+        roomsListView.setVisibility(View.VISIBLE);
+        devicesListView.setVisibility(View.GONE);
+        hideSystemUI();
+        if (lockDB.getLockValue().equals("off")) {
+            roomsListView.setVisibility(View.VISIBLE);
+            devicesListView.setVisibility(View.GONE);
+            btnsLayout.setVisibility(View.VISIBLE);
+            logoLayout.setVisibility(View.GONE);
+        }
+        else if (lockDB.getLockValue().equals("on")) {
+            roomsListView.setVisibility(View.GONE);
+            devicesListView.setVisibility(View.GONE);
+            btnsLayout.setVisibility(View.GONE);
+            logoLayout.setVisibility(View.VISIBLE);
+        }
+        else {
+            roomsListView.setVisibility(View.GONE);
+            devicesListView.setVisibility(View.GONE);
+            btnsLayout.setVisibility(View.GONE);
+            logoLayout.setVisibility(View.VISIBLE);
+        }
     }
 
     private void getRooms()
@@ -206,7 +436,7 @@ public class Rooms extends AppCompatActivity
                         ROOM room = new ROOM(id,rNum,Hotel,b,bId,f,fId,rType,ss,sn,si,rn,rs,t,dep,c,l,roomS,ch,res,sos,dnd,PowerSwitch,DoorSensor,MotionSensor,Thermostat,zbgateway,CurtainSwitch,ServiceSwitch,lock,Switch1,Switch2,Switch3,Switch4,LockGateway,LockName,po,cu,doo,temp,token);
                         room.printRoomOnLog();
                         list.add(room);
-                        FireRooms.add(database.getReference(Login.THEHOTELDB.getHotelName()+"/B"+room.Building+"/F"+room.Floor+"/R"+room.RoomNumber));
+                        FireRooms.add(database.getReference(Login.SelectedHotel.ProjectName+"/B"+room.Building+"/F"+room.Floor+"/R"+room.RoomNumber));
 
                     }
                 }
@@ -214,108 +444,11 @@ public class Rooms extends AppCompatActivity
                 {
                     e.printStackTrace();
                 }
-                AC_SENARIO_Status = new boolean[list.size()];
-                DOORSTATUS = new boolean[list.size()];
-                start = new long[list.size()];
-                DoorStart = new long[list.size()];
-                period = new long[list.size()];
-                DoorPeriod = new long[list.size()];
-                ClientTemp = new String[list.size()];
-                TempSetPoint = new String[list.size()];
-                TempRonnableList = new Runnable[list.size()];
-                DoorRunnable = new Runnable[list.size()];
-                CLEANUP = new boolean[list.size()];
-                LAUNDRY = new boolean[list.size()];
-                DND = new boolean[list.size()];
-                Handlers = new Handler[list.size()];
-                for (int t =0;t<list.size();t++)
-                {
-                    CLEANUP[t] = false ;
-                    LAUNDRY[t] = false ;
-                    DND[t] = false ;
-                    AC_SENARIO_Status[t] = false ;
-                    DOORSTATUS[t] = false ;
-                    start[t] = 0 ;
-                    DoorStart[t]=0;
-                    period[t]=0 ;
-                    DoorPeriod[t]=0;
-                    ClientTemp[t] = "0" ;
-                    TempSetPoint[t] = "250" ;
-                    int finalT = t;
-                    int finalT1 = t;
-                    int finalT2 = t;
-                    DoorRunnable[t] = new Runnable() {
-                        @Override
-                        public void run()
-                        {
-                            long millis = System.currentTimeMillis() - DoorStart[finalT] ;
-                            int seconds = (int) (millis / 1000);
-                            int minutes = seconds / 60;
-                            seconds = seconds % 60;
-                            //Handlers[finalT].postDelayed(this,1000) ;
-                            Handler timerDoorHandler = new Handler();
-                            timerDoorHandler.postDelayed(this,1000) ;
-                            DoorPeriod[finalT] = System.currentTimeMillis() - DoorStart[finalT] ;
-                            Log.d("theSTATUSDOOR"+list.get(finalT).RoomNumber , String.valueOf(DOORSTATUS[finalT])+" " +minutes+":"+seconds);
-                            if ( DoorPeriod[finalT] >=  THEDOORWARNING_INTERVAL  && DOORSTATUS[finalT])
-                            {
-                                FireRooms.get(finalT).child("doorStatus").setValue(2);
-                                timerDoorHandler.removeCallbacks(DoorRunnable[finalT]);
-                            }
-                            else if (DoorPeriod[finalT] >=  THEDOORWARNING_INTERVAL  && !DOORSTATUS[finalT])
-                            {
-                                timerDoorHandler.removeCallbacks(DoorRunnable[finalT]);
-                            }
 
-                        }
-                    };
-                    TempRonnableList[t] = new Runnable()
-                    {
-                        @Override
-                        public void run()
-                        {
-                            long millis = System.currentTimeMillis() - start[finalT] ;
-                            int seconds = (int) (millis / 1000);
-                            int minutes = seconds / 60;
-                            seconds = seconds % 60;
-                            Handler hsndler = new Handler();
-                            hsndler.postDelayed(this, 1000);
-                            //Handlers[finalT].postDelayed(TempRonnableList[finalT], 1000);
-                            period[finalT] = System.currentTimeMillis() - start[finalT] ;
-                            Log.d(list.get(finalT).RoomNumber+" theSTATUS " , String.valueOf(AC_SENARIO_Status[finalT])+" "+ClientTemp[finalT]+" " +minutes+":"+seconds);
-                            if ( period[finalT] >=  THE_AC_INTERVAL_TIME  && AC_SENARIO_Status[finalT])
-                            {
-                                if (list.get(finalT2).getAC() != null )
-                                {
-                                    list.get(finalT2).getAC().publishDps("{\" 2\": "+TempSetPoint[finalT]+"}", new IResultCallback() {
-                                        @Override
-                                        public void onError(String code, String error) {
-
-                                        }
-
-                                        @Override
-                                        public void onSuccess()
-                                        {
-                                            //ToastMaker.MakeToast("Temp Set to Setpoint " , act);
-                                            AC_SENARIO_Status[finalT1] = false ;
-                                            hsndler.removeCallbacks(TempRonnableList[finalT]);
-                                        }
-                                    });
-                                }
-
-                            }
-                            else if (period[finalT] >=  THE_AC_INTERVAL_TIME  && !AC_SENARIO_Status[finalT])
-                            {
-                                hsndler.removeCallbacks(TempRonnableList[finalT]);
-                            }
-                        }
-                    };
-                }
                 adapter = new Rooms_Adapter_Base(list,act);
                 roomsListView.setAdapter(adapter);
-                getTuyaDevices() ;
-                loginTTLock();
-                getHotelTempSetpoint();
+                defineVariables();
+
             }
         }, new Response.ErrorListener()
         {
@@ -335,6 +468,111 @@ public class Rooms extends AppCompatActivity
             }
         };
         Volley.newRequestQueue(act).add(re);
+    }
+
+    void defineVariables() {
+        AC_SENARIO_Status = new boolean[list.size()];
+        DOORSTATUS = new boolean[list.size()];
+        start = new long[list.size()];
+        DoorStart = new long[list.size()];
+        period = new long[list.size()];
+        DoorPeriod = new long[list.size()];
+        ClientTemp = new String[list.size()];
+        TempSetPoint = new String[list.size()];
+        TempRonnableList = new Runnable[list.size()];
+        DoorRunnable = new Runnable[list.size()];
+        CLEANUP = new boolean[list.size()];
+        LAUNDRY = new boolean[list.size()];
+        DND = new boolean[list.size()];
+        CHECKOUT = new boolean[list.size()];
+        Handlers = new Handler[list.size()];
+        for (int t =0;t<list.size();t++)
+        {
+            CLEANUP[t] = false ;
+            LAUNDRY[t] = false ;
+            DND[t] = false ;
+            CHECKOUT[t] = false ;
+            AC_SENARIO_Status[t] = false ;
+            DOORSTATUS[t] = false ;
+            start[t] = 0 ;
+            DoorStart[t]=0;
+            period[t]=0 ;
+            DoorPeriod[t]=0;
+            ClientTemp[t] = "0" ;
+            TempSetPoint[t] = "250" ;
+            int finalT = t;
+            int finalT1 = t;
+            int finalT2 = t;
+            DoorRunnable[t] = new Runnable() {
+                @Override
+                public void run()
+                {
+                    long millis = System.currentTimeMillis() - DoorStart[finalT] ;
+                    int seconds = (int) (millis / 1000);
+                    int minutes = seconds / 60;
+                    seconds = seconds % 60;
+                    //Handlers[finalT].postDelayed(this,1000) ;
+                    Handler timerDoorHandler = new Handler();
+                    timerDoorHandler.postDelayed(this,1000) ;
+                    DoorPeriod[finalT] = System.currentTimeMillis() - DoorStart[finalT] ;
+                    Log.d("theSTATUSDOOR"+list.get(finalT).RoomNumber , String.valueOf(DOORSTATUS[finalT])+" " +minutes+":"+seconds);
+                    if ( DoorPeriod[finalT] >=  THEDOORWARNING_INTERVAL  && DOORSTATUS[finalT])
+                    {
+                        FireRooms.get(finalT).child("doorStatus").setValue(2);
+                        timerDoorHandler.removeCallbacks(DoorRunnable[finalT]);
+                    }
+                    else if (DoorPeriod[finalT] >=  THEDOORWARNING_INTERVAL  && !DOORSTATUS[finalT])
+                    {
+                        timerDoorHandler.removeCallbacks(DoorRunnable[finalT]);
+                    }
+
+                }
+            };
+            TempRonnableList[t] = new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    long millis = System.currentTimeMillis() - start[finalT] ;
+                    int seconds = (int) (millis / 1000);
+                    int minutes = seconds / 60;
+                    seconds = seconds % 60;
+                    Handler hsndler = new Handler();
+                    hsndler.postDelayed(this, 1000);
+                    //Handlers[finalT].postDelayed(TempRonnableList[finalT], 1000);
+                    period[finalT] = System.currentTimeMillis() - start[finalT] ;
+                    Log.d(list.get(finalT).RoomNumber+" theSTATUS " , String.valueOf(AC_SENARIO_Status[finalT])+" "+ClientTemp[finalT]+" " +minutes+":"+seconds);
+                    if ( period[finalT] >=  THE_AC_INTERVAL_TIME  && AC_SENARIO_Status[finalT])
+                    {
+                        if (list.get(finalT2).getAC() != null )
+                        {
+                            list.get(finalT2).getAC().publishDps("{\" 2\": "+TempSetPoint[finalT]+"}", new IResultCallback() {
+                                @Override
+                                public void onError(String code, String error) {
+
+                                }
+
+                                @Override
+                                public void onSuccess()
+                                {
+                                    //ToastMaker.MakeToast("Temp Set to Setpoint " , act);
+                                    AC_SENARIO_Status[finalT1] = false ;
+                                    hsndler.removeCallbacks(TempRonnableList[finalT]);
+                                }
+                            });
+                        }
+
+                    }
+                    else if (period[finalT] >=  THE_AC_INTERVAL_TIME  && !AC_SENARIO_Status[finalT])
+                    {
+                        hsndler.removeCallbacks(TempRonnableList[finalT]);
+                    }
+                }
+            };
+        }
+        getTuyaDevices() ;
+        loginTTLock();
+        getHotelTempSetpoint();
     }
 
     private void loginTTLock()
@@ -486,7 +724,9 @@ public class Rooms extends AppCompatActivity
                                 {
                                     list.get(j).setGATEWAY(TuyaHomeSdk.newDeviceInstance(list.get(j).getGATEWAY_B().devId));
                                     list.get(j).setWiredZBGateway(TuyaHomeSdk.newGatewayInstance(list.get(j).getGATEWAY_B().devId));
-                                    setZBGatewayStatus(list.get(j),"1");
+                                    if (list.get(j).ZBGateway == 0 ) {
+                                        setZBGatewayStatus(list.get(j),"1");
+                                    }
                                 }
                                 catch (Exception e)
                                 {
@@ -552,10 +792,18 @@ public class Rooms extends AppCompatActivity
                                 UnRecognizedDevices_B.add(Devices.get(i));
                             }
 
-                            setSwitch1DB1(list.get(j));
-                            setSwitch1DB2(list.get(j));
-                            setSwitch1DB3(list.get(j));
-                            setSwitch1DB4(list.get(j));
+                            if (list.get(j).getSWITCH3() == null ) {
+                                setSwitch1DB2(list.get(j));
+                            }
+                            else {
+                                bindSwitch1ToSwitch3btn1(list.get(j));
+                                bindSwitch1ToSwitch3btn2(list.get(j));
+                            }
+
+                            //setSwitch1DB1(list.get(j));
+
+                            //setSwitch1DB3(list.get(j));
+                            //setSwitch1DB4(list.get(j));
                         }
                     }
                     if (UnRecognizedDevices_B.size() > 0 )
@@ -597,60 +845,124 @@ public class Rooms extends AppCompatActivity
 
     public void resetAllDevices(View view)
     {
-        lodingDialog loading = new lodingDialog(act);
-        //removeParameter=0;
-        for (int i=0;i<Devices.size();i++)
-        {
-            int finalI = i;
-            TuyaHomeSdk.newDeviceInstance(Devices.get(i).getDevId()).removeDevice(new IResultCallback()
-            {
 
-                @Override
-                public void onError(String code, String error)
+        Dialog  dd = new Dialog(act);
+        dd.setContentView(R.layout.lock_unlock_dialog);
+        Button cancel = (Button) dd.findViewById(R.id.confermationDialog_cancel);
+        Button lock = (Button) dd.findViewById(R.id.messageDialog_ok);
+        TextView title = (TextView) dd.findViewById(R.id.textView2);
+        TextView message = (TextView) dd.findViewById(R.id.confermationDialog_Text);
+        title.setText("Remove All Devices ?");
+        message.setText("Are You Sure You want to remove all devices ??");
+        EditText password = (EditText) dd.findViewById(R.id.editTextTextPassword);
+        cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dd.dismiss();
+            }
+        });
+        lock.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final lodingDialog loading = new lodingDialog(act);
+                final String pass = password.getText().toString() ;
+                StringRequest re = new StringRequest(Request.Method.POST, LogInUrl, new Response.Listener<String>()
                 {
-                    Toast.makeText(act,error,Toast.LENGTH_LONG).show();
-                }
-                @Override
-                public void onSuccess()
-                {
-                    //Devices.remove(finalI);
-                }
-            });
-
-        }
-
-            String url = Login.SelectedHotel.URL+"removeAllDevices.php";
-            StringRequest re = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
-                @Override
-                public void onResponse(String response)
-                {
-                    loading.stop();
-                    Toast.makeText(act,response,Toast.LENGTH_LONG).show();
-                    if (response.equals("1"))
+                    @Override
+                    public void onResponse(String response)
                     {
-                        Toast.makeText(act,"Devices Removed",Toast.LENGTH_LONG).show();
-                        getRooms();
-                    }
+                        Log.d("LoginResult" , response +" "+ LogInUrl );
+                        loading.stop();
+                        if (response.equals("1"))
+                        {
+                            dd.dismiss();
+                            lodingDialog loading = new lodingDialog(act);
+                            //removeParameter=0;
+                            for (int i=0;i<Devices.size();i++)
+                            {
+                                int finalI = i;
+                                TuyaHomeSdk.newDeviceInstance(Devices.get(i).getDevId()).removeDevice(new IResultCallback()
+                                {
 
-                }
-            }, new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError error)
+                                    @Override
+                                    public void onError(String code, String error)
+                                    {
+                                        Toast.makeText(act,error,Toast.LENGTH_LONG).show();
+                                    }
+                                    @Override
+                                    public void onSuccess()
+                                    {
+                                        //Devices.remove(finalI);
+                                    }
+                                });
+
+                            }
+
+                            String url = Login.SelectedHotel.URL+"removeAllDevices.php";
+                            StringRequest re = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
+                                @Override
+                                public void onResponse(String response)
+                                {
+                                    loading.stop();
+                                    Toast.makeText(act,response,Toast.LENGTH_LONG).show();
+                                    if (response.equals("1"))
+                                    {
+                                        Toast.makeText(act,"Devices Removed",Toast.LENGTH_LONG).show();
+                                        getRooms();
+                                    }
+
+                                }
+                            }, new Response.ErrorListener() {
+                                @Override
+                                public void onErrorResponse(VolleyError error)
+                                {
+                                    loading.stop();
+                                    Toast.makeText(act,error.getMessage(),Toast.LENGTH_LONG).show();
+                                }
+                            })
+                            {
+                                @Override
+                                protected Map<String, String> getParams() throws AuthFailureError
+                                {
+                                    Map<String,String> Param = new HashMap<String, String>();
+                                    Param.put("hotel","1");
+                                    return Param;
+                                }
+                            };
+                            Volley.newRequestQueue(act).add(re);
+
+                        }
+                        else if (response.equals("0"))
+                        {
+                            Toast.makeText(act,"Lock Failed",Toast.LENGTH_LONG).show();
+                        }
+                        else
+                        {
+                            Toast.makeText(act,"No Params",Toast.LENGTH_LONG).show();
+                        }
+
+                    }
+                }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error)
+                    {
+                        loading.stop();
+                    }
+                })
                 {
-                    loading.stop();
-                    Toast.makeText(act,error.getMessage(),Toast.LENGTH_LONG).show();
-                }
-            })
-            {
-                @Override
-                protected Map<String, String> getParams() throws AuthFailureError
-                {
-                    Map<String,String> Param = new HashMap<String, String>();
-                    Param.put("hotel","1");
-                    return Param;
-                }
-            };
-            Volley.newRequestQueue(act).add(re);
+                    @Override
+                    protected Map<String, String> getParams() throws AuthFailureError
+                    {
+                        Map<String,String> par = new HashMap<String, String>();
+                        par.put( "password" , pass ) ;
+                        par.put( "hotel" , "1" ) ;
+                        return par;
+                    }
+                };
+                Volley.newRequestQueue(act).add(re);
+            }
+        });
+        dd.show();
 
 
 
@@ -731,23 +1043,30 @@ public class Rooms extends AppCompatActivity
                 CLEANUP[i] = Boolean.getBoolean(list.get(i).getSERVICE_B().dps.get("2").toString()) ;
                 LAUNDRY[i] = Boolean.getBoolean( list.get(i).getSERVICE_B().dps.get("3").toString());
                 DND[i] = Boolean.getBoolean( list.get(i).getSERVICE_B().dps.get("1").toString());
-
+                CHECKOUT[i] = Boolean.getBoolean(list.get(i).getSERVICE_B().dps.get("4").toString());
                 int finalI1 = i;
                 list.get(i).getSERVICE().registerDeviceListener(new IDeviceListener() {
                     @Override
                     public void onDpUpdate(String devId, Map<String, Object> dpStr)
                     {
-                        Log.d("serviceswitch" , "1 "+list.get(finalI1).getSERVICE_B().dps.get("1").toString()+" 2 "+list.get(finalI1).getSERVICE_B().dps.get("2").toString()+" 3 "+list.get(finalI1).getSERVICE_B().dps.get("3").toString()+ "    c "+CLEANUP[finalI1]+" l "+LAUNDRY[finalI1]+" d "+DND[finalI1]+"    "+dpStr.toString());
+                        //Log.d("serviceswitch" , "1 "+list.get(finalI1).getSERVICE_B().dps.get("1").toString()+" 2 "+list.get(finalI1).getSERVICE_B().dps.get("2").toString()+" 3 "+list.get(finalI1).getSERVICE_B().dps.get("3").toString()+ "    c "+CLEANUP[finalI1]+" l "+LAUNDRY[finalI1]+" d "+DND[finalI1]+"    "+dpStr.toString());
 
 
                         if (dpStr.get("switch_2") != null)
                         {
                             if (dpStr.get("switch_2").toString().equals("true") && !CLEANUP[finalI1])
                             {
+                                Calendar c = Calendar.getInstance(Locale.getDefault());
+                                long time = c.getTimeInMillis();
                                 CLEANUP[finalI1] = true ;
-                                FireRooms.get(finalI1).child("Cleanup").setValue(1);
+                                FireRooms.get(finalI1).child("Cleanup").setValue(time);
                                 FireRooms.get(finalI1).child("dep").setValue("Cleanup");
                                 addCleanupOrder(list.get(finalI1),finalI1);
+                                for(ServiceEmps u : Emps) {
+                                    if (u.department.equals("Cleanup") || u.department.equals("Service")) {
+                                        makemessage(u.token,"Cleanup",true,list.get(finalI1).RoomNumber);
+                                    }
+                                }
                                 if (list.get(finalI1).getSERVICE_B().dps.get("1").toString().equals("true"))
                                 {
                                     DND[finalI1] = false ;
@@ -771,6 +1090,11 @@ public class Rooms extends AppCompatActivity
                                 CLEANUP[finalI1] = false ;
                                 cancelCleanupOrder(list.get(finalI1),finalI1);
                                 FireRooms.get(finalI1).child("Cleanup").setValue(0);
+                                for(ServiceEmps u : Emps) {
+                                    if (u.department.equals("Cleanup") || u.department.equals("Service")) {
+                                        makemessage(u.token,"Cleanup",false,list.get(finalI1).RoomNumber);
+                                    }
+                                }
                                 if (DND[finalI1])
                                 {
                                     FireRooms.get(finalI1).child("dep").setValue("DND");
@@ -792,10 +1116,17 @@ public class Rooms extends AppCompatActivity
                         {
                             if (dpStr.get("switch_3").toString().equals("true") && !LAUNDRY[finalI1])
                             {
+                                Calendar c = Calendar.getInstance(Locale.getDefault());
+                                long time = c.getTimeInMillis();
                                 LAUNDRY[finalI1] = true ;
                                 addLaundryOrder(list.get(finalI1) , finalI1);
-                                FireRooms.get(finalI1).child("Laundry").setValue(1);
+                                FireRooms.get(finalI1).child("Laundry").setValue(time);
                                 FireRooms.get(finalI1).child("dep").setValue("Laundry");
+                                for(ServiceEmps u : Emps) {
+                                    if (u.department.equals("Laundry") || u.department.equals("Service")) {
+                                        makemessage(u.token,"Laundry",true,list.get(finalI1).RoomNumber);
+                                    }
+                                }
                                 if (list.get(finalI1).getSERVICE_B().dps.get("1").toString().equals("true"))
                                 {
                                     list.get(finalI1).getSERVICE().publishDps("{\" 1\":false}", new IResultCallback() {
@@ -819,6 +1150,11 @@ public class Rooms extends AppCompatActivity
                                 LAUNDRY[finalI1] = false ;
                                 cancelLaundryOrder(list.get(finalI1) , finalI1);
                                 FireRooms.get(finalI1).child("Laundry").setValue(0);
+                                for(ServiceEmps u : Emps) {
+                                    if (u.department.equals("Laundry") || u.department.equals("Service")) {
+                                        makemessage(u.token,"Laundry",false,list.get(finalI1).RoomNumber);
+                                    }
+                                }
                                 if (DND[finalI1])
                                 {
                                     FireRooms.get(finalI1).child("dep").setValue("DND");
@@ -837,10 +1173,17 @@ public class Rooms extends AppCompatActivity
                         {
                             if (dpStr.get("switch_1").toString().equals("true") && !DND[finalI1])
                             {
+                                Calendar c = Calendar.getInstance(Locale.getDefault());
+                                long time = c.getTimeInMillis();
                                 DND[finalI1] = true ;
-                                FireRooms.get(finalI1).child("DND").setValue(1);
+                                FireRooms.get(finalI1).child("DND").setValue(time);
                                 FireRooms.get(finalI1).child("dep").setValue("DND");
                                 addDNDOrder(list.get(finalI1) , finalI1);
+                                for(ServiceEmps u : Emps) {
+                                    if (u.department.equals("Service") || u.department.equals("Cleanup") || u.department.equals("Laundry") || u.department.equals("RoomService")) {
+                                        makemessage(u.token, "DND", true, list.get(finalI1).RoomNumber);
+                                    }
+                                }
                                 if (list.get(finalI1).getSERVICE_B().dps.get("2").toString().equals("true"))
                                 {
                                     list.get(finalI1).getSERVICE().publishDps("{\" 2\":false}", new IResultCallback() {
@@ -875,12 +1218,34 @@ public class Rooms extends AppCompatActivity
                                     FireRooms.get(finalI1).child("Laundry").setValue(0);
                                     cancelLaundryOrder(list.get(finalI1) , finalI1);
                                 }
+                                if (list.get(finalI1).getSERVICE_B().dps.get("4").toString().equals("true"))
+                                {
+                                    list.get(finalI1).getSERVICE().publishDps("{\" 4\":false}", new IResultCallback() {
+                                        @Override
+                                        public void onError(String code, String error) {
+
+                                        }
+
+                                        @Override
+                                        public void onSuccess() {
+
+                                        }
+                                    });
+                                    CHECKOUT[finalI1] = false ;
+                                    FireRooms.get(finalI1).child("Checkout").setValue(0);
+                                    cancelCheckoutOrder(list.get(finalI1) , finalI1);
+                                }
                             }
                             else if (dpStr.get("switch_1").toString().equals("false") && DND[finalI1])
                             {
                                 DND[finalI1] = false ;
                                 cancelDNDOrder(list.get(finalI1) , finalI1);
                                 FireRooms.get(finalI1).child("DND").setValue(0);
+                                for(ServiceEmps u : Emps) {
+                                    if (u.department.equals("Service") || u.department.equals("Cleanup") || u.department.equals("Laundry") || u.department.equals("RoomService")) {
+                                        makemessage(u.token, "DND", false, list.get(finalI1).RoomNumber);
+                                    }
+                                }
                                 if (LAUNDRY[finalI1])
                                 {
                                     FireRooms.get(finalI1).child("dep").setValue("Laundry");
@@ -893,6 +1258,40 @@ public class Rooms extends AppCompatActivity
                                 {
                                     FireRooms.get(finalI1).child("dep").setValue(0);
                                 }
+                            }
+                        }
+                        if (dpStr.get("switch_4") != null )
+                        {
+                            if (dpStr.get("switch_4").toString().equals("true") && !CHECKOUT[finalI1]){
+                                Calendar c = Calendar.getInstance(Locale.getDefault());
+                                long time = c.getTimeInMillis();
+                                CHECKOUT[finalI1] = true ;
+                                FireRooms.get(finalI1).child("Checkout").setValue(time);
+                                FireRooms.get(finalI1).child("dep").setValue("Checkout");
+                                addCheckoutOrder(list.get(finalI1),finalI1);
+                                if (list.get(finalI1).getSERVICE_B().dps.get("1").toString().equals("true"))
+                                {
+                                    DND[finalI1] = false ;
+                                    list.get(finalI1).getSERVICE().publishDps("{\" 1\":false}", new IResultCallback() {
+                                        @Override
+                                        public void onError(String code, String error) {
+
+                                        }
+
+                                        @Override
+                                        public void onSuccess() {
+
+                                        }
+                                    });
+                                    FireRooms.get(finalI1).child("DND").setValue(0);
+                                    cancelDNDOrder(list.get(finalI1),finalI1);
+                                }
+                            }
+                            else if (dpStr.get("switch_4").toString().equals("false") && CHECKOUT[finalI1]){
+                                //Log.d("checkoutProblem" , " from here " + CheckoutStatus+dpStr.get("switch_4").toString() ) ;
+                                CHECKOUT[finalI1] = false ;
+                                FireRooms.get(finalI1).child("Checkout").setValue(0);
+                                cancelCheckoutOrder(list.get(finalI1),finalI1);
                             }
                         }
 
@@ -969,7 +1368,8 @@ public class Rooms extends AppCompatActivity
                     public void onDpUpdate(String devId, Map<String, Object> dpStr)
                     {
                         //Toast.makeText(act,list.get(finalI3).RoomNumber+"power",Toast.LENGTH_LONG).show();
-                        Log.d("powerdps" , list.get(finalI3).getPOWER_B().dps.toString() );
+                        //Log.d("powerdps" , list.get(finalI3).getPOWER_B().dps.toString() +" "+ dpStr);
+                        /*
                         if (list.get(finalI3).getPOWER_B().dps.get("1").toString().equals("true"))
                         {
                             FireRooms.get(finalI3).child("powerStatus").setValue(1);
@@ -977,6 +1377,22 @@ public class Rooms extends AppCompatActivity
                         else
                         {
                             FireRooms.get(finalI3).child("powerStatus").setValue(0);
+                        }
+
+                         */
+                        if (dpStr.get("switch_1") != null)
+                        {
+                            String S1 = dpStr.get("switch_1").toString() ;
+                            if (S1.equals("false"))
+                            {
+                                FireRooms.get(finalI3).child("powerStatus").setValue(0);
+                                //setPowerOnOff("0");
+                            }
+                            else
+                            {
+                                FireRooms.get(finalI3).child("powerStatus").setValue(1);
+                                //setPowerOnOff("1");
+                            }
                         }
                     }
 
@@ -1103,7 +1519,115 @@ public class Rooms extends AppCompatActivity
                     @Override
                     public void onDpUpdate(String devId, Map<String, Object> dpStr)
                     {
-                        //Toast.makeText(act,list.get(finalI3).RoomNumber+"switch1",Toast.LENGTH_LONG).show();
+                        if (dpStr.get("switch_1") != null ){
+
+                            if (dpStr.get("switch_1").toString().equals("true")) {
+
+                                if (list.get(finalI3).getSWITCH1_B().dps.get("2").toString().equals("true")) {
+                                    list.get(finalI3).getSWITCH1().publishDps("{\" 2\":false}", new IResultCallback() {
+                                        @Override
+                                        public void onError(String code, String error) {
+
+                                        }
+
+                                        @Override
+                                        public void onSuccess() {
+
+                                        }
+                                    });
+                                }
+                                if (list.get(finalI3).getSWITCH1_B().dps.get("3").toString().equals("true")) {
+                                    list.get(finalI3).getSWITCH1().publishDps("{\" 3\":false}", new IResultCallback() {
+                                        @Override
+                                        public void onError(String code, String error) {
+
+                                        }
+
+                                        @Override
+                                        public void onSuccess() {
+
+                                        }
+                                    });
+                                }
+                                if (list.get(finalI3).getSWITCH2_B() != null ) {
+                                    if (list.get(finalI3).getSWITCH2_B().dps.get("1").toString().equals("true")) {
+                                        list.get(finalI3).getSWITCH2().publishDps("{\" 1\":false}", new IResultCallback() {
+                                            @Override
+                                            public void onError(String code, String error) {
+
+                                            }
+
+                                            @Override
+                                            public void onSuccess() {
+
+                                            }
+                                        });
+                                    }
+                                    if (list.get(finalI3).getSWITCH2_B().dps.get("2").toString().equals("true")) {
+                                        list.get(finalI3).getSWITCH2().publishDps("{\" 2\":false}", new IResultCallback() {
+                                            @Override
+                                            public void onError(String code, String error) {
+
+                                            }
+
+                                            @Override
+                                            public void onSuccess() {
+
+                                            }
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                        if (dpStr.get("switch_2") != null ){
+                            if (dpStr.get("switch_2").toString().equals("true")){
+
+                                if (list.get(finalI3).getSWITCH1_B().dps.get("1").toString().equals("true")) {
+                                    list.get(finalI3).getSWITCH1().publishDps("{\" 1\":false}", new IResultCallback() {
+                                        @Override
+                                        public void onError(String code, String error) {
+
+                                        }
+
+                                        @Override
+                                        public void onSuccess() {
+
+                                        }
+                                    });
+                                }
+                            }
+                            else {
+
+                            }
+                        }
+                        if (dpStr.get("switch_3") != null ){
+//                                                if (dpStr.get("switch_3").toString().equals("true")){
+//                                                    Button b1 = (Button)findViewById(R.id.button17);
+//                                                    b1.setBackgroundResource(R.drawable.light_on);
+//                                                }
+//                                                else {
+//                                                    Button b1 = (Button)findViewById(R.id.button17);
+//                                                    b1.setBackgroundResource(R.drawable.group_62);
+//                                                }
+                            if (dpStr.get("switch_3").toString().equals("true")){
+                                if (list.get(finalI3).getSWITCH1_B().dps.get("1").toString().equals("true")) {
+                                    list.get(finalI3).getSWITCH1().publishDps("{\" 1\":false}", new IResultCallback() {
+                                        @Override
+                                        public void onError(String code, String error) {
+
+                                        }
+
+                                        @Override
+                                        public void onSuccess() {
+
+                                        }
+                                    });
+                                }
+                            }
+                            else {
+                            }
+
+                        }
                     }
 
                     @Override
@@ -1133,7 +1657,45 @@ public class Rooms extends AppCompatActivity
                     @Override
                     public void onDpUpdate(String devId, Map<String, Object> dpStr)
                     {
-                        //Toast.makeText(act,list.get(finalI3).RoomNumber+"switch2",Toast.LENGTH_LONG).show();
+                        Log.d("switch2Data" , dpStr.toString());
+                        if (dpStr.get("switch_1") != null ) {
+                            if (dpStr.get("switch_1").toString().equals("true")) {
+                                if (list.get(finalI3).getSWITCH1_B() != null) {
+                                    if (list.get(finalI3).getSWITCH1_B().dps.get("1").toString().equals("true")) {
+                                        list.get(finalI3).getSWITCH1().publishDps("{\" 1\":false}", new IResultCallback() {
+                                            @Override
+                                            public void onError(String code, String error) {
+
+                                            }
+
+                                            @Override
+                                            public void onSuccess() {
+
+                                            }
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                        if (dpStr.get("switch_2") != null ) {
+                            if (dpStr.get("switch_2").toString().equals("true")) {
+                                if (list.get(finalI3).getSWITCH1_B() != null) {
+                                    if (list.get(finalI3).getSWITCH1_B().dps.get("1").toString().equals("true")) {
+                                        list.get(finalI3).getSWITCH1().publishDps("{\" 1\":false}", new IResultCallback() {
+                                            @Override
+                                            public void onError(String code, String error) {
+
+                                            }
+
+                                            @Override
+                                            public void onSuccess() {
+
+                                            }
+                                        });
+                                    }
+                                }
+                            }
+                        }
                     }
 
                     @Override
@@ -1270,7 +1832,6 @@ public class Rooms extends AppCompatActivity
             int finalI = i;
             if (list.get(i).getSERVICE_B() != null)
             {
-
                 FireRooms.get(i).child("Cleanup").addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot)
@@ -1411,43 +1972,45 @@ public class Rooms extends AppCompatActivity
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     if (snapshot.getValue() != null ){
-                        if (snapshot.getValue().toString().equals("2")){
+                        Log.d("roomChangedTo" ,snapshot.getValue().toString() );
+                        if (snapshot.getValue().toString().equals("3")){
                             if(list.get(finalI).getPOWER() != null ){
-                                list.get(finalI).getPOWER().publishDps("{\"1\": true}", new IResultCallback() {
-                                    @Override
-                                    public void onError(String code, String error) {
-                                        //Toast.makeText(act, error, Toast.LENGTH_SHORT).show();
-                                        Log.e("light", error);
-                                    }
-
-                                    @Override
-                                    public void onSuccess() {
-                                        //Toast.makeText(act, "turn on the light success", Toast.LENGTH_SHORT).show();
-                                        //myRefPower.setValue(1);
-                                    }
-                                });
-                                list.get(finalI).getPOWER().publishDps("{\"2\": true}", new IResultCallback() {
-                                    @Override
-                                    public void onError(String code, String error) {
-                                        //Toast.makeText(act, "turn on the light failure", Toast.LENGTH_SHORT).show();
-                                    }
-
-                                    @Override
-                                    public void onSuccess() {
-                                        //Toast.makeText(act, "turn on the light success", Toast.LENGTH_SHORT).show();
-                                    }
-                                });
-                                list.get(finalI).getPOWER().publishDps("{\"10\": 20}", new IResultCallback() {
-                                    @Override
-                                    public void onError(String code, String error) {
-                                        //Toast.makeText(act, "turn on the light failure", Toast.LENGTH_SHORT).show();
-                                    }
-
-                                    @Override
-                                    public void onSuccess() {
-                                        //Toast.makeText(act, "turn on the light success", Toast.LENGTH_SHORT).show();
-                                    }
-                                });
+                                checkoutModeRoom(list.get(finalI));
+//                                list.get(finalI).getPOWER().publishDps("{\"1\": true}", new IResultCallback() {
+//                                    @Override
+//                                    public void onError(String code, String error) {
+//                                        //Toast.makeText(act, error, Toast.LENGTH_SHORT).show();
+//                                        Log.e("light", error);
+//                                    }
+//
+//                                    @Override
+//                                    public void onSuccess() {
+//                                        //Toast.makeText(act, "turn on the light success", Toast.LENGTH_SHORT).show();
+//                                        //myRefPower.setValue(1);
+//                                    }
+//                                });
+//                                list.get(finalI).getPOWER().publishDps("{\"2\": true}", new IResultCallback() {
+//                                    @Override
+//                                    public void onError(String code, String error) {
+//                                        //Toast.makeText(act, "turn on the light failure", Toast.LENGTH_SHORT).show();
+//                                    }
+//
+//                                    @Override
+//                                    public void onSuccess() {
+//                                        //Toast.makeText(act, "turn on the light success", Toast.LENGTH_SHORT).show();
+//                                    }
+//                                });
+//                                list.get(finalI).getPOWER().publishDps("{\"10\": 20}", new IResultCallback() {
+//                                    @Override
+//                                    public void onError(String code, String error) {
+//                                        //Toast.makeText(act, "turn on the light failure", Toast.LENGTH_SHORT).show();
+//                                    }
+//
+//                                    @Override
+//                                    public void onSuccess() {
+//                                        //Toast.makeText(act, "turn on the light success", Toast.LENGTH_SHORT).show();
+//                                    }
+//                                });
                             }
 
                         }
@@ -1459,7 +2022,44 @@ public class Rooms extends AppCompatActivity
 
                 }
             });
+            FireRooms.get(i).child("CheckInModeTime").addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
 
+                    if (snapshot.getValue() != null )
+                    {
+                        if (!snapshot.getValue().toString().equals("0"))
+                        {
+                            checkInModeTime = Integer.parseInt( snapshot.getValue().toString());
+                            Log.d("checkinModeDuration" , "check in chenged to "+checkInModeTime);
+                        }
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+
+                }
+            });
+            FireRooms.get(i).child("CheckOutModeTime").addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (snapshot.getValue() != null ){
+                        if (!snapshot.getValue().toString().equals("0"))
+                        {
+                            checkOutModeTime = Integer.parseInt( snapshot.getValue().toString());
+                            Log.d("checkoutModeDuration" , "changed to "+checkOutModeTime+"");
+                            //Toast.makeText(act,"checkout changed to "+checkOutModeTime+"",Toast.LENGTH_LONG).show();
+                        }
+
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+
+                }
+            });
         }
     }
 
@@ -1538,8 +2138,8 @@ public class Rooms extends AppCompatActivity
                         //Toast.makeText(act,room.RoomNumber+" CleanUp",Toast.LENGTH_LONG).show();
                         //CLEANUP = true ;
                         room.Cleanup = Integer.parseInt(response);
-                        FireRooms.get(index).child(dep).setValue(Integer.parseInt(response));
-                        FireRooms.get(index).child("dep").setValue(dep);
+                        //FireRooms.get(index).child(dep).setValue(Integer.parseInt(response));
+                        //FireRooms.get(index).child("dep").setValue(dep);
                     }
                     else
                     {
@@ -1653,8 +2253,8 @@ public class Rooms extends AppCompatActivity
                         room.Laundry = Integer.parseInt(response);
                         //Toast.makeText(act,room.RoomNumber+" Laundry",Toast.LENGTH_LONG).show();
                         //LAUNDRY = true ;
-                        FireRooms.get(index).child(dep).setValue(Integer.parseInt(response));
-                        FireRooms.get(index).child("dep").setValue(dep);
+                        //FireRooms.get(index).child(dep).setValue(Integer.parseInt(response));
+                        //FireRooms.get(index).child("dep").setValue(dep);
                     }
                     else
                     {
@@ -1763,8 +2363,8 @@ public class Rooms extends AppCompatActivity
                         room.DND = Integer.parseInt(response);
                         //Toast.makeText(act,room.RoomNumber+" DND",Toast.LENGTH_LONG).show();
                         //DND = true ;
-                        FireRooms.get(index).child(dep).setValue(Integer.parseInt(response));
-                        FireRooms.get(index).child("dep").setValue(dep);
+                        //FireRooms.get(index).child(dep).setValue(Integer.parseInt(response));
+                        //FireRooms.get(index).child("dep").setValue(dep);
                     }
                 } catch (Exception e) {
                     Log.e("DND", e.getMessage());
@@ -1775,7 +2375,7 @@ public class Rooms extends AppCompatActivity
                 , new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Log.e("DNDerror", error.getMessage());
+                //Log.e("DNDerror", error.getMessage());
             }
         }) {
             @Override
@@ -1830,6 +2430,88 @@ public class Rooms extends AppCompatActivity
         };
         //Volley volley = new Volley();
         Volley.newRequestQueue(act).add(rrr);
+    }
+
+    public void cancelCheckoutOrder(ROOM room , int index ) {
+
+        final String dep = "Checkout";
+        StringRequest re = new StringRequest(Request.Method.POST, removeServiceOrderUrl, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                //loading.stop();
+                //checkoutOff();
+                //myRefCheckout.setValue(0);
+                //ToastMaker.MakeToast( dep + " Order Cancelled" , act);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                //d.dismiss();
+                //loading.stop();
+            }
+        }) {
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<String, String>();
+                params.put("id", String.valueOf(1));
+                params.put("room", String.valueOf(list.get(index).RoomNumber));
+                params.put("dep", dep);
+                params.put("Hotel", String.valueOf(1));
+                return params;
+            }
+        };
+        Volley.newRequestQueue(act).add(re);
+    }
+
+    public void addCheckoutOrder (ROOM room , int index ) {
+        final String dep = "Checkout";
+        Calendar x = Calendar.getInstance(Locale.getDefault());
+        long timee =  x.getTimeInMillis();
+
+        StringRequest addOrder = new StringRequest(Request.Method.POST, insertServiceOrderUrl , new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response)
+            {
+                //loading.stop();
+                if (Integer.parseInt(response) > 0 )
+                {
+                    room.Laundry = Integer.parseInt(response);
+                    //Toast.makeText(act,room.RoomNumber+" Laundry",Toast.LENGTH_LONG).show();
+                    //LAUNDRY = true ;
+                    //FireRooms.get(index).child(dep).setValue(Integer.parseInt(response));
+                    //FireRooms.get(index).child("dep").setValue(dep);
+                }
+                else
+                {
+                    //Toast.makeText(act , response,Toast.LENGTH_LONG).show();
+                }
+
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error)
+            {
+                //loading.stop();
+                //Toast.makeText(act , error.getMessage(),Toast.LENGTH_LONG).show();
+            }
+        })
+        {
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError
+            {
+                Map<String,String> params = new HashMap<String, String>();
+                params.put("roomNumber" ,String.valueOf(room.RoomNumber));
+                params.put("time" ,String.valueOf(timee));
+                params.put("dep" ,dep);
+                params.put("Hotel" ,String.valueOf( room.Hotel));
+                params.put("RorS" ,String.valueOf( room.SuiteStatus));
+                params.put("Reservation" ,String.valueOf( room.ReservationNumber));
+                return params;
+            }
+
+        };
+        //Volley volley = new Volley();
+        Volley.newRequestQueue(act).add(addOrder);
     }
 
     private void getHotelTempSetpoint()
@@ -1984,14 +2666,14 @@ public class Rooms extends AppCompatActivity
     {
         try
         {
-            lodingDialog loading = new lodingDialog(act);
+            //lodingDialog loading = new lodingDialog(act);
             String url = Login.SelectedHotel.URL+"setServiceSwitchStatusValue.php";
             StringRequest tabR = new StringRequest(Request.Method.POST, url, new Response.Listener<String>()
             {
                 @Override
                 public void onResponse(String response)
                 {
-                    loading.stop();
+                    //loading.stop();
                     if (response.equals("1"))
                     {
                         Room.setSERVICE_B(null);
@@ -2014,7 +2696,7 @@ public class Rooms extends AppCompatActivity
                 @Override
                 public void onErrorResponse(VolleyError error)
                 {
-                    loading.stop();
+                    //loading.stop();
                     //ToastMaker.MakeToast(error.getMessage() , act);
                     //Log.e("Tablet" , error.getMessage() );
                 }
@@ -2042,14 +2724,14 @@ public class Rooms extends AppCompatActivity
     {
         try
         {
-            lodingDialog loading = new lodingDialog(act);
+            //lodingDialog loading = new lodingDialog(act);
             String url = Login.SelectedHotel.URL+"setThermostatStatusValue.php";
             StringRequest tabR = new StringRequest(Request.Method.POST, url, new Response.Listener<String>()
             {
                 @Override
                 public void onResponse(String response)
                 {
-                    loading.stop();
+                    //loading.stop();
                     if (response.equals("1"))
                     {
                         //myRefThermostat.setValue(status);
@@ -2073,7 +2755,7 @@ public class Rooms extends AppCompatActivity
                 @Override
                 public void onErrorResponse(VolleyError error)
                 {
-                    loading.stop();
+                    //loading.stop();
                     //ToastMaker.MakeToast(error.getMessage() , act);
                     //Log.e("Tablet" , error.getMessage() );
                 }
@@ -2101,14 +2783,14 @@ public class Rooms extends AppCompatActivity
     {
         try
         {
-            lodingDialog loading = new lodingDialog(act);
+            //lodingDialog loading = new lodingDialog(act);
             String url = Login.SelectedHotel.URL+"setPowerSwitchStatusValue.php";
             StringRequest tabR = new StringRequest(Request.Method.POST, url, new Response.Listener<String>()
             {
                 @Override
                 public void onResponse(String response)
                 {
-                    loading.stop();
+                    //loading.stop();
                     Log.e("power " , response +" " + status);
                     if (response.equals("1"))
                     {
@@ -2133,7 +2815,7 @@ public class Rooms extends AppCompatActivity
                 @Override
                 public void onErrorResponse(VolleyError error)
                 {
-                    loading.stop();
+                    //loading.stop();
                     //ToastMaker.MakeToast(error.getMessage() , act);
                     //Log.e("Tablet" , error.getMessage() );
                 }
@@ -2161,14 +2843,14 @@ public class Rooms extends AppCompatActivity
     {
         try
         {
-            lodingDialog loading = new lodingDialog(act);
+            //lodingDialog loading = new lodingDialog(act);
             String url = Login.SelectedHotel.URL+"setCurtainSwitchStatusValue.php";
             StringRequest tabR = new StringRequest(Request.Method.POST, url, new Response.Listener<String>()
             {
                 @Override
                 public void onResponse(String response)
                 {
-                    loading.stop();
+                    //loading.stop();
                     if (response.equals("1"))
                     {
                         //myRefCurtainSwitch.setValue(status);
@@ -2192,7 +2874,7 @@ public class Rooms extends AppCompatActivity
                 @Override
                 public void onErrorResponse(VolleyError error)
                 {
-                    loading.stop();
+                    //loading.stop();
                     //ToastMaker.MakeToast(error.getMessage() , act);
                     //Log.e("Tablet" , error.getMessage() );
                 }
@@ -2220,14 +2902,14 @@ public class Rooms extends AppCompatActivity
     {
         try
         {
-            lodingDialog loading = new lodingDialog(act);
+            //lodingDialog loading = new lodingDialog(act);
             String url = Login.SelectedHotel.URL+"setMotionSensorStatusValue.php";
             StringRequest tabR = new StringRequest(Request.Method.POST, url, new Response.Listener<String>()
             {
                 @Override
                 public void onResponse(String response)
                 {
-                    loading.stop();
+                    //loading.stop();
                     if (response.equals("1"))
                     {
                         //myRefMotionSensor.setValue(status);
@@ -2251,7 +2933,7 @@ public class Rooms extends AppCompatActivity
                 @Override
                 public void onErrorResponse(VolleyError error)
                 {
-                    loading.stop();
+                    //loading.stop();
                     //ToastMaker.MakeToast(error.getMessage() , act);
                     //Log.e("Tablet" , error.getMessage() );
                 }
@@ -2279,14 +2961,14 @@ public class Rooms extends AppCompatActivity
     {
         try
         {
-            lodingDialog loading = new lodingDialog(act);
+            //lodingDialog loading = new lodingDialog(act);
             String url = Login.SelectedHotel.URL+"setSwitch1StatusValue.php";
             StringRequest tabR = new StringRequest(Request.Method.POST, url, new Response.Listener<String>()
             {
                 @Override
                 public void onResponse(String response)
                 {
-                    loading.stop();
+                    //loading.stop();
                     if (response.equals("1"))
                     {
                         //myRefSwitch1.setValue(status);
@@ -2310,7 +2992,7 @@ public class Rooms extends AppCompatActivity
                 @Override
                 public void onErrorResponse(VolleyError error)
                 {
-                    loading.stop();
+                    //loading.stop();
                     //ToastMaker.MakeToast(error.getMessage() , act);
                     //Log.e("Tablet" , error.getMessage() );
                 }
@@ -2338,14 +3020,14 @@ public class Rooms extends AppCompatActivity
     {
         try
         {
-            lodingDialog loading = new lodingDialog(act);
+            //lodingDialog loading = new lodingDialog(act);
             String url = Login.SelectedHotel.URL+"setSwitch2StatusValue.php";
             StringRequest tabR = new StringRequest(Request.Method.POST, url, new Response.Listener<String>()
             {
                 @Override
                 public void onResponse(String response)
                 {
-                    loading.stop();
+                    //loading.stop();
                     if (response.equals("1"))
                     {
                         //myRefSwitch2.setValue(status);
@@ -2369,7 +3051,7 @@ public class Rooms extends AppCompatActivity
                 @Override
                 public void onErrorResponse(VolleyError error)
                 {
-                    loading.stop();
+                    //loading.stop();
                     //ToastMaker.MakeToast(error.getMessage() , act);
                     //Log.e("Tablet" , error.getMessage() );
                 }
@@ -2397,14 +3079,14 @@ public class Rooms extends AppCompatActivity
     {
         try
         {
-            lodingDialog loading = new lodingDialog(act);
+            //lodingDialog loading = new lodingDialog(act);
             String url = Login.SelectedHotel.URL+"setSwitch3StatusValue.php";
             StringRequest tabR = new StringRequest(Request.Method.POST, url, new Response.Listener<String>()
             {
                 @Override
                 public void onResponse(String response)
                 {
-                    loading.stop();
+                    //loading.stop();
                     if (response.equals("1"))
                     {
                         //myRefSwitch3.setValue(status);
@@ -2428,7 +3110,7 @@ public class Rooms extends AppCompatActivity
                 @Override
                 public void onErrorResponse(VolleyError error)
                 {
-                    loading.stop();
+                    //loading.stop();
                     //ToastMaker.MakeToast(error.getMessage() , act);
                     //Log.e("Tablet" , error.getMessage() );
                 }
@@ -2456,14 +3138,14 @@ public class Rooms extends AppCompatActivity
     {
         try
         {
-            lodingDialog loading =  new lodingDialog(act);
+            //lodingDialog loading =  new lodingDialog(act);
             String url = Login.SelectedHotel.URL+"setSwitch4StatusValue.php";
             StringRequest tabR = new StringRequest(Request.Method.POST, url, new Response.Listener<String>()
             {
                 @Override
                 public void onResponse(String response)
                 {
-                    loading.stop();
+                    //loading.stop();
                     if (response.equals("1"))
                     {
                         //myRefSwitch4.setValue(status);
@@ -2487,7 +3169,7 @@ public class Rooms extends AppCompatActivity
                 @Override
                 public void onErrorResponse(VolleyError error)
                 {
-                    loading.stop();
+                    //loading.stop();
                     //ToastMaker.MakeToast(error.getMessage() , act);
                     //Log.e("Tablet" , error.getMessage() );
                 }
@@ -2515,14 +3197,14 @@ public class Rooms extends AppCompatActivity
     {
         try
         {
-            lodingDialog loading = new lodingDialog(act);
+            //lodingDialog loading = new lodingDialog(act);
             String url = Login.SelectedHotel.URL+"setGatewayStatusValue.php";
             StringRequest tabR = new StringRequest(Request.Method.POST, url, new Response.Listener<String>()
             {
                 @Override
                 public void onResponse(String response)
                 {
-                    loading.stop();
+                    //loading.stop();
                     if (response.equals("1"))
                     {
                         for (int i=0; i<list.size();i++){
@@ -2537,7 +3219,7 @@ public class Rooms extends AppCompatActivity
                 @Override
                 public void onErrorResponse(VolleyError error)
                 {
-                    loading.stop();
+                    //loading.stop();
                     //ToastMaker.MakeToast(error.getMessage() , act);
                     //Log.e("Tablet" , error.getMessage() );
                 }
@@ -2553,7 +3235,8 @@ public class Rooms extends AppCompatActivity
                     return Params;
                 }
             };
-            Volley.newRequestQueue(act).add(tabR);
+            requestQueue = Volley.newRequestQueue(act);
+            requestQueue.add(tabR);
         }
         catch (Exception e)
         {
@@ -2671,13 +3354,13 @@ public class Rooms extends AppCompatActivity
                 public void onSuccess(MultiControlLinkBean result) {
 
                     if (result.getMultiGroup() == null ){
-                        Log.d("S1D2RES " , "null");
+                        Log.d("MultiControlProblem"+THEROOM.RoomNumber , "null");
                         iTuyaDeviceMultiControl.queryLinkInfoByDp(THEROOM.getSWITCH2_B().devId, "2", new ITuyaDataCallback<MultiControlLinkBean>() {
                             @Override
                             public void onSuccess(MultiControlLinkBean result) {
 
                                 if (result.getMultiGroup() == null ){
-                                    Log.d("S2D2RES " , "null");
+                                    Log.d("MultiControlProblem"+THEROOM.RoomNumber , "null");
                                     Random r = new Random();
                                     int y = r.nextInt(30);
                                     JSONObject groupdetailes1 = new JSONObject(), groupdetailes2 = new JSONObject();
@@ -2713,18 +3396,19 @@ public class Rooms extends AppCompatActivity
                                         @Override
                                         public void onSuccess(MultiControlBean result) {
                                             //ToastUtil.shortToast(mContext,"success");
-                                            Log.d("switch1DeviceDp2", result.getGroupName());
+                                            Log.d("MultiControlProblem"+THEROOM.RoomNumber, result.getGroupName());
+
                                             iTuyaDeviceMultiControl.enableMultiControl(y, new ITuyaResultCallback<Boolean>() {
                                                 @Override
                                                 public void onSuccess(Boolean result) {
                                                     //ToastUtil.shortToast(mContext,"success");
-                                                    Log.d("switch1DeviceDp2", result.toString());
+                                                    Log.d("MultiControlProblem"+THEROOM.RoomNumber, result.toString());
                                                 }
 
                                                 @Override
                                                 public void onError(String errorCode, String errorMessage) {
                                                     //ToastUtil.shortToast(mContext,errorMessage);
-                                                    Log.d("switch1DeviceDp2", errorMessage);
+                                                    Log.d("MultiControlProblem"+THEROOM.RoomNumber, errorMessage);
                                                 }
                                             });
                                         }
@@ -2732,13 +3416,13 @@ public class Rooms extends AppCompatActivity
                                         @Override
                                         public void onError(String errorCode, String errorMessage) {
                                             //ToastUtil.shortToast(mContext,errorMessage);
-                                            Log.d("switch1DeviceDp2", errorMessage+" "+y);
+                                            Log.d("MultiControlProblem"+THEROOM.RoomNumber, errorMessage+" "+y);
                                         }
                                     });
                                 }
                                 else
                                 {
-                                    Log.d("S2D2RES " , result.getMultiGroup().getGroupName());
+                                    Log.d("MultiControlProblem"+THEROOM.RoomNumber , result.getMultiGroup().getGroupName());
                                 }
                             }
 
@@ -2750,7 +3434,7 @@ public class Rooms extends AppCompatActivity
                     }
                     else
                     {
-                        Log.d("S1D2RES " , result.getMultiGroup().getGroupName());
+                        Log.d("MultiControlProblem"+THEROOM.RoomNumber , result.getMultiGroup().getGroupName());
                     }
                 }
 
@@ -2958,5 +3642,737 @@ public class Rooms extends AppCompatActivity
             });
 
         }
+    }
+
+    void bindSwitch1ToSwitch3btn1(ROOM THEROOM){
+        if (THEROOM.getSWITCH1_B() != null && THEROOM.getSWITCH3_B() != null) {
+
+            iTuyaDeviceMultiControl.queryLinkInfoByDp(THEROOM.getSWITCH1_B().devId, "2", new ITuyaDataCallback<MultiControlLinkBean>() {
+                @Override
+                public void onSuccess(MultiControlLinkBean result) {
+
+                    if (result.getMultiGroup() == null )
+                    {
+                        Log.d("bindS1S3" , "null");
+                        iTuyaDeviceMultiControl.queryLinkInfoByDp(THEROOM.getSWITCH3_B().devId, "1", new ITuyaDataCallback<MultiControlLinkBean>() {
+                            @Override
+                            public void onSuccess(MultiControlLinkBean result) {
+
+                                if (result.getMultiGroup() == null ){
+                                    Log.d("bindS1S3" , "null");
+                                    Random r = new Random();
+                                    int x = r.nextInt(30);
+                                    JSONObject groupdetailes1 = new JSONObject(), groupdetailes2 = new JSONObject();
+                                    try {
+                                        groupdetailes1.put("devId", THEROOM.getSWITCH1_B().devId);
+                                        groupdetailes1.put("dpId", 2);
+                                        groupdetailes1.put("id", x);
+                                        groupdetailes1.put("enable", true);
+
+                                    } catch (JSONException e) {
+                                    }
+                                    try {
+                                        groupdetailes2.put("devId", THEROOM.getSWITCH3_B().devId);
+                                        groupdetailes2.put("dpId", 1);
+                                        groupdetailes2.put("id", x);
+                                        groupdetailes2.put("enable", true);
+
+                                    } catch (JSONException e) {
+                                    }
+                                    JSONArray arr = new JSONArray();
+                                    arr.put(groupdetailes2);
+                                    arr.put(groupdetailes1);
+                                    JSONObject multiControlBean = new JSONObject();
+                                    try {
+                                        multiControlBean.put("groupName", THEROOM.RoomNumber + "Lighting" + x);
+                                        multiControlBean.put("groupType", 13);
+                                        multiControlBean.put("groupDetail", arr);
+                                        multiControlBean.put("id", x);
+                                    } catch (JSONException e) {
+
+                                    }
+                                    iTuyaDeviceMultiControl.saveDeviceMultiControl(Login.THEHOME.getHomeId(), multiControlBean.toString(), new ITuyaResultCallback<MultiControlBean>() {
+                                        @Override
+                                        public void onSuccess(MultiControlBean result) {
+                                            //ToastUtil.shortToast(mContext,"success");
+                                            Log.d("bindS1S3", result.getGroupName());
+                                            iTuyaDeviceMultiControl.enableMultiControl(x, new ITuyaResultCallback<Boolean>() {
+                                                @Override
+                                                public void onSuccess(Boolean result) {
+                                                    //ToastUtil.shortToast(mContext,"success");
+                                                    Log.d("bindS1S3", result.toString());
+                                                }
+
+                                                @Override
+                                                public void onError(String errorCode, String errorMessage) {
+                                                    //ToastUtil.shortToast(mContext,errorMessage);
+                                                    Log.d("bindS1S3", errorMessage);
+                                                }
+                                            });
+                                        }
+
+                                        @Override
+                                        public void onError(String errorCode, String errorMessage) {
+                                            //ToastUtil.shortToast(mContext,errorMessage);
+                                            Log.d("bindS1S3", errorMessage + "here "+x);
+                                        }
+                                    });
+                                }
+                                else
+                                {
+                                    Log.d("bindS1S3" , result.getMultiGroup().getGroupName());
+                                }
+                            }
+
+                            @Override
+                            public void onError(String errorCode, String errorMessage) {
+
+                            }
+                        });
+                    }
+                    else
+                    {
+                        Log.d("bindS1S3" , result.getMultiGroup().getGroupName());
+                    }
+                }
+
+                @Override
+                public void onError(String errorCode, String errorMessage) {
+
+                }
+            });
+
+
+        }
+    }
+    void bindSwitch1ToSwitch3btn2(ROOM THEROOM){
+        if (THEROOM.getSWITCH1_B() != null && THEROOM.getSWITCH3_B() != null) {
+
+            iTuyaDeviceMultiControl.queryLinkInfoByDp(THEROOM.getSWITCH1_B().devId, "3", new ITuyaDataCallback<MultiControlLinkBean>() {
+                @Override
+                public void onSuccess(MultiControlLinkBean result) {
+
+                    if (result.getMultiGroup() == null )
+                    {
+                        Log.d("bindS1S3" , "null");
+                        iTuyaDeviceMultiControl.queryLinkInfoByDp(THEROOM.getSWITCH3_B().devId, "2", new ITuyaDataCallback<MultiControlLinkBean>() {
+                            @Override
+                            public void onSuccess(MultiControlLinkBean result) {
+
+                                if (result.getMultiGroup() == null ){
+                                    Log.d("bindS1S3" , "null");
+                                    Random r = new Random();
+                                    int x = r.nextInt(30);
+                                    JSONObject groupdetailes1 = new JSONObject(), groupdetailes2 = new JSONObject();
+                                    try {
+                                        groupdetailes1.put("devId", THEROOM.getSWITCH1_B().devId);
+                                        groupdetailes1.put("dpId", 3);
+                                        groupdetailes1.put("id", x);
+                                        groupdetailes1.put("enable", true);
+
+                                    } catch (JSONException e) {
+                                    }
+                                    try {
+                                        groupdetailes2.put("devId", THEROOM.getSWITCH3_B().devId);
+                                        groupdetailes2.put("dpId", 2);
+                                        groupdetailes2.put("id", x);
+                                        groupdetailes2.put("enable", true);
+
+                                    } catch (JSONException e) {
+                                    }
+                                    JSONArray arr = new JSONArray();
+                                    arr.put(groupdetailes2);
+                                    arr.put(groupdetailes1);
+                                    JSONObject multiControlBean = new JSONObject();
+                                    try {
+                                        multiControlBean.put("groupName", THEROOM.RoomNumber + "Lighting" + x);
+                                        multiControlBean.put("groupType", 14);
+                                        multiControlBean.put("groupDetail", arr);
+                                        multiControlBean.put("id", x);
+                                    } catch (JSONException e) {
+
+                                    }
+                                    iTuyaDeviceMultiControl.saveDeviceMultiControl(Login.THEHOME.getHomeId(), multiControlBean.toString(), new ITuyaResultCallback<MultiControlBean>() {
+                                        @Override
+                                        public void onSuccess(MultiControlBean result) {
+                                            //ToastUtil.shortToast(mContext,"success");
+                                            Log.d("bindS1S3", result.getGroupName());
+                                            iTuyaDeviceMultiControl.enableMultiControl(x, new ITuyaResultCallback<Boolean>() {
+                                                @Override
+                                                public void onSuccess(Boolean result) {
+                                                    //ToastUtil.shortToast(mContext,"success");
+                                                    Log.d("bindS1S3", result.toString());
+                                                }
+
+                                                @Override
+                                                public void onError(String errorCode, String errorMessage) {
+                                                    //ToastUtil.shortToast(mContext,errorMessage);
+                                                    Log.d("bindS1S3", errorMessage);
+                                                }
+                                            });
+                                        }
+
+                                        @Override
+                                        public void onError(String errorCode, String errorMessage) {
+                                            //ToastUtil.shortToast(mContext,errorMessage);
+                                            Log.d("bindS1S3", errorMessage + "here "+x);
+                                        }
+                                    });
+                                }
+                                else
+                                {
+                                    Log.d("bindS1S3" , result.getMultiGroup().getGroupName());
+                                }
+                            }
+
+                            @Override
+                            public void onError(String errorCode, String errorMessage) {
+
+                            }
+                        });
+                    }
+                    else
+                    {
+                        Log.d("bindS1S3" , result.getMultiGroup().getGroupName());
+                    }
+                }
+
+                @Override
+                public void onError(String errorCode, String errorMessage) {
+
+                }
+            });
+
+
+        }
+    }
+
+    void sendRegistrationToServer(String token) {
+        String url = Login.SelectedHotel.URL+ "modifyTokenForNonScreenRooms.php" ;
+        StringRequest re  = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                    Log.d("tokenRegister" , response) ;
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.d("tokenRegister" , error.getMessage()) ;
+            }
+        })
+        {
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String,String> par = new HashMap<String, String>();
+                par.put("token" , token);
+                return par;
+            }
+        };
+        Volley.newRequestQueue(act).add(re);
+    }
+
+    static void powerOffRoom(ROOM THEROOM) {
+
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override
+            public void run()
+            {
+                if (THEROOM.getPOWER() != null )
+                {
+                    THEROOM.getPOWER().publishDps("{\"1\": false}", new IResultCallback() {
+                        @Override
+                        public void onError(String code, String error) {
+                            Toast.makeText(act, "turn on the light failure", Toast.LENGTH_SHORT).show();
+                        }
+                        @Override
+                        public void onSuccess() {
+                            Toast.makeText(act, "turn Off 1 success "+THEROOM.RoomNumber, Toast.LENGTH_SHORT).show();
+                            //myRefPower.setValue(0);
+                        }
+                    });
+                    THEROOM.getPOWER().publishDps("{\"2\": false}", new IResultCallback() {
+                        @Override
+                        public void onError(String code, String error) {
+                            Toast.makeText(act, "turn on the light failure", Toast.LENGTH_SHORT).show();
+                        }
+                        @Override
+                        public void onSuccess()
+                        {
+                            Toast.makeText(act, "turn Off 2 success "+THEROOM.RoomNumber, Toast.LENGTH_SHORT).show();
+
+                        }
+                    });
+                }
+
+            }
+        });
+    }
+
+    static void checkInModeRoom(ROOM THEROOM) {
+
+        String Duration = "" ;
+        if (checkInModeTime != 0)
+        {
+            Duration = String.valueOf(checkInModeTime*60) ;
+        }
+        else {
+            Duration = "60" ;
+        }
+        Log.d("checkinModeDuration" , Duration +" "+checkInModeTime);
+        if (THEROOM.getPOWER() != null )
+        {
+            String finalDuration = Duration;
+            new Handler(Looper.getMainLooper()).post(new Runnable() {
+                @Override
+                public void run() {
+                    Log.d("LightWithWelcome" , THEROOM.getPOWER_B().dps.toString());
+                    if (THEROOM.getPOWER() != null )
+                    {
+                        THEROOM.getPOWER().publishDps("{\"1\": true}", new IResultCallback() {
+                            @Override
+                            public void onError(String code, String error) {
+                                //Toast.makeText(act, error, Toast.LENGTH_SHORT).show();
+                                Log.e("light", error);
+                            }
+
+                            @Override
+                            public void onSuccess() {
+                                //Toast.makeText(act, "turn on the light success", Toast.LENGTH_SHORT).show();
+                                //myRefPower.setValue(1);
+                            }
+                        });
+                        THEROOM.getPOWER().publishDps("{\"2\": true}", new IResultCallback() {
+                            @Override
+                            public void onError(String code, String error) {
+                                //Toast.makeText(act, "turn on the light failure", Toast.LENGTH_SHORT).show();
+                            }
+
+                            @Override
+                            public void onSuccess() {
+                                //Toast.makeText(act, "turn on the light success", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                        THEROOM.getPOWER().publishDps("{\"8\": "+ finalDuration +"}", new IResultCallback() {
+                            @Override
+                            public void onError(String code, String error) {
+                                //Toast.makeText(act, "turn on the light failure", Toast.LENGTH_SHORT).show();
+                            }
+
+                            @Override
+                            public void onSuccess() {
+                                //Toast.makeText(act, "turn on the light success", Toast.LENGTH_SHORT).show();
+                                Log.d("LightWithWelcome" , "countdoun");
+                            }
+                        });
+                    }
+                    final long[] tt = {0};
+                    long xx = Integer.parseInt( finalDuration ) ;
+                    if ( THEROOM.getSWITCH1() != null ){
+                        Handler H = new Handler();
+                        Runnable d = new Runnable() {
+                            @Override
+                            public void run() {
+                                tt[0] = tt[0] +1000 ;
+                                H.postDelayed(this,1000);
+                                Log.d("LightWithWelcome" , tt[0]+" "+(xx*1000));
+                                if (tt[0] >= (xx*1000)){
+                                    THEROOM.getSWITCH1().publishDps("{\"1\": false}", new IResultCallback() {
+                                        @Override
+                                        public void onError(String code, String error) {
+                                            Log.d("LightWithWelcome" , error);
+                                        }
+
+                                        @Override
+                                        public void onSuccess() {
+                                            Log.d("LightWithWelcome" , "Light is off ");
+                                        }
+                                    });
+                                    H.removeCallbacks(this);
+                                }
+
+                            }
+                        } ;
+
+                        THEROOM.getSWITCH1().publishDps("{\"1\": true}", new IResultCallback() {
+                            @Override
+                            public void onError(String code, String error) {
+                                Log.d("LightWithWelcome" , error);
+                            }
+
+                            @Override
+                            public void onSuccess() {
+                                Log.d("LightWithWelcome" , "Light is on "+finalDuration);
+                                d.run();
+                            }
+                        });
+
+
+                    }
+                }
+            });
+        }
+    }
+
+    static void checkoutModeRoom(ROOM THEROOM) {
+
+        String Duration = "" ;
+        if (checkOutModeTime != 0 )
+        {
+            Duration = String.valueOf(checkOutModeTime * 60);
+        }
+        else
+        {
+            Duration = "60" ;
+        }
+        Log.d("checkoutModeDuration" , Duration+" "+checkOutModeTime );
+
+        if (THEROOM.getPOWER_B() != null){
+            THEROOM.getPOWER().publishDps("{\"7\": "+Duration+"}", new IResultCallback() {
+                @Override
+                public void onError(String code, String error) {
+                    //Toast.makeText(act, "turn on the light failure", Toast.LENGTH_SHORT).show();
+                }
+
+                @Override
+                public void onSuccess() {
+                    //Toast.makeText(act, "turn on the light success", Toast.LENGTH_SHORT).show();
+                    Log.d("LightWithWelcome" , "countdoun");
+                    THEROOM.getPOWER().publishDps("{\"2\": false}", new IResultCallback() {
+                        @Override
+                        public void onError(String code, String error) {
+                            //Toast.makeText(act, "turn on the light failure", Toast.LENGTH_SHORT).show();
+                        }
+
+                        @Override
+                        public void onSuccess() {
+                            //Toast.makeText(act, "turn on the light success", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    static void OpenTheDoor(ROOM THEROOM) {
+        if(THEROOM.getLock() == null)
+        {
+            Toast.makeText(act,"this room has no lock " , Toast.LENGTH_LONG).show();
+            return;
+        }
+        final Dialog d = new Dialog(act);
+        d.setContentView(R.layout.loading_layout);
+        TextView t = (TextView) d.findViewById(R.id.textViewdfsdf);
+        t.setText("Door Opening");
+        d.setCancelable(false);
+        d.show();
+        ensureBluetoothIsEnabled();
+        //showConnectLockToast();
+        TTLockClient.getDefault().controlLock(ControlAction.UNLOCK, THEROOM.getLock().getLockData(), THEROOM.getLock().getLockMac(),new ControlLockCallback()
+        {
+            @Override
+            public void onControlLockSuccess(ControlLockResult controlLockResult) {
+                //Toast.makeText(act,"lock is unlock  success!",Toast.LENGTH_LONG).show();
+                d.dismiss();
+                //ToastMaker.MakeToast("Door Opened",act);
+            }
+
+            @Override
+            public void onFail(LockError error) {
+                // Toast.makeText(UnlockActivity.this,"unLock fail!--" + error.getDescription(),Toast.LENGTH_LONG).show();
+                d.dismiss();
+                //ToastMaker.MakeToast("Open Fail!  "+error,act);
+            }
+        });
+
+    }
+
+    public static void ensureBluetoothIsEnabled() {
+        if(!TTLockClient.getDefault().isBLEEnabled(act)){
+            TTLockClient.getDefault().requestBleEnable(act);
+        }
+    }
+
+    public void toggleRoomsDevices(View view) {
+
+        if (roomsListView.getVisibility() == View.VISIBLE) {
+            roomsListView.setVisibility(View.GONE);
+            devicesListView.setVisibility(View.VISIBLE);
+            Toast.makeText(act,"devices are "+Devices.size(),Toast.LENGTH_LONG).show();
+        }
+        else if (roomsListView.getVisibility() == View.GONE) {
+            roomsListView.setVisibility(View.VISIBLE);
+            devicesListView.setVisibility(View.GONE);
+        }
+
+    }
+
+    public void lockAndUnlock(View view) {
+        if(lockDB.getLockValue().equals("off")) {
+
+            Dialog  dd = new Dialog(act);
+            dd.setContentView(R.layout.lock_unlock_dialog);
+            Button cancel = (Button) dd.findViewById(R.id.confermationDialog_cancel);
+            Button lock = (Button) dd.findViewById(R.id.messageDialog_ok);
+            EditText password = (EditText) dd.findViewById(R.id.editTextTextPassword);
+            cancel.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    dd.dismiss();
+                }
+            });
+            lock.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    final lodingDialog loading = new lodingDialog(act);
+                    final String pass = password.getText().toString() ;
+                    StringRequest re = new StringRequest(Request.Method.POST, LogInUrl, new Response.Listener<String>()
+                    {
+                        @Override
+                        public void onResponse(String response)
+                        {
+                            Log.d("LoginResult" , response +" "+ LogInUrl );
+                            loading.stop();
+                            if (response.equals("1"))
+                            {
+                                lockDB.modifyValue("on");
+                                roomsListView.setVisibility(View.GONE);
+                                devicesListView.setVisibility(View.GONE);
+                                btnsLayout.setVisibility(View.GONE);
+                                logoLayout.setVisibility(View.VISIBLE);
+                                dd.dismiss();
+                            }
+                            else if (response.equals("0"))
+                            {
+                                Toast.makeText(act,"Lock Failed",Toast.LENGTH_LONG).show();
+                            }
+                            else
+                            {
+                                Toast.makeText(act,"No Params",Toast.LENGTH_LONG).show();
+                            }
+
+                        }
+                    }, new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error)
+                        {
+                            loading.stop();
+                        }
+                    })
+                    {
+                        @Override
+                        protected Map<String, String> getParams() throws AuthFailureError
+                        {
+                            Map<String,String> par = new HashMap<String, String>();
+                            par.put( "password" , pass ) ;
+                            par.put( "hotel" , "1" ) ;
+                            return par;
+                        }
+                    };
+                    Volley.newRequestQueue(act).add(re);
+                }
+            });
+            dd.show();
+        }
+        else if (lockDB.getLockValue().equals("on")) {
+            lockDB.modifyValue("off");
+            roomsListView.setVisibility(View.GONE);
+            devicesListView.setVisibility(View.GONE);
+            btnsLayout.setVisibility(View.GONE);
+            logoLayout.setVisibility(View.VISIBLE);
+        }
+        else {
+            lockDB.modifyValue("off");
+            roomsListView.setVisibility(View.GONE);
+            devicesListView.setVisibility(View.GONE);
+            btnsLayout.setVisibility(View.GONE);
+            logoLayout.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void KeepScreenFull()
+    {
+        final Calendar x = Calendar.getInstance(Locale.getDefault());
+        final Handler hander = new Handler();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                hander.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        hideSystemUI();
+                        KeepScreenFull();
+                    }
+                });
+            }
+        }).start();
+    }
+    private void hideSystemUI() {
+        // Enables regular immersive mode.
+        // For "lean back" mode, remove SYSTEM_UI_FLAG_IMMERSIVE.
+        // Or for "sticky immersive," replace it with SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+        View decorView = getWindow().getDecorView();
+        decorView.setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_IMMERSIVE
+                        // Set the content to appear under the system bars so that the
+                        // content doesn't resize when the system bars hide and show.
+                        | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                        // Hide the nav bar and status bar
+                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_FULLSCREEN);
+    }
+
+    static void sendNotification(final JSONObject notification )
+    {
+
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(FCM_MESSAGE_URL, notification,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response)
+                    {
+
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+
+                    }
+                }){
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("Authorization", serverKey);
+                params.put("Content-Type", contentType);
+                return params;
+            }
+        };
+        Volley.newRequestQueue(act).add(jsonObjectRequest);
+
+    }
+
+    public static void makemessage(String t ,String Order , boolean addOrRemove , int RoomNumber)
+    {
+
+        String NOTIFICATION_TITLE = Order ;
+        String NOTIFICATION_MESSAGE = "" ;
+        if (Order.equals("DND")) {
+            if (addOrRemove) {
+                NOTIFICATION_MESSAGE = RoomNumber + " is on DND mode";
+            }
+            else {
+                NOTIFICATION_MESSAGE = "DND mode for "+RoomNumber+ " is off";
+            }
+        }
+        else {
+            if (addOrRemove) {
+                NOTIFICATION_MESSAGE = "New " + Order + " Order From Room "+RoomNumber;
+            }
+            else {
+                NOTIFICATION_MESSAGE = "Cancelled " + Order + " Order From Room "+RoomNumber;
+            }
+        }
+
+
+
+        JSONObject notification = new JSONObject();
+        JSONObject notifcationBody = new JSONObject();
+        try {
+            notifcationBody.put("title", NOTIFICATION_TITLE);
+            notifcationBody.put("message", NOTIFICATION_MESSAGE);
+            notifcationBody.put("RoomNumber", RoomNumber);
+            notification.put("to", t);
+            notification.put("data", notifcationBody);
+        } catch (JSONException e) {
+
+        }
+        sendNotification(notification);
+    }
+
+    void getServiceEmps() {
+        StringRequest request = new StringRequest(Request.Method.POST, getServiceEmpsUrl, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                if (response != null && !response.equals("0")) {
+                    try {
+                        JSONArray arr = new JSONArray(response);
+                        for (int i=0;i<arr.length();i++) {
+                            JSONObject row = arr.getJSONObject(i);
+                            ServiceEmps emp = new ServiceEmps(row.getInt("id"),row.getInt("projectId"),row.getString("name"),row.getInt("jobNumber"),row.getString("department"),row.getString("mobile"),row.getString("token"));
+                            Emps.add(emp);
+                        }
+                        Log.d("EmpsCount" , Emps.size()+"");
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+                else {
+                    Toast.makeText(act,"No service emps",Toast.LENGTH_LONG).show();
+                }
+
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
+            }
+        })
+        {
+
+        };
+        Volley.newRequestQueue(act).add(request);
+    }
+
+    void getServiceUsersFromFirebase() {
+        ServiceUsers.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.getValue() != null ) {
+                    Emps.clear();
+                    //Log.d("EmpsAre ",snapshot.getValue().toString());
+                    for (DataSnapshot child : snapshot.getChildren()) {
+                        //Log.d("EmpsAre ",child.getValue().toString());
+                        int id = 0;
+                        if (child.child("id").getValue() != null ) {
+                            id = Integer.parseInt( child.child("id").getValue().toString());
+                        }
+                        String name = "";
+                        if (child.child("name").getValue() != null ) {
+                            name = child.child("name").getValue().toString();
+                        }
+                        int jobnum = 0 ;
+                        if (child.child("jobNumber").getValue() != null ) {
+                            jobnum = Integer.parseInt(child.child("jobNumber").getValue().toString());
+                        }
+                        String department = "";
+                        if (child.child("department").getValue() != null ) {
+                            department = child.child("department").getValue().toString();
+                        }
+                        String mobile = "" ;
+                        if (child.child("Mobile").getValue() != null ) {
+                            mobile = child.child("Mobile").getValue().toString();
+                        }
+                        String token = "";
+                        if (child.child("token").getValue() != null ) {
+                            token = child.child("token").getValue().toString() ;
+                        }
+                       Emps.add(new ServiceEmps(id,1,name,jobnum,department,mobile,token));
+                    }
+                    //Toast.makeText(act,Emps.size()+"",Toast.LENGTH_LONG).show();
+                    Log.d("EmpsAre ",Emps.size()+"");
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
     }
 }

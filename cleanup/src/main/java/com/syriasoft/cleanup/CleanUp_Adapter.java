@@ -4,6 +4,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.os.Build;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,6 +17,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
@@ -66,7 +68,7 @@ public class CleanUp_Adapter extends BaseAdapter {
     public View getView(final int position, View convertView, ViewGroup parent) {
 
         convertView = inflter.inflate(R.layout.order_unit, null);
-        final LinearLayout l = (LinearLayout) convertView.findViewById(R.id.order_row);
+        final LinearLayout l = (LinearLayout) convertView.findViewById(R.id.all);
         TextView room = convertView.findViewById(R.id.cleanOrder_room);
         TextView dep = convertView.findViewById(R.id.cleanOrder_orderType);
         TextView date = convertView.findViewById(R.id.cleanOrder_orderDate);
@@ -81,47 +83,72 @@ public class CleanUp_Adapter extends BaseAdapter {
         {
             if (MainActivity.Rooms.get(i).RoomNumber == Integer.parseInt(list.get(position).roomNumber ))
             {
-                MainActivity.FireRooms.get(i).child("roomStatus").addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        if (dataSnapshot != null )
-                        {
-                            if (dataSnapshot.getValue().toString().equals("1"))
-                            {
-                                room.setTextColor(Color.WHITE);
-                                room.setBackgroundColor(Color.GREEN);
-                                vv.setBackgroundColor(Color.GREEN);
-                                img.setBackgroundColor(Color.GREEN);
-                            }
-                            else if (dataSnapshot.getValue().toString().equals("2"))
-                            {
-                                room.setTextColor(Color.WHITE);
-                                room.setBackgroundColor(Color.RED);
-                                vv.setBackgroundColor(Color.RED);
-                                img.setBackgroundColor(Color.RED);
-                            }
-                            else if (dataSnapshot.getValue().toString().equals("3"))
-                            {
-                                room.setTextColor(Color.WHITE);
-                                room.setBackgroundColor(Color.BLUE);
-                                vv.setBackgroundColor(Color.BLUE);
-                                img.setBackgroundColor(Color.BLUE);
-                            }
-                            else if (dataSnapshot.getValue().toString().equals("4"))
-                            {
-                                room.setTextColor(Color.WHITE);
-                                room.setBackgroundColor(Color.GRAY);
-                                vv.setBackgroundColor(Color.GRAY);
-                                img.setBackgroundColor(Color.GRAY);
-                            }
-                        }
-                    }
+                if (MainActivity.CurrentRoomsStatus.get(i).equals("1")) {
+                    room.setTextColor(Color.WHITE);
+                    room.setBackgroundColor(co.getColor(R.color.greenRoom));
+                    vv.setBackgroundColor(co.getColor(R.color.greenRoom));
+                    img.setBackgroundColor(co.getColor(R.color.greenRoom));
+                }
+                else if (MainActivity.CurrentRoomsStatus.get(i).equals("2")) {
+                    room.setTextColor(Color.WHITE);
+                    room.setBackgroundColor(co.getColor(R.color.redRoom));
+                    vv.setBackgroundColor(co.getColor(R.color.redRoom));
+                    img.setBackgroundColor(co.getColor(R.color.redRoom));
+                }
+                else if (MainActivity.CurrentRoomsStatus.get(i).equals("3")) {
+                    room.setTextColor(Color.WHITE);
+                    room.setBackgroundColor(co.getColor(R.color.blueRoom));
+                    vv.setBackgroundColor(co.getColor(R.color.blueRoom));
+                    img.setBackgroundColor(co.getColor(R.color.blueRoom));
+                }
+                else if ( MainActivity.CurrentRoomsStatus.get(i).equals("4")) {
+                    room.setTextColor(Color.WHITE);
+                    room.setBackgroundColor(Color.GRAY);
+                    vv.setBackgroundColor(Color.GRAY);
+                    img.setBackgroundColor(Color.GRAY);
+                }
 
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                    }
-                });
+//                MainActivity.FireRooms.get(i).child("roomStatus").addListenerForSingleValueEvent(new ValueEventListener() {
+//                    @Override
+//                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+//                        if (dataSnapshot != null )
+//                        {
+//                            if (dataSnapshot.getValue().toString().equals("1"))
+//                            {
+//                                room.setTextColor(Color.WHITE);
+//                                room.setBackgroundColor(co.getColor(R.color.greenRoom));
+//                                vv.setBackgroundColor(co.getColor(R.color.greenRoom));
+//                                img.setBackgroundColor(co.getColor(R.color.greenRoom));
+//                            }
+//                            else if (dataSnapshot.getValue().toString().equals("2"))
+//                            {
+//                                room.setTextColor(Color.WHITE);
+//                                room.setBackgroundColor(co.getColor(R.color.redRoom));
+//                                vv.setBackgroundColor(co.getColor(R.color.redRoom));
+//                                img.setBackgroundColor(co.getColor(R.color.redRoom));
+//                            }
+//                            else if (dataSnapshot.getValue().toString().equals("3"))
+//                            {
+//                                room.setTextColor(Color.WHITE);
+//                                room.setBackgroundColor(co.getColor(R.color.blueRoom));
+//                                vv.setBackgroundColor(co.getColor(R.color.blueRoom));
+//                                img.setBackgroundColor(co.getColor(R.color.blueRoom));
+//                            }
+//                            else if (dataSnapshot.getValue().toString().equals("4"))
+//                            {
+//                                room.setTextColor(Color.WHITE);
+//                                room.setBackgroundColor(Color.GRAY);
+//                                vv.setBackgroundColor(Color.GRAY);
+//                                img.setBackgroundColor(Color.GRAY);
+//                            }
+//                        }
+//                    }
+//
+//                    @Override
+//                    public void onCancelled(@NonNull DatabaseError databaseError) {
+//
+//                    }
+//                });
                 MainActivity.FireRooms.get(i).child("SuiteStatus").addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -156,15 +183,17 @@ public class CleanUp_Adapter extends BaseAdapter {
                     int roomNumber = 0;
                     for (int i=0;i<MainActivity.Rooms.size();i++)
                     {
-                        if (MainActivity.Rooms.get(i).RoomNumber == Integer.parseInt(list.get(position).roomNumber))
+                        if (MainActivity.Rooms.get(i).RoomNumber == Integer.parseInt(MainActivity.orderDB.getOrders().get(position).roomNumber))
                         {
                             MainActivity.FireRoom = MainActivity.FireRooms.get(i) ;
                             roomNumber = MainActivity.Rooms.get(i).RoomNumber ;
                         }
                     }
-                    l.setBackgroundColor(Color.CYAN);
+                    dep.setBackgroundColor(co.getColor(R.color.transparentGray));
+                    date.setBackgroundColor(co.getColor(R.color.transparentGray));
                     final Dialog d  = new Dialog(co);
                     d.setContentView(R.layout.confermation_dialog);
+                    d.setCancelable(false);
                     TextView message = (TextView) d.findViewById(R.id.confermationDialog_Text);
                     message.setText("Are You Sure ..? ");
                     Button cancel = (Button)d.findViewById(R.id.confermationDialog_cancel);
@@ -174,6 +203,9 @@ public class CleanUp_Adapter extends BaseAdapter {
                         public void onClick(View v)
                         {
                             d.dismiss();
+                            //l.setBackgroundColor(co.getColor(R.color.white));
+                            dep.setBackgroundColor(co.getColor(R.color.white));
+                            date.setBackgroundColor(co.getColor(R.color.white));
                         }
                     });
                     Button ok = (Button)d.findViewById(R.id.messageDialog_ok);
@@ -231,7 +263,6 @@ public class CleanUp_Adapter extends BaseAdapter {
                             });
                         }
                     });
-
                     d.show();
                     return false;
                 }
@@ -248,15 +279,18 @@ public class CleanUp_Adapter extends BaseAdapter {
                     int roomNumber = 0;
                     for (int i=0;i<MainActivity.Rooms.size();i++)
                     {
-                        if (MainActivity.Rooms.get(i).RoomNumber == Integer.parseInt(list.get(position).roomNumber))
+                        if (MainActivity.Rooms.get(i).RoomNumber == Integer.parseInt(MainActivity.orderDB.getOrders().get(position).roomNumber))
                         {
                             MainActivity.FireRoom = MainActivity.FireRooms.get(i) ;
                             roomNumber = MainActivity.Rooms.get(i).RoomNumber ;
                         }
                     }
-                    l.setBackgroundColor(Color.CYAN);
+                    //l.setBackgroundColor(co.getColor(R.color.transparentGray));
+                    dep.setBackgroundColor(co.getColor(R.color.transparentGray));
+                    date.setBackgroundColor(co.getColor(R.color.transparentGray));
                     final Dialog d  = new Dialog(co);
                     d.setContentView(R.layout.confermation_dialog);
+                    d.setCancelable(false);
                     TextView message = (TextView) d.findViewById(R.id.confermationDialog_Text);
                     message.setText("Are You Sure ..? ");
                     Button cancel = (Button)d.findViewById(R.id.confermationDialog_cancel);
@@ -266,6 +300,9 @@ public class CleanUp_Adapter extends BaseAdapter {
                         public void onClick(View v)
                         {
                             d.dismiss();
+                            //l.setBackgroundColor(co.getColor(R.color.white));
+                            dep.setBackgroundColor(co.getColor(R.color.white));
+                            date.setBackgroundColor(co.getColor(R.color.white));
                         }
                     });
                     Button ok = (Button)d.findViewById(R.id.messageDialog_ok);
@@ -297,15 +334,18 @@ public class CleanUp_Adapter extends BaseAdapter {
                     int roomNumber = 0;
                     for (int i=0;i<MainActivity.Rooms.size();i++)
                     {
-                        if (MainActivity.Rooms.get(i).RoomNumber == Integer.parseInt(list.get(position).roomNumber))
+                        if (MainActivity.Rooms.get(i).RoomNumber == Integer.parseInt(MainActivity.orderDB.getOrders().get(position).roomNumber))
                         {
                             MainActivity.FireRoom = MainActivity.FireRooms.get(i) ;
                             roomNumber = MainActivity.Rooms.get(i).RoomNumber ;
                         }
                     }
-                    l.setBackgroundColor(Color.CYAN);
+                    //l.setBackgroundColor(co.getColor(R.color.transparentGray));
+                    dep.setBackgroundColor(co.getColor(R.color.transparentGray));
+                    date.setBackgroundColor(co.getColor(R.color.transparentGray));
                     final Dialog d  = new Dialog(co);
                     d.setContentView(R.layout.confermation_dialog);
+                    d.setCancelable(false);
                     TextView message = (TextView) d.findViewById(R.id.confermationDialog_Text);
                     message.setText("Are You Sure ..? ");
                     Button cancel = (Button)d.findViewById(R.id.confermationDialog_cancel);
@@ -315,6 +355,9 @@ public class CleanUp_Adapter extends BaseAdapter {
                         public void onClick(View v)
                         {
                             d.dismiss();
+                            //l.setBackgroundColor(co.getColor(R.color.white));
+                            dep.setBackgroundColor(co.getColor(R.color.white));
+                            date.setBackgroundColor(co.getColor(R.color.white));
                         }
                     });
                     Button ok = (Button)d.findViewById(R.id.messageDialog_ok);
@@ -346,15 +389,18 @@ public class CleanUp_Adapter extends BaseAdapter {
                     int roomNumber = 0;
                     for (int i=0;i<MainActivity.Rooms.size();i++)
                     {
-                        if (MainActivity.Rooms.get(i).RoomNumber == Integer.parseInt(list.get(position).roomNumber))
+                        if (MainActivity.Rooms.get(i).RoomNumber == Integer.parseInt(MainActivity.orderDB.getOrders().get(position).roomNumber))
                         {
                             MainActivity.FireRoom = MainActivity.FireRooms.get(i) ;
                             roomNumber = MainActivity.Rooms.get(i).RoomNumber ;
                         }
                     }
-                    l.setBackgroundColor(Color.CYAN);
+                    //l.setBackgroundColor(co.getColor(R.color.transparentGray));
+                    dep.setBackgroundColor(co.getColor(R.color.transparentGray));
+                    date.setBackgroundColor(co.getColor(R.color.transparentGray));
                     final Dialog d  = new Dialog(co);
                     d.setContentView(R.layout.confermation_dialog);
+                    d.setCancelable(false);
                     TextView message = (TextView) d.findViewById(R.id.confermationDialog_Text);
                     message.setText("Are You Sure ..? ");
                     Button cancel = (Button)d.findViewById(R.id.confermationDialog_cancel);
@@ -364,6 +410,9 @@ public class CleanUp_Adapter extends BaseAdapter {
                         public void onClick(View v)
                         {
                             d.dismiss();
+                            //l.setBackgroundColor(co.getColor(R.color.white));
+                            dep.setBackgroundColor(co.getColor(R.color.white));
+                            date.setBackgroundColor(co.getColor(R.color.white));
                         }
                     });
                     Button ok = (Button)d.findViewById(R.id.messageDialog_ok);
@@ -396,15 +445,18 @@ public class CleanUp_Adapter extends BaseAdapter {
                     int roomNumber = 0;
                     for (int i=0;i<MainActivity.Rooms.size();i++)
                     {
-                        if (MainActivity.Rooms.get(i).RoomNumber == Integer.parseInt(list.get(position).roomNumber))
+                        if (MainActivity.Rooms.get(i).RoomNumber == Integer.parseInt(MainActivity.orderDB.getOrders().get(position).roomNumber))
                         {
                             MainActivity.FireRoom = MainActivity.FireRooms.get(i) ;
                             roomNumber = MainActivity.Rooms.get(i).RoomNumber ;
                         }
                     }
-                    l.setBackgroundColor(Color.CYAN);
+                    //l.setBackgroundColor(co.getColor(R.color.transparentGray));
+                    dep.setBackgroundColor(co.getColor(R.color.transparentGray));
+                    date.setBackgroundColor(co.getColor(R.color.transparentGray));
                     final Dialog d  = new Dialog(co);
                     d.setContentView(R.layout.confermation_dialog);
+                    d.setCancelable(false);
                     TextView message = (TextView) d.findViewById(R.id.confermationDialog_Text);
                     message.setText("Are You Sure ..? ");
                     Button cancel = (Button)d.findViewById(R.id.confermationDialog_cancel);
@@ -414,6 +466,9 @@ public class CleanUp_Adapter extends BaseAdapter {
                         public void onClick(View v)
                         {
                             d.dismiss();
+                            //l.setBackgroundColor(co.getColor(R.color.white));
+                            dep.setBackgroundColor(co.getColor(R.color.white));
+                            date.setBackgroundColor(co.getColor(R.color.white));
                         }
                     });
                     Button ok = (Button)d.findViewById(R.id.messageDialog_ok);
@@ -423,9 +478,9 @@ public class CleanUp_Adapter extends BaseAdapter {
                         public void onClick(View v)
                         {
                                 Intent i = new Intent(co, com.syriasoft.cleanup.MiniBarCheck.class);
-                                i.putExtra("Room" , list.get(position).roomNumber);
-                                i.putExtra("OrderId" , list.get(position).orderNumber );
-                                Toast.makeText(co,"room "+list.get(position).roomNumber+" ordr "+list.get(position).orderNumber,Toast.LENGTH_LONG).show();
+                                i.putExtra("Room" , MainActivity.orderDB.getOrders().get(position).roomNumber);
+                                i.putExtra("OrderId" , MainActivity.orderDB.getOrders().get(position).orderNumber );
+                                Toast.makeText(co,"room "+MainActivity.orderDB.getOrders().get(position).roomNumber+" ordr "+MainActivity.orderDB.getOrders().get(position).orderNumber,Toast.LENGTH_LONG).show();
                                 d.dismiss();
                                 co.startActivity(i);
                         }
@@ -441,11 +496,13 @@ public class CleanUp_Adapter extends BaseAdapter {
             img.setVisibility(View.GONE);
         }
 
-        if (list.get(position).dep.equals("SOS"))
+        if (MainActivity.orderDB.getOrders().get(position).dep.equals("SOS"))
         {
-            l.setBackgroundColor(Color.RED);
+            //l.setBackgroundColor(Color.RED);
+            dep.setBackgroundColor(Color.RED);
+            date.setBackgroundColor(Color.RED);
             room.setTextColor(Color.WHITE);
-            dep.setTextColor(Color.WHITE);
+            dep.setTextColor(Color.RED);
             date.setTextColor(Color.WHITE);
             vv.setTextColor(Color.WHITE);
         }

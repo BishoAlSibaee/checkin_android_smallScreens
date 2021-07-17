@@ -26,10 +26,11 @@
             android:id="@+id/textView8"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:fontFamily="serif"
             android:text="Service App"
             android:textAlignment="center"
             android:textColor="@android:color/background_light"
-            android:textSize="30sp" />
+            android:textSize="24sp" />
     </LinearLayout>
 
     <LinearLayout

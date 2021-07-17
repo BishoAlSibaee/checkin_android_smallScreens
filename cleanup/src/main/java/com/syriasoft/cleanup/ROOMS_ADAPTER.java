@@ -66,7 +66,7 @@ public class ROOMS_ADAPTER extends RecyclerView.Adapter<ROOMS_ADAPTER.HOLDER> {
                     final Dialog d = new Dialog(holder.itemView.getContext());
                     d.setContentView(R.layout.room_dialog);
                     TextView text = (TextView)d.findViewById(R.id.room_dialog_text);
-                    text.setText("Room Number "+list.get(position).RoomNumber);
+                    text.setText("Room : "+list.get(position).RoomNumber);
                     Button door = (Button)d.findViewById(R.id.room_dialog_door);
                     Button power = (Button)d.findViewById(R.id.room_dialog_power);
                     door.setOnClickListener(new View.OnClickListener() {
@@ -87,7 +87,7 @@ public class ROOMS_ADAPTER extends RecyclerView.Adapter<ROOMS_ADAPTER.HOLDER> {
                                                     Log.d("registerOpen" , "opened");
                                                     d.dismiss();
                                                     //
-                                                    // Toast.makeText(holder.itemView.getContext(),"Room "+list.get(position).RoomNumber+" Door Opened" , Toast.LENGTH_LONG);
+                                                    //Toast.makeText(holder.itemView.getContext(),"Room "+list.get(position).RoomNumber+" Door Opened" , Toast.LENGTH_LONG);
                                                     messageDialog m = new messageDialog("Room "+list.get(position).RoomNumber+" Door Opened","Door Opened",holder.itemView.getContext());
                                                 }
 
@@ -143,11 +143,16 @@ public class ROOMS_ADAPTER extends RecyclerView.Adapter<ROOMS_ADAPTER.HOLDER> {
                                                 new Handler(Looper.getMainLooper()).post(new Runnable() {
                                                     @Override
                                                     public void run() {
+                                                        final boolean[] A = {false};
+                                                        final boolean[] B = {false};
+                                                        final boolean[] C = {false};
                                                         list.get(position).getPower().publishDps("{\"1\": true}", new IResultCallback() {
                                                             @Override
                                                             public void onError(String code, String error) {
                                                                 //Toast.makeText(act, error, Toast.LENGTH_SHORT).show();
                                                                 Log.e("power", error);
+                                                                messageDialog dd = new messageDialog("Power Couldn't Turn On at Room "+list.get(position).RoomNumber,"Room "+list.get(position).RoomNumber+" Power On Failed" ,holder.itemView.getContext());
+                                                                d.dismiss();
                                                             }
 
                                                             @Override
@@ -155,39 +160,55 @@ public class ROOMS_ADAPTER extends RecyclerView.Adapter<ROOMS_ADAPTER.HOLDER> {
                                                                 //Toast.makeText(act, "turn on the light success", Toast.LENGTH_SHORT).show();
                                                                 //myRefPower.setValue(1);
                                                                 Log.d("power", 1+" on");
-                                                            }
-                                                        });
-                                                        list.get(position).getPower().publishDps("{\"2\": true}", new IResultCallback() {
-                                                            @Override
-                                                            public void onError(String code, String error) {
-                                                                //Toast.makeText(act, "turn on the light failure", Toast.LENGTH_SHORT).show();
-                                                                Log.e("power", error);
-                                                            }
+                                                                A[0] =true ;
+                                                                list.get(position).getPower().publishDps("{\"2\": true}", new IResultCallback() {
+                                                                    @Override
+                                                                    public void onError(String code, String error) {
+                                                                        //Toast.makeText(act, "turn on the light failure", Toast.LENGTH_SHORT).show();
+                                                                        Log.e("power", error);
+                                                                        messageDialog dd = new messageDialog("Power Couldn't Turn On at Room "+list.get(position).RoomNumber,"Room "+list.get(position).RoomNumber+" Power On Failed" ,holder.itemView.getContext());
+                                                                        d.dismiss();
+                                                                    }
 
-                                                            @Override
-                                                            public void onSuccess() {
-                                                                //Toast.makeText(act, "turn on the light success", Toast.LENGTH_SHORT).show();
-                                                                Log.d("power", 2+" on");
-                                                            }
-                                                        });
-                                                        list.get(position).getPower().publishDps("{\"8\":300}", new IResultCallback() {
-                                                            @Override
-                                                            public void onError(String code, String error) {
-                                                                //Toast.makeText(act, "turn on the light failure", Toast.LENGTH_SHORT).show();
-                                                                Log.e("power", error);
-                                                            }
+                                                                    @Override
+                                                                    public void onSuccess() {
+                                                                        Log.d("power", 2+" on");
+                                                                        B[0] = true ;
+                                                                        list.get(position).getPower().publishDps("{\"8\":300}", new IResultCallback() {
+                                                                            @Override
+                                                                            public void onError(String code, String error) {
+                                                                                //Toast.makeText(act, "turn on the light failure", Toast.LENGTH_SHORT).show();
+                                                                                Log.e("power", error);
+                                                                                messageDialog dd = new messageDialog("Power Couldn't Turn On at Room "+list.get(position).RoomNumber,"Room "+list.get(position).RoomNumber+" Power On Failed" ,holder.itemView.getContext());
+                                                                                d.dismiss();
+                                                                            }
 
-                                                            @Override
-                                                            public void onSuccess() {
-                                                                //Toast.makeText(act, "turn on the light success", Toast.LENGTH_SHORT).show();
-                                                                Log.d("power", 2+" counting on");
+                                                                            @Override
+                                                                            public void onSuccess() {
+                                                                                Log.d("power", 2+" counting on");
+                                                                                C[0] = true ;
+                                                                                if (A[0] && B[0] && C[0]) {
+                                                                                    messageDialog dd = new messageDialog("Power At Room "+list.get(position).RoomNumber+"is On " ,"Room "+list.get(position).RoomNumber+" Power On" ,holder.itemView.getContext());
+                                                                                    d.dismiss();
+                                                                                }
+                                                                                else {
+                                                                                    messageDialog dd = new messageDialog("Power Couldn't Turn On at Room "+list.get(position).RoomNumber,"Room "+list.get(position).RoomNumber+" Power On Failed" ,holder.itemView.getContext());
+                                                                                    d.dismiss();
+                                                                                }
+                                                                            }
+                                                                        });
+
+                                                                    }
+                                                                });
                                                             }
                                                         });
                                                     }
                                                 });
                                             }
                                             else {
-                                                messageDialog d = new messageDialog("Room Is Occupied Now " ,"Room Occupied" ,holder.itemView.getContext());
+
+                                                messageDialog dd = new messageDialog("Room Is Occupied Now " ,"Room Occupied" ,holder.itemView.getContext());
+                                                d.dismiss();
                                             }
                                         }
                                     }

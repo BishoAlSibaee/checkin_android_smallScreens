@@ -36,8 +36,8 @@ import java.util.Map;
 
 public class LogIn extends AppCompatActivity {
 
-    public static String URL = "https://ratco-solutions.com/HotelServicesTest/TestProject/p/";
-    public static String Project = "Test";
+    public static String URL = "https://ratco-solutions.com/Checkin/P0001/php/";
+    public static String Project = "P0001";
     private int SelectedHotel = 1 ;
     private String jobNumber ;
     private String password ;

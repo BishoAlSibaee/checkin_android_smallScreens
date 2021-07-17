@@ -120,6 +120,9 @@ public class messagingService extends FirebaseMessagingService {
        {
            FullscreenActivity.CheckIn(); ;
        }
+       else if (title.equals("poweron")) {
+           FullscreenActivity.PowerOn();
+       }
     }
     @Override
     public void onNewToken(String token) {

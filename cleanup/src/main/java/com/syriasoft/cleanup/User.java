@@ -2,12 +2,12 @@ package com.syriasoft.cleanup;
 
 public class User
 {
-    int id;
-    String name;
-    int jobNumber ;
-    int Mobile ;
-    String department;
-    String token ;
+    public int id;
+    public String name;
+    public int jobNumber ;
+    public int Mobile ;
+    public String department;
+    public String token ;
 
     public User(int id, String name, int jobNumber, int mobile, String department, String token) {
         this.id = id;

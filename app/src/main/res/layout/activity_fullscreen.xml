@@ -375,7 +375,7 @@
                     android:layout_height="60dp"
                     android:layout_gravity="center_horizontal"
                     android:layout_marginTop="10dp"
-                    app:srcCompat="@drawable/cleanup_btn_main" />
+                    app:srcCompat="@drawable/cleanup_btn" />
 
                 <TextView
                     android:id="@+id/textView45"
@@ -677,7 +677,7 @@
                 android:text="Time"
                 android:textAlignment="textEnd"
                 android:textColor="@color/light_blue_A200"
-                android:textSize="14sp"
+                android:textSize="16sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
@@ -854,14 +854,14 @@
                                 android:layout_height="match_parent"
                                 android:layout_marginStart="10dp"
                                 android:layout_marginEnd="10dp"></Button>
+
                             <Button
                                 android:id="@+id/hideShowMinibarLayout"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:layout_marginStart="10dp"
                                 android:layout_marginEnd="10dp"
-                                android:layout_weight="1"
-                                ></Button>
+                                android:layout_weight="1"></Button>
                         </LinearLayout>
 
                         <LinearLayout
@@ -991,8 +991,7 @@
                                         app:layout_constraintBottom_toBottomOf="parent"
                                         app:layout_constraintEnd_toStartOf="@+id/clientTemp"
                                         app:layout_constraintTop_toBottomOf="@+id/currentTemp"
-                                        app:layout_constraintVertical_bias="0.0"
-                                         />
+                                        app:layout_constraintVertical_bias="0.0" />
 
                                     <TextView
                                         android:id="@+id/clientTemp"

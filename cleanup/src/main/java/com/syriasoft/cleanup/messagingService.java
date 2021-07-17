@@ -5,14 +5,17 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.media.MediaPlayer;
 import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Looper;
+import android.util.Log;
 import android.view.WindowManager;
 
 import androidx.core.app.NotificationCompat;
@@ -31,159 +34,172 @@ import java.util.Map;
 import java.util.Random;
 
 public class messagingService extends FirebaseMessagingService {
-    private String ordersUrl = LogIn.URL+"getServiceOrders.php";
-    public MediaPlayer mediaPlayer;
-    Service s = this ;
 
+    private NotificationManager notificationManager ;
 
-    public messagingService()
-    {
-        //SOSService.mediaPlayer = MediaPlayer.create(getBaseContext(), R.raw.sos);
+    @Override
+    public void onCreate() {
+        notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+        super.onCreate();
     }
 
     public void onMessageReceived(RemoteMessage remoteMessage)
     {
+//        Random r = new Random();
+//        int reqCode = r.nextInt();
+//        final Alarm alarm = new Alarm() ;
+//        //Intent q = new Intent(this , MainActivity.class );
+//        //showNotification(this , remoteMessage.getData().get("title") , remoteMessage.getData().get("message") ,q,reqCode);
+//
+//        if (remoteMessage.getData().get("title").equals("Restaurant"))
+//        {
+//            if (remoteMessage.getData().get("message").equals("Order Done"))
+//            {
+//                Intent i = new Intent(this , RestaurantOrders.class );
+//                showNotification(this , remoteMessage.getData().get("title") ,"Room "+remoteMessage.getData().get("room")+" "+ remoteMessage.getData().get("message") ,i,reqCode);
+//
+//                //RestaurantOrders.getRestaurantOrders();
+//            }
+//            else
+//                {
+//                    Intent i = new Intent(this , RestaurantOrders.class );
+//                    showNotification(this , remoteMessage.getData().get("title") ,"New Order From " + remoteMessage.getData().get("room") ,i,reqCode);
+//                    //RestaurantOrders.getRestaurantOrders();
+//                }
+//
+//        }
+//        else if (MainActivity.activityStatus)
+//            {
+//            if (remoteMessage.getData().get("title").equals("New Order"))
+//            {
+//                if (remoteMessage.getData().get("dep").equals("SOS"))
+//                {
+//                    MainActivity.getOrders();
+//                    if (remoteMessage.getData().get("orderAction").equals("true"))
+//                    {
+//
+//                         //Toast.makeText(getBaseContext(), remoteMessage.getData().get("dep"), Toast.LENGTH_LONG).show();
+//                        Intent i = new Intent(this, SOSService.class);
+//                        Intent j = new Intent(this, MainActivity.class);
+//                        showNotification(getApplicationContext(),remoteMessage.getData().get("dep"), remoteMessage.getData().get("message"), j, reqCode);
+//                        startService(i);
+//                        //sosActivity();
+//                    }
+//                    else {
+//                        Intent j = new Intent(this, MainActivity.class);
+//                        showNotification(getApplicationContext(), "Order Cancelled", "Order From Room " + remoteMessage.getData().get("RoomNumber") + " Cancelled", j, reqCode);
+//                        Intent i = new Intent(this, SOSService.class);
+//                        if (SOSService.mediaPlayer != null) {
+//                            if (SOSService.mediaPlayer.isPlaying()) {
+//                                SOSService.mediaPlayer.stop();
+//                            }
+//                            stopService(i);
+//                        }
+//                    }
+//                }
+//                else
+//                {
+//                        MainActivity.getOrders();
+//                        if (remoteMessage.getData().get("orderAction").equals("true")) {
+//                            Intent i = new Intent(this, MainActivity.class);
+//                            showNotification(getApplicationContext(), remoteMessage.getData().get("title"), remoteMessage.getData().get("message"), i, reqCode);
+//                        } else {
+//                            Intent i = new Intent(this, MainActivity.class);
+//                            showNotification(getApplicationContext(), "Order Cancelled", "Order From Room " + remoteMessage.getData().get("RoomNumber") + " Cancelled", i, reqCode);
+//                        }
+//                }
+//            }
+//            else if (remoteMessage.getData().get("title").equals("labor"))
+//                {
+//                    MainActivity.getOrders();
+//                    Intent i = new Intent(this , MainActivity.class);
+//                    showNotification(getApplicationContext(),"Order Done","Order From Room "+remoteMessage.getData().get("room") + " Done By " + remoteMessage.getData().get("emp") ,i,reqCode);
+//                    if (remoteMessage.getData().get("dep").equals("SOS")) {
+//                        Intent j = new Intent(this, SOSService.class);
+//                        if (SOSService.mediaPlayer != null) {
+//                            if (SOSService.mediaPlayer.isPlaying()) {
+//                                SOSService.mediaPlayer.stop();
+//                            }
+//                            stopService(j);
+//                        }
+//                    }
+//                }
+//        }
+//        else
+//            {
+//                if (remoteMessage.getData().get("title").equals("New Order")) {
+//                    if (remoteMessage.getData().get("dep").equals("SOS"))
+//                    {
+//                        if (remoteMessage.getData().get("orderAction").equals("true")) {
+//                            // Toast.makeText(this, "hi ", Toast.LENGTH_LONG).show();
+//                            Intent i = new Intent(this, SOSService.class);
+//                            Intent j = new Intent(this, MainActivity.class);
+//                            showNotification(getApplicationContext(),remoteMessage.getData().get("dep"), remoteMessage.getData().get("message"), j, reqCode);
+//                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//                                startForegroundService(i);
+//                            }
+//                            else
+//                            {
+//                                startService(i);
+//                            }
+//                            sosActivity();
+//                        }
+//                        else {
+//                            Intent i = new Intent(this, SOSService.class);
+//                            if (SOSService.mediaPlayer != null) {
+//                                if (SOSService.mediaPlayer.isPlaying()) {
+//                                    SOSService.mediaPlayer.stop();
+//                                }
+//                            }
+//                                stopService(i);
+//
+//                        }
+//                    } else
+//                   {
+//                        MainActivity.getOrders();
+//                    if (remoteMessage.getData().get("orderAction").equals("true")) {
+//                        //MainActivity.getOrders();
+//                        Intent i = new Intent(this, MainActivity.class);
+//                        showNotification(getApplicationContext(), remoteMessage.getData().get("title"), remoteMessage.getData().get("message"), i, reqCode);
+//                    } else {
+//                        //MainActivity.getOrders();
+//                        Intent i = new Intent(this, MainActivity.class);
+//                        showNotification(getApplicationContext(), "Order Cancelled", "Order From Room " + remoteMessage.getData().get("RoomNumber") + " Cancelled", i, reqCode);
+//                    }
+//                }
+//                }
+//                else if (remoteMessage.getData().get("title").equals("labor"))
+//                {
+//                    Intent i = new Intent(this , MainActivity.class);
+//                    showNotification(getApplicationContext(),"Order Done","Order From Room "+remoteMessage.getData().get("room") + " Done By " + remoteMessage.getData().get("emp") ,i,reqCode);
+//                    if (remoteMessage.getData().get("dep").equals("SOS")) {
+//                        Intent j = new Intent(this, SOSService.class);
+//                        if (SOSService.mediaPlayer != null) {
+//                            if (SOSService.mediaPlayer.isPlaying()) {
+//                                SOSService.mediaPlayer.stop();
+//                            }
+//                        }
+//                        stopService(j);
+//                    }
+//                }
+//
+//            }        // ...
         Random r = new Random();
         int reqCode = r.nextInt();
-        final Alarm alarm = new Alarm() ;
-        //Intent q = new Intent(this , MainActivity.class );
-        //showNotification(this , remoteMessage.getData().get("title") , remoteMessage.getData().get("message") ,q,reqCode);
-
-        if (remoteMessage.getData().get("title").equals("Restaurant"))
-        {
-            if (remoteMessage.getData().get("message").equals("Order Done"))
-            {
-                Intent i = new Intent(this , RestaurantOrders.class );
-                showNotification(this , remoteMessage.getData().get("title") ,"Room "+remoteMessage.getData().get("room")+" "+ remoteMessage.getData().get("message") ,i,reqCode);
-
-                //RestaurantOrders.getRestaurantOrders();
+        Log.d("IncomingMessage" ,remoteMessage.getData().get("title")+remoteMessage.getData().get("message") );
+        if (remoteMessage.getData().get("title") != null && remoteMessage.getData().get("message")!= null ) {
+            if (remoteMessage.getData().get("title").equals("SOS")) {
+                Intent i = new Intent(getApplicationContext(),SOSService.class);
+                startService(i);
+                Intent ii = new Intent(getApplicationContext(),MainActivity.class);
+                showNotification(getApplicationContext(),remoteMessage.getData().get("title"),remoteMessage.getData().get("message"),ii,reqCode);
             }
-            else
-                {
-                    Intent i = new Intent(this , RestaurantOrders.class );
-                    showNotification(this , remoteMessage.getData().get("title") ,"New Order From " + remoteMessage.getData().get("room") ,i,reqCode);
-                    //RestaurantOrders.getRestaurantOrders();
-                }
+            else {
+                Intent i = new Intent(getApplicationContext(),MainActivity.class);
+                showNotification(getApplicationContext(),remoteMessage.getData().get("title"),remoteMessage.getData().get("message"),i,reqCode);
+            }
 
         }
-        else if (MainActivity.activityStatus)
-            {
-            if (remoteMessage.getData().get("title").equals("New Order"))
-            {
-                if (remoteMessage.getData().get("dep").equals("SOS"))
-                {
-                    MainActivity.getOrders();
-                    if (remoteMessage.getData().get("orderAction").equals("true"))
-                    {
-
-                         //Toast.makeText(getBaseContext(), remoteMessage.getData().get("dep"), Toast.LENGTH_LONG).show();
-                        Intent i = new Intent(this, SOSService.class);
-                        Intent j = new Intent(this, MainActivity.class);
-                        showNotification(getApplicationContext(),remoteMessage.getData().get("dep"), remoteMessage.getData().get("message"), j, reqCode);
-                        startService(i);
-                        //sosActivity();
-                    }
-                    else {
-                        Intent j = new Intent(this, MainActivity.class);
-                        showNotification(getApplicationContext(), "Order Cancelled", "Order From Room " + remoteMessage.getData().get("RoomNumber") + " Cancelled", j, reqCode);
-                        Intent i = new Intent(this, SOSService.class);
-                        if (SOSService.mediaPlayer != null) {
-                            if (SOSService.mediaPlayer.isPlaying()) {
-                                SOSService.mediaPlayer.stop();
-                            }
-                            stopService(i);
-                        }
-                    }
-                }
-                else
-                {
-                        MainActivity.getOrders();
-                        if (remoteMessage.getData().get("orderAction").equals("true")) {
-                            Intent i = new Intent(this, MainActivity.class);
-                            showNotification(getApplicationContext(), remoteMessage.getData().get("title"), remoteMessage.getData().get("message"), i, reqCode);
-                        } else {
-                            Intent i = new Intent(this, MainActivity.class);
-                            showNotification(getApplicationContext(), "Order Cancelled", "Order From Room " + remoteMessage.getData().get("RoomNumber") + " Cancelled", i, reqCode);
-                        }
-                }
-            }
-            else if (remoteMessage.getData().get("title").equals("labor"))
-                {
-                    MainActivity.getOrders();
-                    Intent i = new Intent(this , MainActivity.class);
-                    showNotification(getApplicationContext(),"Order Done","Order From Room "+remoteMessage.getData().get("room") + " Done By " + remoteMessage.getData().get("emp") ,i,reqCode);
-                    if (remoteMessage.getData().get("dep").equals("SOS")) {
-                        Intent j = new Intent(this, SOSService.class);
-                        if (SOSService.mediaPlayer != null) {
-                            if (SOSService.mediaPlayer.isPlaying()) {
-                                SOSService.mediaPlayer.stop();
-                            }
-                            stopService(j);
-                        }
-                    }
-                }
-        }
-        else
-            {
-                if (remoteMessage.getData().get("title").equals("New Order")) {
-                    if (remoteMessage.getData().get("dep").equals("SOS"))
-                    {
-                        if (remoteMessage.getData().get("orderAction").equals("true")) {
-                            // Toast.makeText(this, "hi ", Toast.LENGTH_LONG).show();
-                            Intent i = new Intent(this, SOSService.class);
-                            Intent j = new Intent(this, MainActivity.class);
-                            showNotification(getApplicationContext(),remoteMessage.getData().get("dep"), remoteMessage.getData().get("message"), j, reqCode);
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                startForegroundService(i);
-                            }
-                            else
-                            {
-                                startService(i);
-                            }
-                            sosActivity();
-                        }
-                        else {
-                            Intent i = new Intent(this, SOSService.class);
-                            if (SOSService.mediaPlayer != null) {
-                                if (SOSService.mediaPlayer.isPlaying()) {
-                                    SOSService.mediaPlayer.stop();
-                                }
-                            }
-                                stopService(i);
-
-                        }
-                    } else
-                   {
-                        MainActivity.getOrders();
-                    if (remoteMessage.getData().get("orderAction").equals("true")) {
-                        //MainActivity.getOrders();
-                        Intent i = new Intent(this, MainActivity.class);
-                        showNotification(getApplicationContext(), remoteMessage.getData().get("title"), remoteMessage.getData().get("message"), i, reqCode);
-                    } else {
-                        //MainActivity.getOrders();
-                        Intent i = new Intent(this, MainActivity.class);
-                        showNotification(getApplicationContext(), "Order Cancelled", "Order From Room " + remoteMessage.getData().get("RoomNumber") + " Cancelled", i, reqCode);
-                    }
-                }
-                }
-                else if (remoteMessage.getData().get("title").equals("labor"))
-                {
-                    Intent i = new Intent(this , MainActivity.class);
-                    showNotification(getApplicationContext(),"Order Done","Order From Room "+remoteMessage.getData().get("room") + " Done By " + remoteMessage.getData().get("emp") ,i,reqCode);
-                    if (remoteMessage.getData().get("dep").equals("SOS")) {
-                        Intent j = new Intent(this, SOSService.class);
-                        if (SOSService.mediaPlayer != null) {
-                            if (SOSService.mediaPlayer.isPlaying()) {
-                                SOSService.mediaPlayer.stop();
-                            }
-                        }
-                        stopService(j);
-                    }
-                }
-
-            }        // ...
-
-
     }
 
     @Override
@@ -194,6 +210,7 @@ public class messagingService extends FirebaseMessagingService {
         // manage this apps subscriptions on the server side, send the
         // Instance ID token to your app server.
         sendRegistrationToServer(token);
+        MainActivity.MyFireUser.child("token").setValue(token);
     }
 
     void sendRegistrationToServer(final String token)
@@ -226,7 +243,7 @@ public class messagingService extends FirebaseMessagingService {
             {
                 Map<String,String> params = new HashMap<String,String>();
                 params.put("token",token);
-                params.put("userNumber",String.valueOf(1));
+                params.put("jnum",String.valueOf(LogIn.db.getUser().jobNumber));
                 return params;
             }
         };
@@ -237,30 +254,35 @@ public class messagingService extends FirebaseMessagingService {
 
     public void showNotification(Context context, String title, String message, Intent intent, int reqCode)
     {
-        //SharedPreferenceManager sharedPreferenceManager = SharedPreferenceManager.getInstance(context);
 
-        PendingIntent pendingIntent = PendingIntent.getActivity(context, reqCode, intent, PendingIntent.FLAG_ONE_SHOT);
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(getApplicationContext());
+        stackBuilder.addParentStack(MainActivity.class);
+        stackBuilder.addNextIntent(intent);
+
+        PendingIntent p = stackBuilder.getPendingIntent(reqCode,PendingIntent.FLAG_UPDATE_CURRENT);
+
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, reqCode, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         Intent i = new Intent(this , MainActivity.class);
-        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        i.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         String CHANNEL_ID = "channel_name";// The id of the channel.
+        Uri soundUri = Uri.parse("android.resource://" + getApplicationContext().getPackageName() + "/" + R.raw.notification_sound);
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(context, CHANNEL_ID)
-                .setSmallIcon(R.mipmap.ic_launcher)
+                .setSmallIcon(R.drawable.logo_icon)
                 .setContentTitle(title)
                 .setContentText(message)
                 .setAutoCancel(true)
-                .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
-                .setContentIntent(pendingIntent)
-                .setColor(Color.RED);
-        NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+                .setSound(soundUri)
+                .setContentIntent(p)
+                .setColor(Color.parseColor("#0E223B"));
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             CharSequence name = "Channel Name";// The user-visible name of the channel.
             int importance = NotificationManager.IMPORTANCE_HIGH;
             NotificationChannel mChannel = new NotificationChannel(CHANNEL_ID, name, importance);
+            mChannel.setSound(soundUri,null);
             notificationManager.createNotificationChannel(mChannel);
         }
         notificationManager.notify(reqCode, notificationBuilder.build()); // 0 is the request code, it should be unique id
-        //startActivity(i);
-
     }
 
 

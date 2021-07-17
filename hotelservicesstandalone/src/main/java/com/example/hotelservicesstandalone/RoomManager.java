@@ -12,6 +12,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -98,6 +99,7 @@ public class RoomManager extends AppCompatActivity
         setContentView(R.layout.room_manager);
         act = this ;
         setActivity();
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
     }
 
     @Override
@@ -920,24 +922,28 @@ public class RoomManager extends AppCompatActivity
         if (DeviceTypes.getSelectedItem().toString() != null )
         {
             lodingDialog d = new lodingDialog(act);
-            FOUNDD.renameDevice(DeviceTypes.getSelectedItem().toString(), new IResultCallback() {
-                @Override
-                public void onError(String code, String error)
-                {
-                    // Renaming failed
-                    d.stop();
-                }
-                @Override
-                public void onSuccess()
-                {
-                    // Renaming succeeded
-                    d.stop();
-                    Toast.makeText(act,"Name Changed Successfully" , Toast.LENGTH_LONG).show();
-                    NewName = DeviceTypes.getSelectedItem().toString();
-                    foundWifiDevice.setText(NewName);
-                    foundWifiDevice.setTextColor(Color.GREEN);
-                }
-            });
+            if (FOUND != null ) {
+                TuyaHomeSdk.newDeviceInstance(FOUND.getDevId()).renameDevice(DeviceTypes.getSelectedItem().toString(), new IResultCallback() {
+                    @Override
+                    public void onError(String code, String error) {
+                        // Renaming failed
+                        d.stop();
+                    }
+
+                    @Override
+                    public void onSuccess() {
+                        // Renaming succeeded
+                        d.stop();
+                        Toast.makeText(act, "Name Changed Successfully", Toast.LENGTH_LONG).show();
+                        NewName = DeviceTypes.getSelectedItem().toString();
+                        foundWifiDevice.setText(NewName);
+                        foundWifiDevice.setTextColor(Color.GREEN);
+                    }
+                });
+            }
+            else {
+                Toast.makeText( act,"Device is null " , Toast.LENGTH_LONG).show();
+            }
         }
         else
         {
@@ -1766,7 +1772,7 @@ public class RoomManager extends AppCompatActivity
             lodingDialog d = new lodingDialog(act);
             TuyaGwSubDevActivatorBuilder builder = new TuyaGwSubDevActivatorBuilder()
                     .setDevId(Room.getGATEWAY_B().devId)
-                    .setTimeOut(100)
+                    .setTimeOut(90)
                     .setListener(new ITuyaSmartActivatorListener() {
 
                                      @Override
@@ -1856,24 +1862,30 @@ public class RoomManager extends AppCompatActivity
         if (DeviceTypesZ.getSelectedItem().toString() != null )
         {
             lodingDialog d = new lodingDialog(act);
-            FOUNDD.renameDevice(DeviceTypesZ.getSelectedItem().toString(), new IResultCallback() {
-                @Override
-                public void onError(String code, String error)
-                {
-                    // Renaming failed
-                    d.stop();
-                }
-                @Override
-                public void onSuccess()
-                {
-                    // Renaming succeeded
-                    d.stop();
-                    Toast.makeText(act,"Name Changed Successfully" , Toast.LENGTH_LONG).show();
-                    NewNameZ = DeviceTypesZ.getSelectedItem().toString();
-                    foundZbeeDevice.setText(NewNameZ);
-                    foundZbeeDevice.setTextColor(Color.GREEN);
-                }
-            });
+            if (FOUNDD != null ) {
+                FOUNDD.renameDevice(DeviceTypesZ.getSelectedItem().toString(), new IResultCallback() {
+                    @Override
+                    public void onError(String code, String error)
+                    {
+                        // Renaming failed
+                        d.stop();
+                    }
+                    @Override
+                    public void onSuccess()
+                    {
+                        // Renaming succeeded
+                        d.stop();
+                        Toast.makeText(act,"Name Changed Successfully" , Toast.LENGTH_LONG).show();
+                        NewNameZ = DeviceTypesZ.getSelectedItem().toString();
+                        foundZbeeDevice.setText(NewNameZ);
+                        foundZbeeDevice.setTextColor(Color.GREEN);
+                    }
+                });
+            }
+            else {
+                Toast.makeText(act,"No Found Device",Toast.LENGTH_LONG).show();
+            }
+
         }
         else
         {
@@ -1956,7 +1968,7 @@ public class RoomManager extends AppCompatActivity
                         Log.e("wiregateway" , "token "+Token);
                                 TuyaGwActivatorBuilder builder = new TuyaGwActivatorBuilder()
                                         .setToken(Token)
-                                        .setTimeOut(200)
+                                        .setTimeOut(60)
                                         .setContext(act)
                                         .setHgwBean(hgwBean)
                                         .setListener(new ITuyaSmartActivatorListener() {

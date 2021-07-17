@@ -64,12 +64,15 @@
             </intent-filter>
         </service>
         -->
-        <service
-            android:name=".SOSService"
+        <service android:name=".SOSService"
             android:enabled="true" />
-        <service
-            android:name=".ReceivingService"
+        <service android:name=".ReceivingService"
             android:enabled="true" />
+        <service android:name=".messagingService" >
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+            </intent-filter>
+        </service>
 
         <activity
             android:name=".MainActivity"

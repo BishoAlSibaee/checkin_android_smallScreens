@@ -61,8 +61,8 @@ import java.util.Random;
 public class MainActivity extends Activity
 {
     static  List<ServiceOrder> list = new ArrayList<ServiceOrder>()  ;
-    public static String URL = "https://ratco-solutions.com/HotelServicesTest/TestProject/p/";
-    public static String Project = "Test";
+    public static String URL = "https://ratco-solutions.com/Checkin/P0001/php/";
+    public static String Project = "P0001";
     static Activity act  ;
     static  GridView gridView;
     static ServiceOrder_Adapter adapter ;

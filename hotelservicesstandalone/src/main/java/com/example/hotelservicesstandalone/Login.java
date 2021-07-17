@@ -290,17 +290,23 @@ public class Login extends AppCompatActivity
     void setTuyaApplication()
     {
         TuyaHomeSdk.setDebugMode(true);
-        TuyaHomeSdk.init(getApplication());
-        TuyaHomeSdk.setOnNeedLoginListener(new INeedLoginListener() {
-            @Override
-            public void onNeedLogin(Context context) {
-                Intent intent = new Intent(context, Tuya_Login.class);
-                if (!(context instanceof Activity)) {
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        try {
+            TuyaHomeSdk.init(getApplication());
+            TuyaHomeSdk.setOnNeedLoginListener(new INeedLoginListener() {
+                @Override
+                public void onNeedLogin(Context context) {
+                    Intent intent = new Intent(context, Tuya_Login.class);
+                    if (!(context instanceof Activity)) {
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    }
+                    startActivity(intent);
                 }
-                startActivity(intent);
-            }
-        });
+            });
+        }
+        catch (Exception e ) {
+            Log.d("TuyaError" , e.getMessage());
+        }
+
 
     }
 
