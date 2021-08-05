@@ -88,8 +88,9 @@ public class DNDDB extends SQLiteOpenHelper {
         long time ;
 
         Cursor c = db.rawQuery("SELECT * FROM 'dnds' ; " , null);
-        c.moveToFirst();
+
         if (c.getCount()>0) {
+            c.moveToFirst();
             for (int i = 0; i < c.getCount(); i++) {
                 id = c.getInt(0);
                 room = c.getInt(1);
@@ -105,10 +106,11 @@ public class DNDDB extends SQLiteOpenHelper {
             }
 
         }
+        c.close();
         return list ;
     }
 
-    public boolean  removeRow(int id) {
+    public boolean  removeRow(Long id) {
 
         boolean res = false ;
         ContentValues values = new ContentValues();

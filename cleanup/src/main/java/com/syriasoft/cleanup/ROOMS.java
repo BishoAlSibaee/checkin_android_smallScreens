@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.database.DatabaseReference;
+import com.ttlock.bl.sdk.api.TTLockClient;
 
 import java.util.List;
 
@@ -35,5 +36,13 @@ public class ROOMS extends AppCompatActivity {
         adapter = new ROOMS_ADAPTER(list);
         rooms.setLayoutManager(manager);
         rooms.setAdapter(adapter);
+        ensureBluetoothIsEnabled();
+    }
+
+    public void ensureBluetoothIsEnabled()
+    {
+        if(!TTLockClient.getDefault().isBLEEnabled(act)){
+            TTLockClient.getDefault().requestBleEnable(act);
+        }
     }
 }

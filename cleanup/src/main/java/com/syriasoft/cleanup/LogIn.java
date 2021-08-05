@@ -3,6 +3,7 @@ package com.syriasoft.cleanup;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.util.Log;
@@ -33,6 +34,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static android.content.res.Configuration.ORIENTATION_PORTRAIT;
 
 public class LogIn extends AppCompatActivity {
 
@@ -112,7 +115,7 @@ public class LogIn extends AppCompatActivity {
 
                     }
                 });
-            Runnable r = new Runnable() {
+                Runnable r = new Runnable() {
                 @Override
                 public void run() {
                     try {
@@ -149,8 +152,9 @@ public class LogIn extends AppCompatActivity {
                                         Log.d("Yvalue",logo.getY()+"repeat");
                                     }
                                 });
-                                logo.startAnimation(anim);
-
+                                if (act.getResources().getConfiguration().orientation == ORIENTATION_PORTRAIT) {
+                                    logo.startAnimation(anim);
+                                }
                             }
                         });
 
@@ -381,6 +385,8 @@ public class LogIn extends AppCompatActivity {
                 @Override
                 public void onResponse(String response)
                 {
+                    Log.d("RestaurantsResponse" , response);
+                    //Toast.makeText(act,"response is "+response,Toast.LENGTH_LONG).show();
                     d.close();
                     if (response.equals("0"))
                     {

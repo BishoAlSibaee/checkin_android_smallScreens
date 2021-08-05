@@ -6,36 +6,44 @@
     android:padding="20dp">
 
     <TextView
+        android:id="@+id/RenameDialog_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="10dp"
+        android:gravity="center"
+        android:padding="10dp"
         android:text="Rename Device"
         android:textSize="18dp"
-        android:padding="10dp"
-        android:gravity="center"
-        android:layout_gravity="center"/>
+        android:textStyle="bold" />
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Select New Name "
-        android:padding="10dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="10dp"
         android:gravity="center"
-        android:layout_gravity="center"/>
+        android:padding="10dp"
+        android:text="Select New Name " />
 
     <Spinner
         android:id="@+id/roomsspinner"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="enter new device name"/>
+        android:layout_marginTop="10dp"
+        android:hint="enter new device name" />
 
     <Spinner
         android:id="@+id/devicerenamespinner"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="enter new device name"/>
+        android:layout_marginTop="10dp"
+        android:hint="enter new device name" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
         android:orientation="horizontal">
 
         <Button

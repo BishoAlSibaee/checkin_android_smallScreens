@@ -28,6 +28,7 @@ import androidx.core.content.ContextCompat;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
+import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
@@ -91,6 +92,7 @@ public class RoomManager extends AppCompatActivity
     ITuyaActivator mTuyaGWActivator ;
     ITuyaGwSearcher mTuyaGwSearcher ;
     ITuyaActivator mITuyaActivator ;
+    RequestQueue REQ ;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -98,6 +100,7 @@ public class RoomManager extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.room_manager);
         act = this ;
+        REQ = Volley.newRequestQueue(act);
         setActivity();
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
     }
@@ -155,21 +158,21 @@ public class RoomManager extends AppCompatActivity
     {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
         {
-            Toast.makeText(act, "version> = marshmallow", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(act, "version> = marshmallow", Toast.LENGTH_SHORT).show();
             if (ContextCompat.checkSelfPermission(act, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
             {
-                Toast.makeText(act, "location turned off", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(act, "location turned off", Toast.LENGTH_SHORT).show();
                 ActivityCompat.requestPermissions(act, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},1);
             }
             else
             {
-                Toast.makeText(act, "location turned on", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(act, "location turned on", Toast.LENGTH_SHORT).show();
                 wifiManager.startScan();
             }
         }
         else
         {
-            Toast.makeText(act, "scanning", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(act, "scanning", Toast.LENGTH_SHORT).show();
             wifiManager.startScan();
         }
     }
@@ -887,6 +890,7 @@ public class RoomManager extends AppCompatActivity
                                                  public void onActiveSuccess(DeviceBean devResp)
                                                  {
                                                      d.stop();
+                                                     Rooms.CHANGE_STATUS = true ;
                                                      foundWifiDevice.setText(devResp.getName());
                                                      FOUND = devResp ;
                                                      FOUNDD = TuyaHomeSdk.newDeviceInstance(FOUND.getDevId());
@@ -898,6 +902,7 @@ public class RoomManager extends AppCompatActivity
                                                  public void onStep(String step, Object data)
                                                  {
                                                      d.stop();
+                                                     Rooms.CHANGE_STATUS = true ;
                                                      Toast.makeText(act , step , Toast.LENGTH_LONG).show();
                                                      mTuyaActivator.stop();
                                                  }
@@ -1063,7 +1068,7 @@ public class RoomManager extends AppCompatActivity
                     return Params;
                 }
             };
-            Volley.newRequestQueue(act).add(tabR);
+            REQ.add(tabR);
         }
         catch (Exception e)
         {
@@ -1107,7 +1112,7 @@ public class RoomManager extends AppCompatActivity
                     return Params;
                 }
             };
-            Volley.newRequestQueue(act).add(tabR);
+            REQ.add(tabR);
         }
         catch (Exception e)
         {
@@ -1167,7 +1172,7 @@ public class RoomManager extends AppCompatActivity
                     return Params;
                 }
             };
-            Volley.newRequestQueue(act).add(tabR);
+            REQ.add(tabR);
         }
         catch (Exception e)
         {
@@ -1226,7 +1231,7 @@ public class RoomManager extends AppCompatActivity
                     return Params;
                 }
             };
-            Volley.newRequestQueue(act).add(tabR);
+            REQ.add(tabR);
         }
         catch (Exception e)
         {
@@ -1285,7 +1290,7 @@ public class RoomManager extends AppCompatActivity
                     return Params;
                 }
             };
-            Volley.newRequestQueue(act).add(tabR);
+            REQ.add(tabR);
         }
         catch (Exception e)
         {
@@ -1344,7 +1349,7 @@ public class RoomManager extends AppCompatActivity
                     return Params;
                 }
             };
-            Volley.newRequestQueue(act).add(tabR);
+            REQ.add(tabR);
         }
         catch (Exception e)
         {
@@ -1403,7 +1408,7 @@ public class RoomManager extends AppCompatActivity
                     return Params;
                 }
             };
-            Volley.newRequestQueue(act).add(tabR);
+            REQ.add(tabR);
         }
         catch (Exception e)
         {
@@ -1462,7 +1467,7 @@ public class RoomManager extends AppCompatActivity
                     return Params;
                 }
             };
-            Volley.newRequestQueue(act).add(tabR);
+            REQ.add(tabR);
         }
         catch (Exception e)
         {
@@ -1521,7 +1526,7 @@ public class RoomManager extends AppCompatActivity
                     return Params;
                 }
             };
-            Volley.newRequestQueue(act).add(tabR);
+            REQ.add(tabR);
         }
         catch (Exception e)
         {
@@ -1585,7 +1590,7 @@ public class RoomManager extends AppCompatActivity
                     return Params;
                 }
             };
-            Volley.newRequestQueue(act).add(tabR);
+            REQ.add(tabR);
         }
         catch (Exception e)
         {
@@ -1644,7 +1649,7 @@ public class RoomManager extends AppCompatActivity
                     return Params;
                 }
             };
-            Volley.newRequestQueue(act).add(tabR);
+            REQ.add(tabR);
         }
         catch (Exception e)
         {
@@ -1707,7 +1712,7 @@ public class RoomManager extends AppCompatActivity
                     return Params;
                 }
             };
-            Volley.newRequestQueue(act).add(tabR);
+            REQ.add(tabR);
         }
         catch (Exception e)
         {
@@ -1757,7 +1762,7 @@ public class RoomManager extends AppCompatActivity
                     return Params;
                 }
             };
-            Volley.newRequestQueue(act).add(tabR);
+            REQ.add(tabR);
         }
         catch (Exception e)
         {
@@ -1786,6 +1791,7 @@ public class RoomManager extends AppCompatActivity
                                      @Override
                                      public void onActiveSuccess(DeviceBean devResp) {
                                          d.stop();
+                                         Rooms.CHANGE_STATUS = true ;
                                          FOUND = devResp ;
                                          FOUNDD = TuyaHomeSdk.newDeviceInstance(devResp.getDevId());
                                          Toast.makeText(act,"Device Saved" , Toast.LENGTH_LONG).show();
@@ -1797,6 +1803,7 @@ public class RoomManager extends AppCompatActivity
                                      @Override
                                      public void onStep(String step, Object data) {
                                          d.stop();
+                                         Rooms.CHANGE_STATUS = true ;
                                          mTuyaGWActivator.stop();
                                          Log.d("ZBdeviceSearch" , "step "+step);
                                          Toast.makeText(act,"Old Device",Toast.LENGTH_LONG).show();
@@ -1830,6 +1837,7 @@ public class RoomManager extends AppCompatActivity
                                      public void onActiveSuccess(DeviceBean devResp)
                                      {
                                          d.stop();
+                                         Rooms.CHANGE_STATUS = true ;
                                          FOUND = devResp ;
                                          FOUNDD = TuyaHomeSdk.newDeviceInstance(devResp.getDevId());
                                          Toast.makeText(act,"Device Saved" , Toast.LENGTH_LONG).show();
@@ -1842,6 +1850,7 @@ public class RoomManager extends AppCompatActivity
                                      public void onStep(String step, Object data)
                                      {
                                          d.stop();
+                                         Rooms.CHANGE_STATUS = true ;
                                          mTuyaGWActivator.stop();
                                          Log.d("ZBdeviceSearch" , "step "+step);
                                      }
@@ -2080,6 +2089,7 @@ public class RoomManager extends AppCompatActivity
             public void onScanLockSuccess(ExtendedBluetoothDevice device)
             {
                 l.stop();
+                Rooms.CHANGE_STATUS = true ;
                 FOUNDLOCK = device ;
                 foundLock.setText(device.getName());
                 TTLockClient.getDefault().stopScanLock();
@@ -2109,6 +2119,7 @@ public class RoomManager extends AppCompatActivity
                 @Override
                 public void onInitLockSuccess(String lockData) {
                     //this must be done after lock is initialized,call server api to post to your server
+                    Rooms.CHANGE_STATUS = true ;
                     if ( FeatureValueUtil.isSupportFeature(lockData, FeatureValue.NB_LOCK) )
                     {
                         setNBServerForNBLock( lockData,FOUNDLOCK.getAddress());

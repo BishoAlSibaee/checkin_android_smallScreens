@@ -17,16 +17,17 @@
 
         <ImageView
             android:id="@+id/imageView4"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_width="350dp"
+            android:layout_height="175dp"
+            android:layout_gravity="center"
             android:layout_marginTop="100dp"
-            app:srcCompat="@drawable/logo_android"
-            />
+            app:srcCompat="@drawable/logo_android" />
 
         <com.wang.avi.AVLoadingIndicatorView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
             android:layout_gravity="center"
+            android:layout_marginTop="20dp"
             android:foregroundGravity="center"
             app:indicatorName="BallGridBeatIndicator" />
 
@@ -35,6 +36,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
+            android:layout_marginTop="50dp"
             android:fontFamily="serif"
             android:gravity="center"
             android:text="Project Is ON"
@@ -92,6 +94,24 @@
             android:layout_weight="1"
             android:onClick="toggleRoomsDevices"
             android:text="Toggle Rooms/Devices" />
+
+        <EditText
+            android:id="@+id/search_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:ems="10"
+            android:hint="Search"
+            android:inputType="textPersonName" />
+
+        <Button
+            android:id="@+id/button16"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:text="Search" />
 
         <Button
             android:id="@+id/button2"

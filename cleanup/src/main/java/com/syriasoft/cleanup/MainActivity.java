@@ -811,9 +811,9 @@ public class MainActivity extends AppCompatActivity {
                         {
                             for (int x=0;x<orderDB.getOrders().size();x++)
                             {
-                                if (Integer.parseInt(orderDB.getOrders().get(x).roomNumber) == Rooms.get(finalI).RoomNumber && orderDB.getOrders().get(x).dep.equals("Cleanup") )
+                                if (Long.parseLong(orderDB.getOrders().get(x).roomNumber) == Rooms.get(finalI).RoomNumber && orderDB.getOrders().get(x).dep.equals("Cleanup") )
                                 {
-                                    orderDB.removeRow( Integer.parseInt(orderDB.getOrders().get(x).orderNumber));
+                                    orderDB.removeRow( Long.parseLong(orderDB.getOrders().get(x).orderNumber));
                                     adapter = new CleanUp_Adapter(orderDB.getOrders(),act);
                                     g.setAdapter(adapter);
                                 }
@@ -851,9 +851,9 @@ public class MainActivity extends AppCompatActivity {
                         {
                             for (int x=0;x<dndDB.getOrders().size();x++)
                             {
-                                if (Integer.parseInt(dndDB.getOrders().get(x).roomNumber) == Rooms.get(finalI).RoomNumber && dndDB.getOrders().get(x).dep.equals("DND"))
+                                if (Long.parseLong(dndDB.getOrders().get(x).roomNumber) == Rooms.get(finalI).RoomNumber && dndDB.getOrders().get(x).dep.equals("DND"))
                                 {
-                                    dndDB.removeRow( Integer.parseInt(dndDB.getOrders().get(x).orderNumber));
+                                    dndDB.removeRow( Long.parseLong(dndDB.getOrders().get(x).orderNumber));
                                 }
                             }
                             Log.d("DNDChanged" , Rooms.get(finalI).RoomNumber+" i am changed to " + dataSnapshot.getValue().toString()+" in list after "+dndDB.getOrders().size()) ;
@@ -906,9 +906,9 @@ public class MainActivity extends AppCompatActivity {
 //                                    list.remove(x);
 //                                    adapter.notifyDataSetChanged();
 //                                }
-                                if (Integer.parseInt(orderDB.getOrders().get(x).roomNumber) == Rooms.get(finalI).RoomNumber && orderDB.getOrders().get(x).dep.equals("SOS") )
+                                if (Long.parseLong(orderDB.getOrders().get(x).roomNumber) == Rooms.get(finalI).RoomNumber && orderDB.getOrders().get(x).dep.equals("SOS") )
                                 {
-                                    orderDB.removeRow( Integer.parseInt(orderDB.getOrders().get(x).orderNumber));
+                                    orderDB.removeRow( Long.parseLong(orderDB.getOrders().get(x).orderNumber));
                                     adapter = new CleanUp_Adapter(orderDB.getOrders(),act);
                                     g.setAdapter(adapter);
                                 }
@@ -956,9 +956,9 @@ public class MainActivity extends AppCompatActivity {
 //                                    list.remove(x);
 //                                    adapter.notifyDataSetChanged();
 //                                }
-                                if (Integer.parseInt(orderDB.getOrders().get(x).roomNumber) == Rooms.get(finalI).RoomNumber && orderDB.getOrders().get(x).dep.equals("Laundry") )
+                                if (Long.parseLong(orderDB.getOrders().get(x).roomNumber) == Rooms.get(finalI).RoomNumber && orderDB.getOrders().get(x).dep.equals("Laundry") )
                                 {
-                                    orderDB.removeRow( Integer.parseInt(orderDB.getOrders().get(x).orderNumber));
+                                    orderDB.removeRow( Long.parseLong(orderDB.getOrders().get(x).orderNumber));
                                     adapter = new CleanUp_Adapter(orderDB.getOrders(),act);
                                     g.setAdapter(adapter);
                                 }
@@ -997,9 +997,9 @@ public class MainActivity extends AppCompatActivity {
                         {
                             for (int x=0;x<dndDB.getOrders().size();x++)
                             {
-                                if (Integer.parseInt(dndDB.getOrders().get(x).roomNumber) == Rooms.get(finalI).RoomNumber && dndDB.getOrders().get(x).dep.equals("DND"))
+                                if (Long.parseLong(dndDB.getOrders().get(x).roomNumber) == Rooms.get(finalI).RoomNumber && dndDB.getOrders().get(x).dep.equals("DND"))
                                 {
-                                    dndDB.removeRow( Integer.parseInt(dndDB.getOrders().get(x).orderNumber));
+                                    dndDB.removeRow( Long.parseLong(dndDB.getOrders().get(x).orderNumber));
                                 }
                             }
                             Log.d("DNDChanged" , Rooms.get(finalI).RoomNumber+" i am changed to " + dataSnapshot.getValue().toString()+" in list after "+dndDB.getOrders().size()) ;
@@ -1084,7 +1084,7 @@ public class MainActivity extends AppCompatActivity {
 //                                }
                                 if (Integer.parseInt(orderDB.getOrders().get(x).roomNumber) == Rooms.get(finalI).RoomNumber && orderDB.getOrders().get(x).dep.equals("RoomService") )
                                 {
-                                    orderDB.removeRow( Integer.parseInt(orderDB.getOrders().get(x).orderNumber));
+                                    orderDB.removeRow( Long.parseLong(orderDB.getOrders().get(x).orderNumber));
                                     adapter = new CleanUp_Adapter(orderDB.getOrders(),act);
                                     g.setAdapter(adapter);
                                 }
@@ -1123,9 +1123,9 @@ public class MainActivity extends AppCompatActivity {
                         {
                             for (int x=0;x<dndDB.getOrders().size();x++)
                             {
-                                if (Integer.parseInt(dndDB.getOrders().get(x).roomNumber) == Rooms.get(finalI).RoomNumber && dndDB.getOrders().get(x).dep.equals("DND"))
+                                if (Long.parseLong(dndDB.getOrders().get(x).roomNumber) == Rooms.get(finalI).RoomNumber && dndDB.getOrders().get(x).dep.equals("DND"))
                                 {
-                                    dndDB.removeRow( Integer.parseInt(dndDB.getOrders().get(x).orderNumber));
+                                    dndDB.removeRow( Long.parseLong(dndDB.getOrders().get(x).orderNumber));
                                 }
                             }
                             Log.d("DNDChanged" , Rooms.get(finalI).RoomNumber+" i am changed to " + dataSnapshot.getValue().toString()+" in list after "+dndDB.getOrders().size()) ;
@@ -1178,9 +1178,9 @@ public class MainActivity extends AppCompatActivity {
 //                                    list.remove(x);
 //                                    adapter.notifyDataSetChanged();
 //                                }
-                                if (Integer.parseInt(orderDB.getOrders().get(x).roomNumber) == Rooms.get(finalI).RoomNumber && orderDB.getOrders().get(x).dep.equals("SOS") )
+                                if (Long.parseLong(orderDB.getOrders().get(x).roomNumber) == Rooms.get(finalI).RoomNumber && orderDB.getOrders().get(x).dep.equals("SOS") )
                                 {
-                                    orderDB.removeRow( Integer.parseInt(orderDB.getOrders().get(x).orderNumber));
+                                    orderDB.removeRow( Long.parseLong(orderDB.getOrders().get(x).orderNumber));
                                     adapter = new CleanUp_Adapter(orderDB.getOrders(),act);
                                     g.setAdapter(adapter);
                                 }
@@ -1209,9 +1209,9 @@ public class MainActivity extends AppCompatActivity {
 //                                        list.remove(x);
 //                                        adapter.notifyDataSetChanged();
 //                                    }
-                                    if (Integer.parseInt(orderDB.getOrders().get(x).roomNumber) == Rooms.get(finalI).RoomNumber && orderDB.getOrders().get(x).dep.equals("MiniBarCheck") )
+                                    if (Long.parseLong(orderDB.getOrders().get(x).roomNumber) == Rooms.get(finalI).RoomNumber && orderDB.getOrders().get(x).dep.equals("MiniBarCheck") )
                                     {
-                                        orderDB.removeRow( Integer.parseInt(orderDB.getOrders().get(x).orderNumber));
+                                        orderDB.removeRow( Long.parseLong(orderDB.getOrders().get(x).orderNumber));
                                         adapter = new CleanUp_Adapter(orderDB.getOrders(),act);
                                         g.setAdapter(adapter);
                                     }
@@ -1278,9 +1278,9 @@ public class MainActivity extends AppCompatActivity {
                         {
                             for (int x=0;x<dndDB.getOrders().size();x++)
                             {
-                                if (Integer.parseInt(dndDB.getOrders().get(x).roomNumber) == Rooms.get(finalI).RoomNumber && dndDB.getOrders().get(x).dep.equals("DND"))
+                                if (Long.parseLong(dndDB.getOrders().get(x).roomNumber) == Rooms.get(finalI).RoomNumber && dndDB.getOrders().get(x).dep.equals("DND"))
                                 {
-                                    dndDB.removeRow( Integer.parseInt(dndDB.getOrders().get(x).orderNumber));
+                                    dndDB.removeRow( Long.parseLong(dndDB.getOrders().get(x).orderNumber));
                                 }
                             }
                             Log.d("DNDChanged" , Rooms.get(finalI).RoomNumber+" i am changed to " + dataSnapshot.getValue().toString()+" in list after "+dndDB.getOrders().size()) ;
@@ -1326,9 +1326,9 @@ public class MainActivity extends AppCompatActivity {
                         {
                             for (int x=0;x<orderDB.getOrders().size();x++)
                             {
-                                if (Integer.parseInt(orderDB.getOrders().get(x).roomNumber) == Rooms.get(finalI).RoomNumber && orderDB.getOrders().get(x).dep.equals("Cleanup") )
+                                if (Long.parseLong(orderDB.getOrders().get(x).roomNumber) == Rooms.get(finalI).RoomNumber && orderDB.getOrders().get(x).dep.equals("Cleanup") )
                                 {
-                                    orderDB.removeRow( Integer.parseInt(orderDB.getOrders().get(x).orderNumber));
+                                    orderDB.removeRow( Long.parseLong(orderDB.getOrders().get(x).orderNumber));
                                     adapter = new CleanUp_Adapter(orderDB.getOrders(),act);
                                     g.setAdapter(adapter);
                                 }
@@ -1373,9 +1373,9 @@ public class MainActivity extends AppCompatActivity {
 //                                    list.remove(x);
 //                                    adapter.notifyDataSetChanged();
 //                                }
-                                if (Integer.parseInt(orderDB.getOrders().get(x).roomNumber) == Rooms.get(finalI).RoomNumber && orderDB.getOrders().get(x).dep.equals("Laundry") )
+                                if (Long.parseLong(orderDB.getOrders().get(x).roomNumber) == Rooms.get(finalI).RoomNumber && orderDB.getOrders().get(x).dep.equals("Laundry") )
                                 {
-                                    orderDB.removeRow( Integer.parseInt(orderDB.getOrders().get(x).orderNumber));
+                                    orderDB.removeRow( Long.parseLong(orderDB.getOrders().get(x).orderNumber));
                                     adapter = new CleanUp_Adapter(orderDB.getOrders(),act);
                                     g.setAdapter(adapter);
                                 }
@@ -1475,9 +1475,9 @@ public class MainActivity extends AppCompatActivity {
 //                                    list.remove(x);
 //                                    adapter.notifyDataSetChanged();
 //                                }
-                                        if (Integer.parseInt(orderDB.getOrders().get(x).roomNumber) == Rooms.get(finalI).RoomNumber && orderDB.getOrders().get(x).dep.equals("RoomService") )
+                                        if (Long.parseLong(orderDB.getOrders().get(x).roomNumber) == Rooms.get(finalI).RoomNumber && orderDB.getOrders().get(x).dep.equals("RoomService") )
                                         {
-                                            orderDB.removeRow( Integer.parseInt(orderDB.getOrders().get(x).orderNumber));
+                                            orderDB.removeRow( Long.parseLong(orderDB.getOrders().get(x).orderNumber));
                                             adapter = new CleanUp_Adapter(orderDB.getOrders(),act);
                                             g.setAdapter(adapter);
                                         }
@@ -1537,9 +1537,9 @@ public class MainActivity extends AppCompatActivity {
 //                                    list.remove(x);
 //                                    adapter.notifyDataSetChanged();
 //                                }
-                                if (Integer.parseInt(orderDB.getOrders().get(x).roomNumber) == Rooms.get(finalI).RoomNumber && orderDB.getOrders().get(x).dep.equals("SOS") )
+                                if (Long.parseLong(orderDB.getOrders().get(x).roomNumber) == Rooms.get(finalI).RoomNumber && orderDB.getOrders().get(x).dep.equals("SOS") )
                                 {
-                                    orderDB.removeRow( Integer.parseInt(orderDB.getOrders().get(x).orderNumber));
+                                    orderDB.removeRow( Long.parseLong(orderDB.getOrders().get(x).orderNumber));
                                     adapter = new CleanUp_Adapter(orderDB.getOrders(),act);
                                     g.setAdapter(adapter);
                                 }
@@ -1568,9 +1568,9 @@ public class MainActivity extends AppCompatActivity {
 //                                        list.remove(x);
 //                                        adapter.notifyDataSetChanged();
 //                                    }
-                                    if (Integer.parseInt(orderDB.getOrders().get(x).roomNumber) == Rooms.get(finalI).RoomNumber && orderDB.getOrders().get(x).dep.equals("MiniBarCheck") )
+                                    if (Long.parseLong(orderDB.getOrders().get(x).roomNumber) == Rooms.get(finalI).RoomNumber && orderDB.getOrders().get(x).dep.equals("MiniBarCheck") )
                                     {
-                                        orderDB.removeRow( Integer.parseInt(orderDB.getOrders().get(x).orderNumber));
+                                        orderDB.removeRow( Long.parseLong(orderDB.getOrders().get(x).orderNumber));
                                         adapter = new CleanUp_Adapter(orderDB.getOrders(),act);
                                         g.setAdapter(adapter);
                                     }

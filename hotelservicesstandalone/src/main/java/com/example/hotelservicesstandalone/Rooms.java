@@ -15,6 +15,7 @@ import android.os.MessageQueue;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.util.LogPrinter;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
@@ -137,6 +138,10 @@ public class Rooms extends AppCompatActivity
     private static List<ServiceEmps> Emps ;
     private DatabaseReference ServiceUsers ;
     static RequestQueue MessagesQueue;
+    static boolean CHANGE_STATUS = false ;
+    RequestQueue REQ , REQ1;
+    EditText searchText ;
+    Button searchBtn ;
 
 
     @Override
@@ -145,6 +150,8 @@ public class Rooms extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.rooms);
         act = this ;
+        REQ = Volley.newRequestQueue(act);
+        REQ1 = Volley.newRequestQueue(act);
         setActivity();
         setTuyaApplication();
         getRooms();
@@ -174,8 +181,11 @@ public class Rooms extends AppCompatActivity
     {
         super.onResume();
         hideSystemUI();
-        getRooms();
-        loginTTLock();
+        if (CHANGE_STATUS) {
+            getRooms();
+            loginTTLock();
+            CHANGE_STATUS = false ;
+        }
     }
 
     private void setActivity()
@@ -185,6 +195,55 @@ public class Rooms extends AppCompatActivity
             lockDB.removeAll();
             lockDB.insertLock("off");
         }
+        searchText = (EditText) findViewById(R.id.search_text);
+        searchBtn = (Button) findViewById(R.id.button16);
+        searchBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                if (!searchBtn.getText().toString().equals("X")) {
+                    if (searchText.getText() == null ) {
+                        Toast.makeText(act,"enter text",Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    if (devicesListView.getVisibility() == View.VISIBLE ) {
+                        String Text = searchText.getText().toString() ;
+                        List<String> Results = new ArrayList<String>();
+                        for (int i = 0 ; i < Devices.size() ; i++) {
+                            if (Devices.get(i).getName().contains(Text)) {
+                                Results.add(Devices.get(i).getName());
+                            }
+                        }
+                        if (Results.size() > 0 ) {
+                            searchBtn.setText("X");
+                            String[] x = new String[Results.size()];
+                            for (int j=0; j<Results.size(); j++) {
+                                x[j] = Results.get(j);
+                            }
+                            ArrayAdapter<String> ad = new ArrayAdapter<String>(act,R.layout.spinners_item,x);
+                            devicesListView.setAdapter(ad);
+                        }
+                        else {
+                            Toast.makeText(act,"no results",Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                }
+                else {
+                    if (devicesListView.getVisibility() == View.VISIBLE) {
+                        searchBtn.setText("Search");
+                        String[] dd = new String[Devices.size()];
+                        for (int i=0;i<Devices.size();i++)
+                        {
+                            dd[i] = Devices.get(i).name ;
+                        }
+                        ArrayAdapter<String> adapter = new ArrayAdapter<String>(act,R.layout.spinners_item,dd);
+                        devicesListView.setAdapter(adapter);
+                    }
+                }
+
+            }
+        });
         MessagesQueue = Volley.newRequestQueue(act);
         Emps = new ArrayList<ServiceEmps>();
         toggle = (Button) findViewById(R.id.button9);
@@ -212,6 +271,7 @@ public class Rooms extends AppCompatActivity
         devicesListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                view.setBackgroundColor(Color.DKGRAY);
                 Dialog d = new Dialog(act);
                 d.setContentView(R.layout.rename_device_dialog);
                 Spinner s = (Spinner) d.findViewById(R.id.devicerenamespinner);
@@ -225,6 +285,12 @@ public class Rooms extends AppCompatActivity
                 ArrayAdapter<String> r = new ArrayAdapter<String>(act,R.layout.spinners_item,therooms);
                 s.setAdapter(a);
                 rr.setAdapter(r);
+                TextView title = (TextView) d.findViewById(R.id.RenameDialog_title);
+                for (int i=0;i<Devices.size();i++) {
+                    if (Devices.get(i).getName().equals(devicesListView.getAdapter().getItem(position).toString())) {
+                        title.setText("Modify "+Devices.get(i).getName() + " Device");
+                    }
+                }
                 Button cancel = (Button) d.findViewById(R.id.cancel_diallog);
                 Button rename = (Button) d.findViewById(R.id.DoTheRename);
                 Button delete = (Button) d.findViewById(R.id.deleteDevice);
@@ -237,41 +303,71 @@ public class Rooms extends AppCompatActivity
                 rename.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        ITuyaDevice Device = TuyaHomeSdk.newDeviceInstance(Devices.get(position).getDevId());
-                        Device.renameDevice(rr.getSelectedItem().toString()+s.getSelectedItem().toString(), new IResultCallback() {
-                            @Override
-                            public void onError(String code, String error) {
-                                Toast.makeText(act,"Error. "+error,Toast.LENGTH_LONG).show();
-                            }
+                        for (int i=0;i<Devices.size();i++) {
+                            if (Devices.get(i).getName().equals(devicesListView.getAdapter().getItem(position).toString())) {
+                                ITuyaDevice Device = TuyaHomeSdk.newDeviceInstance(Devices.get(i).getDevId());
+                                Device.renameDevice(rr.getSelectedItem().toString()+s.getSelectedItem().toString(), new IResultCallback() {
+                                    @Override
+                                    public void onError(String code, String error) {
+                                        Toast.makeText(act,"Error. "+error,Toast.LENGTH_LONG).show();
+                                    }
 
-                            @Override
-                            public void onSuccess() {
-                                Toast.makeText(act,"Device Renamed .",Toast.LENGTH_LONG).show();
-                                d.dismiss();
+                                    @Override
+                                    public void onSuccess() {
+                                        Rooms.CHANGE_STATUS = true ;
+                                        Toast.makeText(act,"Device Renamed .",Toast.LENGTH_LONG).show();
+                                        d.dismiss();
+                                    }
+                                });
                             }
-                        });
+                        }
+
                     }
                 });
                 delete.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        ITuyaDevice Device = TuyaHomeSdk.newDeviceInstance(Devices.get(position).getDevId());
-                        Device.removeDevice(new IResultCallback() {
-                            @Override
-                            public void onError(String code, String error) {
-                                Toast.makeText(act,"Error. "+error,Toast.LENGTH_LONG).show();
-                            }
+                        for (int i=0;i<Devices.size();i++) {
+                            if (Devices.get(i).getName().equals(devicesListView.getAdapter().getItem(position).toString())) {
+                                ITuyaDevice Device = TuyaHomeSdk.newDeviceInstance(Devices.get(i).getDevId());
+                                Device.removeDevice(new IResultCallback() {
+                                    @Override
+                                    public void onError(String code, String error) {
+                                        Toast.makeText(act,"Error. "+error,Toast.LENGTH_LONG).show();
+                                    }
 
-                            @Override
-                            public void onSuccess() {
-                                Toast.makeText(act,"Device Deleted .",Toast.LENGTH_LONG).show();
-                                d.dismiss();
+                                    @Override
+                                    public void onSuccess() {
+                                        Rooms.CHANGE_STATUS = true ;
+                                        Toast.makeText(act,"Device Deleted .",Toast.LENGTH_LONG).show();
+                                        d.dismiss();
+                                    }
+                                });
                             }
-                        });
+                        }
+
                     }
                 });
                 d.show();
+
+                d.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                    @Override
+                    public void onDismiss(DialogInterface dialog) {
+                        view.setBackgroundColor(Color.LTGRAY);
+                    }
+                });
                 return false;
+            }
+        });
+        devicesListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                for (int i=0;i<Devices.size();i++) {
+                    if (Devices.get(i).getName().equals(devicesListView.getAdapter().getItem(position).toString())) {
+                        Log.d("SelectedDeviceInfo","name: "+Devices.get(i).getName()+" dps: "+Devices.get(position).getDps()+" category: "+Devices.get(position).getDeviceCategory());
+                        }
+                    }
+
             }
         });
         mainLogo.setOnLongClickListener(new View.OnLongClickListener() {
@@ -356,6 +452,8 @@ public class Rooms extends AppCompatActivity
         roomsListView.setVisibility(View.VISIBLE);
         devicesListView.setVisibility(View.GONE);
         hideSystemUI();
+        searchBtn.setVisibility(View.GONE);
+        searchText.setVisibility(View.GONE);
         if (lockDB.getLockValue().equals("off")) {
             roomsListView.setVisibility(View.VISIBLE);
             devicesListView.setVisibility(View.GONE);
@@ -2719,7 +2817,7 @@ public class Rooms extends AppCompatActivity
                     return Params;
                 }
             };
-            Volley.newRequestQueue(act).add(tabR);
+            REQ.add(tabR);
         }
         catch (Exception e)
         {
@@ -2778,7 +2876,7 @@ public class Rooms extends AppCompatActivity
                     return Params;
                 }
             };
-            Volley.newRequestQueue(act).add(tabR);
+            REQ.add(tabR);
         }
         catch (Exception e)
         {
@@ -2838,7 +2936,7 @@ public class Rooms extends AppCompatActivity
                     return Params;
                 }
             };
-            Volley.newRequestQueue(act).add(tabR);
+            REQ.add(tabR);
         }
         catch (Exception e)
         {
@@ -2897,7 +2995,7 @@ public class Rooms extends AppCompatActivity
                     return Params;
                 }
             };
-            Volley.newRequestQueue(act).add(tabR);
+            REQ.add(tabR);
         }
         catch (Exception e)
         {
@@ -2956,7 +3054,7 @@ public class Rooms extends AppCompatActivity
                     return Params;
                 }
             };
-            Volley.newRequestQueue(act).add(tabR);
+            REQ1.add(tabR);
         }
         catch (Exception e)
         {
@@ -3015,7 +3113,7 @@ public class Rooms extends AppCompatActivity
                     return Params;
                 }
             };
-            Volley.newRequestQueue(act).add(tabR);
+            REQ1.add(tabR);
         }
         catch (Exception e)
         {
@@ -3074,7 +3172,7 @@ public class Rooms extends AppCompatActivity
                     return Params;
                 }
             };
-            Volley.newRequestQueue(act).add(tabR);
+            REQ1.add(tabR);
         }
         catch (Exception e)
         {
@@ -3133,7 +3231,7 @@ public class Rooms extends AppCompatActivity
                     return Params;
                 }
             };
-            Volley.newRequestQueue(act).add(tabR);
+            REQ1.add(tabR);
         }
         catch (Exception e)
         {
@@ -3192,7 +3290,7 @@ public class Rooms extends AppCompatActivity
                     return Params;
                 }
             };
-            Volley.newRequestQueue(act).add(tabR);
+            REQ1.add(tabR);
         }
         catch (Exception e)
         {
@@ -4137,20 +4235,25 @@ public class Rooms extends AppCompatActivity
     }
 
     public void toggleRoomsDevices(View view) {
-
+        hideSystemUI();
         if (roomsListView.getVisibility() == View.VISIBLE) {
             roomsListView.setVisibility(View.GONE);
             devicesListView.setVisibility(View.VISIBLE);
+            searchText.setVisibility(View.VISIBLE);
+            searchBtn.setVisibility(View.VISIBLE);
             Toast.makeText(act,"devices are "+Devices.size(),Toast.LENGTH_LONG).show();
         }
         else if (roomsListView.getVisibility() == View.GONE) {
             roomsListView.setVisibility(View.VISIBLE);
             devicesListView.setVisibility(View.GONE);
+            searchBtn.setVisibility(View.GONE);
+            searchText.setVisibility(View.GONE);
         }
 
     }
 
     public void lockAndUnlock(View view) {
+        hideSystemUI();
         if(lockDB.getLockValue().equals("off")) {
 
             Dialog  dd = new Dialog(act);
