@@ -239,7 +239,7 @@ public class Login extends AppCompatActivity
             public void onSuccess (User user)
             {
 
-                Toast.makeText (act, "Login succeeded, username:" + user.getUsername(), Toast.LENGTH_SHORT).show();
+                //Toast.makeText (act, "Login succeeded, username:" + user.getUsername(), Toast.LENGTH_SHORT).show();
                 TuyaHomeSdk.getHomeManagerInstance().queryHomeList(new ITuyaGetHomeListCallback() {
                     @Override
                     public void onError(String errorCode, String error)
@@ -318,7 +318,7 @@ public class Login extends AppCompatActivity
             public void onSuccess (User user)
             {
 
-                Toast.makeText (act, "Login succeeded, username:" + user.getUsername(), Toast.LENGTH_SHORT).show();
+                //Toast.makeText (act, "Login succeeded, username:" + user.getUsername(), Toast.LENGTH_SHORT).show();
                 TuyaHomeSdk.getHomeManagerInstance().queryHomeList(new ITuyaGetHomeListCallback() {
                     @Override
                     public void onError(String errorCode, String error)

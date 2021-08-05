@@ -11,6 +11,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.MessageQueue;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.util.LogPrinter;
@@ -135,6 +136,7 @@ public class Rooms extends AppCompatActivity
     private String getServiceEmpsUrl = Login.SelectedHotel.URL+"getServiceEmps.php";
     private static List<ServiceEmps> Emps ;
     private DatabaseReference ServiceUsers ;
+    static RequestQueue MessagesQueue;
 
 
     @Override
@@ -171,6 +173,7 @@ public class Rooms extends AppCompatActivity
     protected void onResume()
     {
         super.onResume();
+        hideSystemUI();
         getRooms();
         loginTTLock();
     }
@@ -182,6 +185,7 @@ public class Rooms extends AppCompatActivity
             lockDB.removeAll();
             lockDB.insertLock("off");
         }
+        MessagesQueue = Volley.newRequestQueue(act);
         Emps = new ArrayList<ServiceEmps>();
         toggle = (Button) findViewById(R.id.button9);
         mainLogo = (LinearLayout) findViewById(R.id.logoLyout) ;
@@ -577,6 +581,7 @@ public class Rooms extends AppCompatActivity
 
     private void loginTTLock()
     {
+        Log.d("TTLOCKLogin" , "started");
         ApiService apiService = RetrofitAPIManager.provideClientApi();
         String user = "basharsebai@gmail.com";
         String pass = "Freesyria579251";
@@ -594,9 +599,11 @@ public class Rooms extends AppCompatActivity
                 {
                     if (accountInfo.errcode == 0)
                     {
+                        Log.d("TTLOCKLogin" , "success");
                         //Toast.makeText(act,"login success",Toast.LENGTH_LONG).show();
                         accountInfo.setMd5Pwd(finalPass);
                         acc = accountInfo;
+                        Log.d("TTLOCKLogin" , accountInfo.getAccess_token());
                         getLocks();
                     }
                     else
@@ -792,13 +799,13 @@ public class Rooms extends AppCompatActivity
                                 UnRecognizedDevices_B.add(Devices.get(i));
                             }
 
-                            if (list.get(j).getSWITCH3() == null ) {
-                                setSwitch1DB2(list.get(j));
-                            }
-                            else {
-                                bindSwitch1ToSwitch3btn1(list.get(j));
-                                bindSwitch1ToSwitch3btn2(list.get(j));
-                            }
+//                            if (list.get(j).getSWITCH3() == null ) {
+//                                setSwitch1DB2(list.get(j));
+//                            }
+//                            else {
+//                                bindSwitch1ToSwitch3btn1(list.get(j));
+//                                bindSwitch1ToSwitch3btn2(list.get(j));
+//                            }
 
                             //setSwitch1DB1(list.get(j));
 
@@ -1519,9 +1526,9 @@ public class Rooms extends AppCompatActivity
                     @Override
                     public void onDpUpdate(String devId, Map<String, Object> dpStr)
                     {
-                        if (dpStr.get("switch_1") != null ){
+                        if (dpStr.get("switch_3") != null ){
 
-                            if (dpStr.get("switch_1").toString().equals("true")) {
+                            if (dpStr.get("switch_3").toString().equals("true")) {
 
                                 if (list.get(finalI3).getSWITCH1_B().dps.get("2").toString().equals("true")) {
                                     list.get(finalI3).getSWITCH1().publishDps("{\" 2\":false}", new IResultCallback() {
@@ -1536,8 +1543,8 @@ public class Rooms extends AppCompatActivity
                                         }
                                     });
                                 }
-                                if (list.get(finalI3).getSWITCH1_B().dps.get("3").toString().equals("true")) {
-                                    list.get(finalI3).getSWITCH1().publishDps("{\" 3\":false}", new IResultCallback() {
+                                if (list.get(finalI3).getSWITCH1_B().dps.get("1").toString().equals("true")) {
+                                    list.get(finalI3).getSWITCH1().publishDps("{\" 1\":false}", new IResultCallback() {
                                         @Override
                                         public void onError(String code, String error) {
 
@@ -1582,8 +1589,8 @@ public class Rooms extends AppCompatActivity
                         if (dpStr.get("switch_2") != null ){
                             if (dpStr.get("switch_2").toString().equals("true")){
 
-                                if (list.get(finalI3).getSWITCH1_B().dps.get("1").toString().equals("true")) {
-                                    list.get(finalI3).getSWITCH1().publishDps("{\" 1\":false}", new IResultCallback() {
+                                if (list.get(finalI3).getSWITCH1_B().dps.get("3").toString().equals("true")) {
+                                    list.get(finalI3).getSWITCH1().publishDps("{\" 3\":false}", new IResultCallback() {
                                         @Override
                                         public void onError(String code, String error) {
 
@@ -1600,7 +1607,7 @@ public class Rooms extends AppCompatActivity
 
                             }
                         }
-                        if (dpStr.get("switch_3") != null ){
+                        if (dpStr.get("switch_1") != null ){
 //                                                if (dpStr.get("switch_3").toString().equals("true")){
 //                                                    Button b1 = (Button)findViewById(R.id.button17);
 //                                                    b1.setBackgroundResource(R.drawable.light_on);
@@ -1609,9 +1616,9 @@ public class Rooms extends AppCompatActivity
 //                                                    Button b1 = (Button)findViewById(R.id.button17);
 //                                                    b1.setBackgroundResource(R.drawable.group_62);
 //                                                }
-                            if (dpStr.get("switch_3").toString().equals("true")){
-                                if (list.get(finalI3).getSWITCH1_B().dps.get("1").toString().equals("true")) {
-                                    list.get(finalI3).getSWITCH1().publishDps("{\" 1\":false}", new IResultCallback() {
+                            if (dpStr.get("switch_1").toString().equals("true")){
+                                if (list.get(finalI3).getSWITCH1_B().dps.get("3").toString().equals("true")) {
+                                    list.get(finalI3).getSWITCH1().publishDps("{\" 3\":false}", new IResultCallback() {
                                         @Override
                                         public void onError(String code, String error) {
 
@@ -1661,8 +1668,8 @@ public class Rooms extends AppCompatActivity
                         if (dpStr.get("switch_1") != null ) {
                             if (dpStr.get("switch_1").toString().equals("true")) {
                                 if (list.get(finalI3).getSWITCH1_B() != null) {
-                                    if (list.get(finalI3).getSWITCH1_B().dps.get("1").toString().equals("true")) {
-                                        list.get(finalI3).getSWITCH1().publishDps("{\" 1\":false}", new IResultCallback() {
+                                    if (list.get(finalI3).getSWITCH1_B().dps.get("3").toString().equals("true")) {
+                                        list.get(finalI3).getSWITCH1().publishDps("{\" 3\":false}", new IResultCallback() {
                                             @Override
                                             public void onError(String code, String error) {
 
@@ -1680,8 +1687,8 @@ public class Rooms extends AppCompatActivity
                         if (dpStr.get("switch_2") != null ) {
                             if (dpStr.get("switch_2").toString().equals("true")) {
                                 if (list.get(finalI3).getSWITCH1_B() != null) {
-                                    if (list.get(finalI3).getSWITCH1_B().dps.get("1").toString().equals("true")) {
-                                        list.get(finalI3).getSWITCH1().publishDps("{\" 1\":false}", new IResultCallback() {
+                                    if (list.get(finalI3).getSWITCH1_B().dps.get("3").toString().equals("true")) {
+                                        list.get(finalI3).getSWITCH1().publishDps("{\" 3\":false}", new IResultCallback() {
                                             @Override
                                             public void onError(String code, String error) {
 
@@ -3908,6 +3915,43 @@ public class Rooms extends AppCompatActivity
         });
     }
 
+    static void powerOnRoom(ROOM THEROOM) {
+
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override
+            public void run()
+            {
+                if (THEROOM.getPOWER() != null )
+                {
+                    THEROOM.getPOWER().publishDps("{\"1\": true}", new IResultCallback() {
+                        @Override
+                        public void onError(String code, String error) {
+                            Toast.makeText(act, "turn on the light failure", Toast.LENGTH_SHORT).show();
+                        }
+                        @Override
+                        public void onSuccess() {
+                            Toast.makeText(act, "turn Off 1 success "+THEROOM.RoomNumber, Toast.LENGTH_SHORT).show();
+                            //myRefPower.setValue(0);
+                        }
+                    });
+//                    THEROOM.getPOWER().publishDps("{\"2\": false}", new IResultCallback() {
+//                        @Override
+//                        public void onError(String code, String error) {
+//                            Toast.makeText(act, "turn on the light failure", Toast.LENGTH_SHORT).show();
+//                        }
+//                        @Override
+//                        public void onSuccess()
+//                        {
+//                            Toast.makeText(act, "turn Off 2 success "+THEROOM.RoomNumber, Toast.LENGTH_SHORT).show();
+//
+//                        }
+//                    });
+                }
+
+            }
+        });
+    }
+
     static void checkInModeRoom(ROOM THEROOM) {
 
         String Duration = "" ;
@@ -4253,7 +4297,7 @@ public class Rooms extends AppCompatActivity
                 return params;
             }
         };
-        Volley.newRequestQueue(act).add(jsonObjectRequest);
+        MessagesQueue.add(jsonObjectRequest);
 
     }
 

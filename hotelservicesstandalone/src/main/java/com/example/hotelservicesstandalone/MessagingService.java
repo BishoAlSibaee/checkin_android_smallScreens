@@ -65,6 +65,15 @@ public class MessagingService extends FirebaseMessagingService {
                 }
             }
         }
+        else if (title.equals("poweron")) {
+            String room = remoteMessage.getData().get("room") ;
+            for (int i=0;i<Rooms.list.size();i++) {
+                if (Rooms.list.get(i).RoomNumber == Integer.parseInt(room)) {
+                    Rooms.powerOnRoom(Rooms.list.get(i));
+                    Log.d("MessageRecieved" , "equal");
+                }
+            }
+        }
 
 
     }

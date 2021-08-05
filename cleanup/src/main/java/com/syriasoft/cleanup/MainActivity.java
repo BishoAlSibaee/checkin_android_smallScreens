@@ -147,12 +147,12 @@ public class MainActivity extends AppCompatActivity {
     public void onResume()
     {
         super.onResume();
-        final GridLayoutManager manager = new GridLayoutManager(this,4);
-        manager.setOrientation(LinearLayoutManager.VERTICAL);
-        dnds = (RecyclerView) findViewById(R.id.dnd_recycler);
-        dnds.setLayoutManager(manager);
-        ada = new DND_Adapter(dndList);
-        dnds.setAdapter(ada);
+        //final GridLayoutManager manager = new GridLayoutManager(this,4);
+        //manager.setOrientation(LinearLayoutManager.VERTICAL);
+        //dnds = (RecyclerView) findViewById(R.id.dnd_recycler);
+        //dnds.setLayoutManager(manager);
+        //ada = new DND_Adapter(dndList);
+        //dnds.setAdapter(ada);
 
         if (FireRooms.size()>0)
         {

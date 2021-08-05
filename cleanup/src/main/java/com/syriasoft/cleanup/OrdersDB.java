@@ -132,7 +132,7 @@ public class OrdersDB extends SQLiteOpenHelper {
         boolean res = false ;
         Cursor c = db.rawQuery("SELECT * FROM 'orders' ; " , null);
         c.moveToFirst();
-        if (c.getCount()>0) {
+        if (c.getCount() > 0) {
             for (int i = 0; i < c.getCount(); i++) {
                 if (c.getInt(1) == room && dep.equals(c.getString(2))) {
                     res = true ;

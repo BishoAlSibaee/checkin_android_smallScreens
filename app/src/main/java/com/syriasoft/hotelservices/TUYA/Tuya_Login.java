@@ -78,7 +78,7 @@ public class Tuya_Login extends AppCompatActivity {
                         public void onSuccess (User user)
                         {
                             d.stop();
-                            Toast.makeText (act, "Login succeeded, username:" + user.getUsername(), Toast.LENGTH_SHORT).show();
+                            //Toast.makeText (act, "Login succeeded, username:" + user.getUsername(), Toast.LENGTH_SHORT).show();
                             getFamilies();
                         }
 

@@ -488,7 +488,7 @@ public class LogIn extends AppCompatActivity
 
         if (!isNetworkConnected())
         {
-            ToastMaker.MakeToast("لا يوجد اتصال بالانترنت .. تأكد من توفر اتصال بالانترنت" , act );
+            //ToastMaker.MakeToast("لا يوجد اتصال بالانترنت .. تأكد من توفر اتصال بالانترنت" , act );
             act.finish();
         }
         else
@@ -800,12 +800,13 @@ public class LogIn extends AppCompatActivity
                                         JSONObject jsonObject = new JSONObject(json);
                                         JSONArray array = jsonObject.getJSONArray("list");
                                         lockObjs = GsonUtil.toObject(array.toString(), new TypeToken<ArrayList<LockObj>>(){});
+                                        Log.d("lockSearching" , lockObjs.size()+"" );
                                         for (int i=0; i<lockObjs.size(); i++)
                                         {
                                             if (lockObjs.get(i).getLockName().equals(LogIn.room.getRoomNumber()+"Lock"))
                                             {
                                                 myLock = lockObjs.get(i);
-                                                //Toast.makeText(act, myLock.getLockName(), Toast.LENGTH_SHORT).show();
+                                                Log.d("lockSearching" , "lockFound" );
                                                 if (room.getLockGateway().equals("0"))
                                                 {
                                                     checkIfProjectRecorded();

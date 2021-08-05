@@ -9,7 +9,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Color;
-import android.media.AudioAttributes;
 import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
@@ -105,7 +104,7 @@ public class FullscreenActivity extends AppCompatActivity {
     private String getServiceEmpsUrl = LogIn.URL+"getServiceEmps.php";
     private String LogInUrl = LogIn.URL+"logInToHotel.php";
     final String TAG = "NOTIFICATION TAG";
-    static Button  GymBtn , curtainBtn ;
+    static Button  GymBtn , curtainBtn , Light1 , Light2 , Light3 ;
     static long  laundryOrderId , cleanupOrderId , roomServiceOrderId , sosId = 0 , checkOutId , dndId = 0 ;
     private FirebaseDatabase database ;
     static public DatabaseReference  ServiceUsers,myRefLogo,myRefCheckOutDuration,myRefCheckInDuration, myRefDoorWarning,myRefSetpointInterval,myRefSetpoint,myRefFacility,myRefRoomServiceText,myRefServiceSwitch,myRefPowerSwitch, myRefId, myRefRorS,myRefTemp,myRefdep,myRefStatus,myRefReservation ,myRefPower ,myRefCurtain , myRefDoor ,myRefRoomStatus , Room , myRefDND, myRefTabStatus, myRefLaundry , myRefCleanup , myRefRoomService , myRefSos , myRefRestaurant , myRefGym , myRefCheckout ,myRefDoorSensor,myRefMotionSensor,myRefCurtainSwitch,myRefSwitch1,myRefSwitch2,myRefSwitch3,myRefSwitch4,myRefThermostat,myRefLock;
@@ -146,13 +145,13 @@ public class FullscreenActivity extends AppCompatActivity {
     static List<Activity> RestaurantActivities ;
     static ImageView laundryImage , laundryIcon ,dndImage,dndIcon , sosImage , sosIcon,cleanupImage ,cleanupIcon ,checkoutimage,checkouticon,roomserviceimage,roomserviceicon , restaurantIcon;
     static TextView laundryText ,dndText , sosText,cleanupText,text,roomservicetext;
-    private LinearLayout laundryPriceList , minibarPriceList  ;
+    private LinearLayout laundryPriceList , minibarPriceList , lightsLayout  ;
     static Resources RESOURCES ;
     private Runnable backHomeThread ;
     static long x = 0 ;
     private Handler H ;
     private LinearLayout serviceLayout ;
-    private ConstraintLayout lightsLayout , mainLayout ;
+    private ConstraintLayout   mainLayout ;
     static String LOGO ;
     static int checkInModeTime=0 , checkOutModeTime=0 ;
     static String registerDoorOpenUrl="https://ratco-solutions.com/HotelServicesTest/TestProject/p/insertDoorOpen.php";
@@ -160,6 +159,7 @@ public class FullscreenActivity extends AppCompatActivity {
     private LinearLayoutManager Laundrymanager ;
     public static MediaPlayer mediaPlayer , lightPlayer;
     private static List<ServiceEmps> Emps ;
+    private boolean LightingBind = false;
 
 
     @SuppressLint("InvalidWakeLockTag")
@@ -265,6 +265,9 @@ public class FullscreenActivity extends AppCompatActivity {
         curtainBtn = (Button) findViewById(R.id.curtain);
         date = (TextView) findViewById(R.id.mainDate);
         time = (TextView) findViewById(R.id.mainTime);
+        Light1 = (Button) findViewById(R.id.button15);
+        Light2 = (Button) findViewById(R.id.button14);
+        Light3 = (Button) findViewById(R.id.button17);
         DNDImage = (ImageView) findViewById(R.id.DND_Image);
         DNDIcon = (ImageView)findViewById(R.id.DND_Icon);
         SOSImage = (ImageView) findViewById(R.id.SOS_Image);
@@ -299,7 +302,7 @@ public class FullscreenActivity extends AppCompatActivity {
                 x=0;
             }
         });
-        lightsLayout = (ConstraintLayout) findViewById(R.id.lightingLayout);
+        lightsLayout = (LinearLayout) findViewById(R.id.lightingLayout);
         lightsLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -321,7 +324,7 @@ public class FullscreenActivity extends AppCompatActivity {
             }
         });
         LinearLayout Services = (LinearLayout) findViewById(R.id.ServicesLayout);
-        ConstraintLayout Lighting = (ConstraintLayout) findViewById(R.id.lightingLayout);
+        LinearLayout Lighting = (LinearLayout) findViewById(R.id.lightingLayout);
         LinearLayout AcLayout = (LinearLayout) findViewById(R.id.ac_layout);
         LinearLayout LaundryLayout = (LinearLayout) findViewById(R.id.Laundry_layout);
         LinearLayout MinibarLayout = (LinearLayout) findViewById(R.id.Minibar_layout);
@@ -1866,7 +1869,7 @@ public class FullscreenActivity extends AppCompatActivity {
                                                                     @Override
                                                                     public void onDataChange(@NonNull DataSnapshot snapshot)
                                                                     {
-                                                                        if (Integer.parseInt(snapshot.getValue().toString()) > 0)
+                                                                        if (Long.parseLong(snapshot.getValue().toString()) > 0)
                                                                         {
                                                                             myRefDND.setValue(0);
                                                                         }
@@ -1916,9 +1919,9 @@ public class FullscreenActivity extends AppCompatActivity {
                                                         @Override
                                                         public void onDataChange(@NonNull DataSnapshot snapshot)
                                                         {
-                                                            if (Integer.parseInt(snapshot.getValue().toString()) > 0 )
+                                                            if (Long.parseLong(snapshot.getValue().toString()) > 0 )
                                                             {
-                                                                laundryOrderId = Integer.parseInt(snapshot.getValue().toString()) ;
+                                                                laundryOrderId = Long.parseLong(snapshot.getValue().toString()) ;
                                                             }
                                                         }
                                                         @Override
@@ -1993,7 +1996,7 @@ public class FullscreenActivity extends AppCompatActivity {
                                                                 myRefDND.addListenerForSingleValueEvent(new ValueEventListener() {
                                                                     @Override
                                                                     public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                                                        if (Integer.parseInt(snapshot.getValue().toString()) > 0) {
+                                                                        if (Long.parseLong(snapshot.getValue().toString()) > 0) {
                                                                             myRefDND.setValue(0);
                                                                         }
 
@@ -2148,7 +2151,8 @@ public class FullscreenActivity extends AppCompatActivity {
                                         @Override
                                         public void onDpUpdate(String devId, Map<String, Object> dpStr)
                                         {
-                                            if (dpStr.get("switch_1") != null ){
+                                            Log.d("switch1Update" , dpStr.toString());
+                                            if (dpStr.get("switch_1") != null ) {
                                                 if (dpStr.get("switch_1").toString().equals("true")){
                                                     Button b1 = (Button)findViewById(R.id.button15);
                                                     b1.setBackgroundResource(R.drawable.light_on);
@@ -2194,7 +2198,7 @@ public class FullscreenActivity extends AppCompatActivity {
                                                     b1.setBackgroundResource(R.drawable.group_62);
                                                 }
                                             }
-                                            if (dpStr.get("switch_3") != null ){
+                                            if (dpStr.get("switch_3") != null ) {
 //                                                if (dpStr.get("switch_3").toString().equals("true")){
 //                                                    Button b1 = (Button)findViewById(R.id.button17);
 //                                                    b1.setBackgroundResource(R.drawable.light_on);
@@ -2203,6 +2207,8 @@ public class FullscreenActivity extends AppCompatActivity {
 //                                                    Button b1 = (Button)findViewById(R.id.button17);
 //                                                    b1.setBackgroundResource(R.drawable.group_62);
 //                                                }
+                                                Button b1 = (Button)findViewById(R.id.button17);
+                                                b1.setBackgroundResource(R.drawable.light_on);
                                                 if (dpStr.get("switch_3").toString().equals("true")) {
                                                     if (Switch1Bean.dps.get("1").toString().equals("true")) {
                                                         Switch1.publishDps("{\" 1\":false}", new IResultCallback() {
@@ -2230,6 +2236,37 @@ public class FullscreenActivity extends AppCompatActivity {
                                                             }
                                                         });
                                                     }
+                                                    if (Switch2Bean != null ) {
+                                                        if (Switch2Bean.dps.get("1").toString().equals("true")) {
+                                                            Switch2.publishDps("{\" 1\":false}", new IResultCallback() {
+                                                                @Override
+                                                                public void onError(String code, String error) {
+
+                                                                }
+
+                                                                @Override
+                                                                public void onSuccess() {
+
+                                                                }
+                                                            });
+                                                        }
+                                                        if (Switch2Bean.dps.get("2").toString().equals("true")) {
+                                                            Switch2.publishDps("{\" 2\":false}", new IResultCallback() {
+                                                                @Override
+                                                                public void onError(String code, String error) {
+
+                                                                }
+
+                                                                @Override
+                                                                public void onSuccess() {
+
+                                                                }
+                                                            });
+                                                        }
+                                                    }
+                                                }
+                                                else {
+                                                    b1.setBackgroundResource(R.drawable.group_62);
                                                 }
                                             }
 //                                            if (dpStr.get("switch_4") != null ){
@@ -2714,10 +2751,18 @@ public class FullscreenActivity extends AppCompatActivity {
 
                             iTuyaDeviceMultiControl = TuyaHomeSdk.getDeviceMultiControlInstance();
 
-                            setSwitch1DB1();
-                            setSwitch1DB2();
-                            setSwitch1DB3();
-                            setSwitch1DB4();
+//                            if (THEROOM.getSWITCH3() == null ) {
+//                                setSwitch1DB2(THEROOM);
+//                            }
+//                            else {
+//                                bindSwitch1ToSwitch3btn1(THEROOM);
+//                                bindSwitch1ToSwitch3btn2(THEROOM);
+//                            }
+
+//                            setSwitch1DB1();
+//                            setSwitch1DB2();
+//                            setSwitch1DB3();
+//                            setSwitch1DB4();
 
                             /*
                             iTuyaDeviceMultiControl.getDeviceDpInfoList(THEROOM.getSWITCH1_B().devId, new ITuyaDataCallback<ArrayList<DeviceDpInfoBean>>() {
@@ -3399,6 +3444,94 @@ public class FullscreenActivity extends AppCompatActivity {
 
             }
         };
+
+        Light3.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                LightingBind = true ;
+                Toast.makeText(act,"*",Toast.LENGTH_SHORT).show();
+                return false;
+            }
+        });
+        Light3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                LightingBind = false ;
+                Log.d("btn3Problem" , "clicked");
+                if (Switch1Bean != null )
+                {
+                    Log.d("btn3Problem" , "iam not null");
+                    if (Switch1Bean.dps.get("3") != null){
+                        Log.d("btn3Problem" , "3 not null");
+                        if (Switch1Bean.dps.get("3").toString().equals("false"))
+                        {
+                            try
+                            {
+                                Switch1.publishDps("{\" 3\":true}", new IResultCallback() {
+                                    @Override
+                                    public void onError(String code, String error) {
+                                        //ToastMaker.MakeToast(error + " "+ code ,act);
+                                    }
+
+                                    @Override
+                                    public void onSuccess() {
+                                        //ToastMaker.MakeToast("sent",act);
+                                    }
+                                });
+                            }
+                            catch (Exception e)
+                            {
+
+                            }
+
+                        }
+                        else
+                        {
+                            try
+                            {
+                                Switch1.publishDps("{\" 3\":false}", new IResultCallback() {
+                                    @Override
+                                    public void onError(String code, String error) {
+                                        //ToastMaker.MakeToast(error + " "+ code ,act);
+                                    }
+
+                                    @Override
+                                    public void onSuccess() {
+                                        //ToastMaker.MakeToast("sent",act);
+                                    }
+                                });
+                            }
+                            catch (Exception e)
+                            {
+
+                            }
+
+                        }
+                    }
+
+                }
+            }
+        });
+        Light1.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                if (LightingBind) {
+                    bindSwitch1_2DP1_2();
+                    LightingBind = false ;
+                    //Toast.makeText(act,"1ok",Toast.LENGTH_SHORT).show();
+                }
+                return false;
+            }
+        });
+        Light2.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                bindSwitch1_2DP2_1();
+                LightingBind = false ;
+                //Toast.makeText(act,"2ok",Toast.LENGTH_SHORT).show();
+                return false;
+            }
+        });
     }
 
 
@@ -5902,58 +6035,60 @@ public class FullscreenActivity extends AppCompatActivity {
 
     public void s3click(View view)
     {
-        lightPlayer.start();
-        if (Switch1Bean != null )
-        {
-            if (Switch1Bean.dps.get("3") != null){
-                if (Switch1Bean.dps.get("3").toString().equals("false"))
-                {
-                    try
-                    {
-                        Switch1.publishDps("{\" 3\":true}", new IResultCallback() {
-                            @Override
-                            public void onError(String code, String error) {
-
-                            }
-
-                            @Override
-                            public void onSuccess() {
-
-                            }
-                        });
-                    }
-                    catch (Exception e)
-                    {
-
-                    }
-
-                }
-                else
-                {
-                    try
-                    {
-                        Switch1.publishDps("{\" 3\":false}", new IResultCallback() {
-                            @Override
-                            public void onError(String code, String error) {
-
-                            }
-
-                            @Override
-                            public void onSuccess() {
-
-                            }
-                        });
-                    }
-                    catch (Exception e)
-                    {
-
-                    }
-
-                }
-            }
-
-        }
-        x=0;
+//        lightPlayer.start();
+//        if (Switch1Bean != null )
+//        {
+//            Log.d("btn3Problem" , "iam not null");
+//            if (Switch1Bean.dps.get("3") != null){
+//                Log.d("btn3Problem" , "3 not null");
+//                if (Switch1Bean.dps.get("3").toString().equals("false"))
+//                {
+//                    try
+//                    {
+//                        Switch1.publishDps("{\" 3\":true}", new IResultCallback() {
+//                            @Override
+//                            public void onError(String code, String error) {
+//                                //ToastMaker.MakeToast(error + " "+ code ,act);
+//                            }
+//
+//                            @Override
+//                            public void onSuccess() {
+//                                //ToastMaker.MakeToast("sent",act);
+//                            }
+//                        });
+//                    }
+//                    catch (Exception e)
+//                    {
+//
+//                    }
+//
+//                }
+//                else
+//                {
+//                    try
+//                    {
+//                        Switch1.publishDps("{\" 3\":false}", new IResultCallback() {
+//                            @Override
+//                            public void onError(String code, String error) {
+//                                //ToastMaker.MakeToast(error + " "+ code ,act);
+//                            }
+//
+//                            @Override
+//                            public void onSuccess() {
+//                                //ToastMaker.MakeToast("sent",act);
+//                            }
+//                        });
+//                    }
+//                    catch (Exception e)
+//                    {
+//
+//                    }
+//
+//                }
+//            }
+//
+//        }
+//        x=0;
     }
 
     public void s4click(View view)
@@ -7541,7 +7676,7 @@ public class FullscreenActivity extends AppCompatActivity {
         Btns.setVisibility(View.VISIBLE);
         Caption.setVisibility(View.VISIBLE);
         Text.setVisibility(View.VISIBLE);
-        ConstraintLayout lights = (ConstraintLayout) findViewById(R.id.lightingLayout);
+        LinearLayout lights = (LinearLayout) findViewById(R.id.lightingLayout);
         lights.setVisibility(View.GONE);
         LinearLayout home = (LinearLayout) findViewById(R.id.home_Btn);
         home.setVisibility(View.GONE);
@@ -7566,7 +7701,7 @@ public class FullscreenActivity extends AppCompatActivity {
         Caption.setVisibility(View.VISIBLE);
         Caption.setText("LIGHTS");
         Text.setVisibility(View.GONE);
-        ConstraintLayout lights = (ConstraintLayout) findViewById(R.id.lightingLayout);
+        LinearLayout lights = (LinearLayout) findViewById(R.id.lightingLayout);
         lights.setVisibility(View.VISIBLE);
         LinearLayout home = (LinearLayout) findViewById(R.id.home_Btn);
         home.setVisibility(View.VISIBLE);
@@ -7615,7 +7750,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
     }
 
-    void setSwitch1DB1(){
+    void bindSwitch1_2DP1_2(){
         if (THEROOM.getSWITCH1_B() != null && THEROOM.getSWITCH2_B() != null) {
 
             iTuyaDeviceMultiControl.queryLinkInfoByDp(THEROOM.getSWITCH1_B().devId, "1", new ITuyaDataCallback<MultiControlLinkBean>() {
@@ -7625,7 +7760,7 @@ public class FullscreenActivity extends AppCompatActivity {
                     if (result.getMultiGroup() == null )
                     {
                         Log.d("S1D1RES " , "null");
-                        iTuyaDeviceMultiControl.queryLinkInfoByDp(THEROOM.getSWITCH2_B().devId, "1", new ITuyaDataCallback<MultiControlLinkBean>() {
+                        iTuyaDeviceMultiControl.queryLinkInfoByDp(THEROOM.getSWITCH2_B().devId, "2", new ITuyaDataCallback<MultiControlLinkBean>() {
                             @Override
                             public void onSuccess(MultiControlLinkBean result) {
 
@@ -7644,7 +7779,7 @@ public class FullscreenActivity extends AppCompatActivity {
                                     }
                                     try {
                                         groupdetailes2.put("devId", THEROOM.getSWITCH2_B().devId);
-                                        groupdetailes2.put("dpId", 1);
+                                        groupdetailes2.put("dpId", 2);
                                         groupdetailes2.put("id", x);
                                         groupdetailes2.put("enable", true);
 
@@ -7666,6 +7801,7 @@ public class FullscreenActivity extends AppCompatActivity {
                                         @Override
                                         public void onSuccess(MultiControlBean result) {
                                             //ToastUtil.shortToast(mContext,"success");
+                                            Toast.makeText(act,"1_2ok",Toast.LENGTH_SHORT);
                                             Log.d("switch1Dp1", result.getGroupName());
                                             iTuyaDeviceMultiControl.enableMultiControl(x, new ITuyaResultCallback<Boolean>() {
                                                 @Override
@@ -7685,6 +7821,7 @@ public class FullscreenActivity extends AppCompatActivity {
                                         @Override
                                         public void onError(String errorCode, String errorMessage) {
                                             //ToastUtil.shortToast(mContext,errorMessage);
+                                            Toast.makeText(act,"failed",Toast.LENGTH_SHORT);
                                             Log.d("switch1Dp1", errorMessage + "here "+x);
                                         }
                                     });
@@ -7716,7 +7853,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
         }
     }
-    void setSwitch1DB2(){
+    void bindSwitch1_2DP2_1(){
         if (THEROOM.getSWITCH1_B() != null && THEROOM.getSWITCH2_B() != null) {
 
             iTuyaDeviceMultiControl.queryLinkInfoByDp(THEROOM.getSWITCH1_B().devId, "2", new ITuyaDataCallback<MultiControlLinkBean>() {
@@ -7725,7 +7862,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
                     if (result.getMultiGroup() == null ){
                         Log.d("S1D2RES " , "null");
-                        iTuyaDeviceMultiControl.queryLinkInfoByDp(THEROOM.getSWITCH2_B().devId, "2", new ITuyaDataCallback<MultiControlLinkBean>() {
+                        iTuyaDeviceMultiControl.queryLinkInfoByDp(THEROOM.getSWITCH2_B().devId, "1", new ITuyaDataCallback<MultiControlLinkBean>() {
                             @Override
                             public void onSuccess(MultiControlLinkBean result) {
 
@@ -7744,7 +7881,7 @@ public class FullscreenActivity extends AppCompatActivity {
                                     }
                                     try {
                                         groupdetailes2.put("devId", THEROOM.getSWITCH2_B().devId);
-                                        groupdetailes2.put("dpId", 2);
+                                        groupdetailes2.put("dpId", 1);
                                         groupdetailes2.put("id", y);
                                         groupdetailes2.put("enable", true);
 
@@ -7766,6 +7903,7 @@ public class FullscreenActivity extends AppCompatActivity {
                                         @Override
                                         public void onSuccess(MultiControlBean result) {
                                             //ToastUtil.shortToast(mContext,"success");
+                                            Toast.makeText(act,"2_1ok",Toast.LENGTH_SHORT);
                                             Log.d("switch1DeviceDp2", result.getGroupName());
                                             iTuyaDeviceMultiControl.enableMultiControl(y, new ITuyaResultCallback<Boolean>() {
                                                 @Override
@@ -7785,6 +7923,7 @@ public class FullscreenActivity extends AppCompatActivity {
                                         @Override
                                         public void onError(String errorCode, String errorMessage) {
                                             //ToastUtil.shortToast(mContext,errorMessage);
+                                            Toast.makeText(act,"failed",Toast.LENGTH_SHORT);
                                             Log.d("switch1DeviceDp2", errorMessage+" "+y);
                                         }
                                     });
@@ -8001,6 +8140,309 @@ public class FullscreenActivity extends AppCompatActivity {
                     else
                     {
                         Log.d("S1D4RES " , result.getMultiGroup().getGroupName());
+                    }
+                }
+
+                @Override
+                public void onError(String errorCode, String errorMessage) {
+
+                }
+            });
+
+        }
+    }
+
+    void bindSwitch1ToSwitch3btn1(ROOM THEROOM){
+        if (THEROOM.getSWITCH1_B() != null && THEROOM.getSWITCH3_B() != null) {
+
+            iTuyaDeviceMultiControl.queryLinkInfoByDp(THEROOM.getSWITCH1_B().devId, "2", new ITuyaDataCallback<MultiControlLinkBean>() {
+                @Override
+                public void onSuccess(MultiControlLinkBean result) {
+
+                    if (result.getMultiGroup() == null )
+                    {
+                        Log.d("bindS1S3" , "null");
+                        iTuyaDeviceMultiControl.queryLinkInfoByDp(THEROOM.getSWITCH3_B().devId, "1", new ITuyaDataCallback<MultiControlLinkBean>() {
+                            @Override
+                            public void onSuccess(MultiControlLinkBean result) {
+
+                                if (result.getMultiGroup() == null ){
+                                    Log.d("bindS1S3" , "null");
+                                    Random r = new Random();
+                                    int x = r.nextInt(30);
+                                    JSONObject groupdetailes1 = new JSONObject(), groupdetailes2 = new JSONObject();
+                                    try {
+                                        groupdetailes1.put("devId", THEROOM.getSWITCH1_B().devId);
+                                        groupdetailes1.put("dpId", 2);
+                                        groupdetailes1.put("id", x);
+                                        groupdetailes1.put("enable", true);
+
+                                    } catch (JSONException e) {
+                                    }
+                                    try {
+                                        groupdetailes2.put("devId", THEROOM.getSWITCH3_B().devId);
+                                        groupdetailes2.put("dpId", 1);
+                                        groupdetailes2.put("id", x);
+                                        groupdetailes2.put("enable", true);
+
+                                    } catch (JSONException e) {
+                                    }
+                                    JSONArray arr = new JSONArray();
+                                    arr.put(groupdetailes2);
+                                    arr.put(groupdetailes1);
+                                    JSONObject multiControlBean = new JSONObject();
+                                    try {
+                                        multiControlBean.put("groupName", THEROOM.RoomNumber + "Lighting" + x);
+                                        multiControlBean.put("groupType", 13);
+                                        multiControlBean.put("groupDetail", arr);
+                                        multiControlBean.put("id", x);
+                                    } catch (JSONException e) {
+
+                                    }
+                                    iTuyaDeviceMultiControl.saveDeviceMultiControl(LogIn.selectedHome.getHomeId(), multiControlBean.toString(), new ITuyaResultCallback<MultiControlBean>() {
+                                        @Override
+                                        public void onSuccess(MultiControlBean result) {
+                                            //ToastUtil.shortToast(mContext,"success");
+                                            Log.d("bindS1S3", result.getGroupName());
+                                            iTuyaDeviceMultiControl.enableMultiControl(x, new ITuyaResultCallback<Boolean>() {
+                                                @Override
+                                                public void onSuccess(Boolean result) {
+                                                    //ToastUtil.shortToast(mContext,"success");
+                                                    Log.d("bindS1S3", result.toString());
+                                                }
+
+                                                @Override
+                                                public void onError(String errorCode, String errorMessage) {
+                                                    //ToastUtil.shortToast(mContext,errorMessage);
+                                                    Log.d("bindS1S3", errorMessage);
+                                                }
+                                            });
+                                        }
+
+                                        @Override
+                                        public void onError(String errorCode, String errorMessage) {
+                                            //ToastUtil.shortToast(mContext,errorMessage);
+                                            Log.d("bindS1S3", errorMessage + "here "+x);
+                                        }
+                                    });
+                                }
+                                else
+                                {
+                                    Log.d("bindS1S3" , result.getMultiGroup().getGroupName());
+                                }
+                            }
+
+                            @Override
+                            public void onError(String errorCode, String errorMessage) {
+
+                            }
+                        });
+                    }
+                    else
+                    {
+                        Log.d("bindS1S3" , result.getMultiGroup().getGroupName());
+                    }
+                }
+
+                @Override
+                public void onError(String errorCode, String errorMessage) {
+
+                }
+            });
+
+
+        }
+    }
+    void bindSwitch1ToSwitch3btn2(ROOM THEROOM){
+        if (THEROOM.getSWITCH1_B() != null && THEROOM.getSWITCH3_B() != null) {
+
+            iTuyaDeviceMultiControl.queryLinkInfoByDp(THEROOM.getSWITCH1_B().devId, "3", new ITuyaDataCallback<MultiControlLinkBean>() {
+                @Override
+                public void onSuccess(MultiControlLinkBean result) {
+
+                    if (result.getMultiGroup() == null )
+                    {
+                        Log.d("bindS1S3" , "null");
+                        iTuyaDeviceMultiControl.queryLinkInfoByDp(THEROOM.getSWITCH3_B().devId, "2", new ITuyaDataCallback<MultiControlLinkBean>() {
+                            @Override
+                            public void onSuccess(MultiControlLinkBean result) {
+
+                                if (result.getMultiGroup() == null ){
+                                    Log.d("bindS1S3" , "null");
+                                    Random r = new Random();
+                                    int x = r.nextInt(30);
+                                    JSONObject groupdetailes1 = new JSONObject(), groupdetailes2 = new JSONObject();
+                                    try {
+                                        groupdetailes1.put("devId", THEROOM.getSWITCH1_B().devId);
+                                        groupdetailes1.put("dpId", 3);
+                                        groupdetailes1.put("id", x);
+                                        groupdetailes1.put("enable", true);
+
+                                    } catch (JSONException e) {
+                                    }
+                                    try {
+                                        groupdetailes2.put("devId", THEROOM.getSWITCH3_B().devId);
+                                        groupdetailes2.put("dpId", 2);
+                                        groupdetailes2.put("id", x);
+                                        groupdetailes2.put("enable", true);
+
+                                    } catch (JSONException e) {
+                                    }
+                                    JSONArray arr = new JSONArray();
+                                    arr.put(groupdetailes2);
+                                    arr.put(groupdetailes1);
+                                    JSONObject multiControlBean = new JSONObject();
+                                    try {
+                                        multiControlBean.put("groupName", THEROOM.RoomNumber + "Lighting" + x);
+                                        multiControlBean.put("groupType", 14);
+                                        multiControlBean.put("groupDetail", arr);
+                                        multiControlBean.put("id", x);
+                                    } catch (JSONException e) {
+
+                                    }
+                                    iTuyaDeviceMultiControl.saveDeviceMultiControl(LogIn.selectedHome.getHomeId(), multiControlBean.toString(), new ITuyaResultCallback<MultiControlBean>() {
+                                        @Override
+                                        public void onSuccess(MultiControlBean result) {
+                                            //ToastUtil.shortToast(mContext,"success");
+                                            Log.d("bindS1S3", result.getGroupName());
+                                            iTuyaDeviceMultiControl.enableMultiControl(x, new ITuyaResultCallback<Boolean>() {
+                                                @Override
+                                                public void onSuccess(Boolean result) {
+                                                    //ToastUtil.shortToast(mContext,"success");
+                                                    Log.d("bindS1S3", result.toString());
+                                                }
+
+                                                @Override
+                                                public void onError(String errorCode, String errorMessage) {
+                                                    //ToastUtil.shortToast(mContext,errorMessage);
+                                                    Log.d("bindS1S3", errorMessage);
+                                                }
+                                            });
+                                        }
+
+                                        @Override
+                                        public void onError(String errorCode, String errorMessage) {
+                                            //ToastUtil.shortToast(mContext,errorMessage);
+                                            Log.d("bindS1S3", errorMessage + "here "+x);
+                                        }
+                                    });
+                                }
+                                else
+                                {
+                                    Log.d("bindS1S3" , result.getMultiGroup().getGroupName());
+                                }
+                            }
+
+                            @Override
+                            public void onError(String errorCode, String errorMessage) {
+
+                            }
+                        });
+                    }
+                    else
+                    {
+                        Log.d("bindS1S3" , result.getMultiGroup().getGroupName());
+                    }
+                }
+
+                @Override
+                public void onError(String errorCode, String errorMessage) {
+
+                }
+            });
+
+
+        }
+    }
+    void setSwitch1DB2(ROOM THEROOM){
+        if (THEROOM.getSWITCH1_B() != null && THEROOM.getSWITCH2_B() != null) {
+
+            iTuyaDeviceMultiControl.queryLinkInfoByDp(THEROOM.getSWITCH1_B().devId, "2", new ITuyaDataCallback<MultiControlLinkBean>() {
+                @Override
+                public void onSuccess(MultiControlLinkBean result) {
+
+                    if (result.getMultiGroup() == null ){
+                        Log.d("MultiControlProblem"+THEROOM.RoomNumber , "null");
+                        iTuyaDeviceMultiControl.queryLinkInfoByDp(THEROOM.getSWITCH2_B().devId, "2", new ITuyaDataCallback<MultiControlLinkBean>() {
+                            @Override
+                            public void onSuccess(MultiControlLinkBean result) {
+
+                                if (result.getMultiGroup() == null ){
+                                    Log.d("MultiControlProblem"+THEROOM.RoomNumber , "null");
+                                    Random r = new Random();
+                                    int y = r.nextInt(30);
+                                    JSONObject groupdetailes1 = new JSONObject(), groupdetailes2 = new JSONObject();
+                                    try {
+                                        groupdetailes1.put("devId", THEROOM.getSWITCH1_B().devId);
+                                        groupdetailes1.put("dpId", 2);
+                                        groupdetailes1.put("id", y);
+                                        groupdetailes1.put("enable", true);
+
+                                    } catch (JSONException e) {
+                                    }
+                                    try {
+                                        groupdetailes2.put("devId", THEROOM.getSWITCH2_B().devId);
+                                        groupdetailes2.put("dpId", 2);
+                                        groupdetailes2.put("id", y);
+                                        groupdetailes2.put("enable", true);
+
+                                    } catch (JSONException e) {
+                                    }
+                                    JSONArray arr = new JSONArray();
+                                    arr.put(groupdetailes2);
+                                    arr.put(groupdetailes1);
+                                    JSONObject multiControlBean = new JSONObject();
+                                    try {
+                                        multiControlBean.put("groupName", THEROOM.RoomNumber + "Lighting" + y);
+                                        multiControlBean.put("groupType", 2);
+                                        multiControlBean.put("groupDetail", arr);
+                                        multiControlBean.put("id", y);
+                                    } catch (JSONException e) {
+
+                                    }
+                                    iTuyaDeviceMultiControl.saveDeviceMultiControl(LogIn.selectedHome.getHomeId(), multiControlBean.toString(), new ITuyaResultCallback<MultiControlBean>() {
+                                        @Override
+                                        public void onSuccess(MultiControlBean result) {
+                                            //ToastUtil.shortToast(mContext,"success");
+                                            Log.d("MultiControlProblem"+THEROOM.RoomNumber, result.getGroupName());
+
+                                            iTuyaDeviceMultiControl.enableMultiControl(y, new ITuyaResultCallback<Boolean>() {
+                                                @Override
+                                                public void onSuccess(Boolean result) {
+                                                    //ToastUtil.shortToast(mContext,"success");
+                                                    Log.d("MultiControlProblem"+THEROOM.RoomNumber, result.toString());
+                                                }
+
+                                                @Override
+                                                public void onError(String errorCode, String errorMessage) {
+                                                    //ToastUtil.shortToast(mContext,errorMessage);
+                                                    Log.d("MultiControlProblem"+THEROOM.RoomNumber, errorMessage);
+                                                }
+                                            });
+                                        }
+
+                                        @Override
+                                        public void onError(String errorCode, String errorMessage) {
+                                            //ToastUtil.shortToast(mContext,errorMessage);
+                                            Log.d("MultiControlProblem"+THEROOM.RoomNumber, errorMessage+" "+y);
+                                        }
+                                    });
+                                }
+                                else
+                                {
+                                    Log.d("MultiControlProblem"+THEROOM.RoomNumber , result.getMultiGroup().getGroupName());
+                                }
+                            }
+
+                            @Override
+                            public void onError(String errorCode, String errorMessage) {
+
+                            }
+                        });
+                    }
+                    else
+                    {
+                        Log.d("MultiControlProblem"+THEROOM.RoomNumber , result.getMultiGroup().getGroupName());
                     }
                 }
 

@@ -71,124 +71,134 @@
                 android:textColor="@color/light_blue_A200" />
         </LinearLayout>
 
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <LinearLayout
             android:id="@+id/lightingLayout"
             android:layout_width="0dp"
             android:layout_height="127dp"
             android:layout_marginStart="10dp"
             android:layout_marginEnd="10dp"
             android:gravity="center"
+            android:orientation="horizontal"
             android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/home_Btn">
 
-            <TextView
-                android:id="@+id/textView46"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="25dp"
-                android:layout_marginBottom="2dp"
-                android:text="Hidden Light"
-                android:textColor="@color/light_blue_A200"
-                app:layout_constraintBottom_toTopOf="@+id/button15"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="1.0" />
-
-            <Button
-                android:id="@+id/button15"
-                android:layout_width="80dp"
-                android:layout_height="82dp"
-                android:layout_marginStart="25dp"
-                android:layout_marginTop="30dp"
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:background="@drawable/group_62"
-                android:onClick="s1click"
-                android:padding="30dp"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/textView47"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="45dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="2dp"
-                android:text="Master"
-                android:textColor="@color/light_blue_A200"
-                app:layout_constraintBottom_toTopOf="@+id/button14"
-                app:layout_constraintStart_toEndOf="@+id/textView46"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.0" />
+                <TextView
+                    android:id="@+id/textView46"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginBottom="2dp"
+                    android:text="Room Light"
+                    android:textColor="@color/light_blue_A200"
+                    app:layout_constraintBottom_toTopOf="@+id/button15" />
 
-            <Button
-                android:id="@+id/button14"
-                android:layout_width="80dp"
-                android:layout_height="82dp"
-                android:layout_marginStart="30dp"
-                android:layout_marginTop="28dp"
+                <Button
+                    android:id="@+id/button15"
+                    android:layout_width="80dp"
+                    android:layout_height="82dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="20dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/group_62"
+                    android:onClick="s1click"
+                    android:padding="30dp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:background="@drawable/group_62"
-                android:onClick="s2click"
-                android:padding="30dp"
-                app:layout_constraintStart_toEndOf="@+id/button15"
-                app:layout_constraintTop_toTopOf="parent" />
+                android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/textView49"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="72dp"
-                android:layout_marginBottom="2dp"
-                android:text="Main"
-                android:textColor="@color/light_blue_A200"
-                app:layout_constraintBottom_toTopOf="@+id/button17"
-                app:layout_constraintStart_toEndOf="@+id/textView47"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.888" />
+                <TextView
+                    android:id="@+id/textView47"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginBottom="2dp"
+                    android:text="Spot Light"
+                    android:textColor="@color/light_blue_A200" />
 
-            <Button
-                android:id="@+id/button17"
-                android:layout_width="80dp"
-                android:layout_height="82dp"
-                android:layout_marginStart="30dp"
-                android:layout_marginTop="30dp"
+                <Button
+                    android:id="@+id/button14"
+                    android:layout_width="80dp"
+                    android:layout_height="82dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="20dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/group_62"
+                    android:onClick="s2click"
+                    android:padding="30dp"
+                    app:layout_constraintStart_toEndOf="@+id/button15"
+                    app:layout_constraintTop_toTopOf="parent" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:background="@drawable/group_62"
-                android:onClick="s3click"
-                android:padding="30dp"
-                app:layout_constraintStart_toEndOf="@+id/button14"
-                app:layout_constraintTop_toTopOf="parent" />
+                android:orientation="vertical">
 
-            <Button
-                android:id="@+id/button19"
-                android:layout_width="80dp"
-                android:layout_height="82dp"
-                android:layout_marginStart="30dp"
-                android:layout_marginTop="30dp"
+                <TextView
+                    android:id="@+id/textView49"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginBottom="2dp"
+                    android:text="Master Off"
+                    android:textColor="@color/light_blue_A200" />
+
+                <Button
+                    android:id="@+id/button17"
+                    android:layout_width="80dp"
+                    android:layout_height="82dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="20dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/group_62"
+                    android:onClick="s3click"
+                    android:padding="30dp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:background="@drawable/group_62"
-                android:onClick="s4click"
-                android:padding="30dp"
-                app:layout_constraintStart_toEndOf="@+id/button17"
-                app:layout_constraintTop_toTopOf="parent" />
+                android:orientation="vertical"
+                android:visibility="gone">
 
-            <TextView
-                android:id="@+id/textView50"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="77dp"
-                android:layout_marginBottom="2dp"
-                android:text="Salon"
-                android:textColor="@color/light_blue_A200"
-                app:layout_constraintBottom_toTopOf="@+id/button19"
-                app:layout_constraintStart_toEndOf="@+id/textView49"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.888" />
+                <TextView
+                    android:id="@+id/textView50"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="2dp"
+                    android:text="Salon"
+                    android:textColor="@color/light_blue_A200"
+                    android:visibility="gone" />
 
-        </androidx.constraintlayout.widget.ConstraintLayout>
+                <Button
+                    android:id="@+id/button19"
+                    android:layout_width="80dp"
+                    android:layout_height="82dp"
+                    android:layout_marginStart="30dp"
+                    android:layout_marginTop="30dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/group_62"
+                    android:onClick="s4click"
+                    android:padding="30dp"
+                    android:visibility="gone"
+                    app:layout_constraintStart_toEndOf="@+id/button17" />
+            </LinearLayout>
+
+        </LinearLayout>
 
         <TextView
             android:id="@+id/textView37"

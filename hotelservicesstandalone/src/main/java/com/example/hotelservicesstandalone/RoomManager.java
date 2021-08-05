@@ -2073,11 +2073,13 @@ public class RoomManager extends AppCompatActivity
 
     private void getScanLockCallback()
     {
+        lodingDialog l = new lodingDialog(act);
         TTLockClient.getDefault().startScanLock(new ScanLockCallback()
         {
             @Override
             public void onScanLockSuccess(ExtendedBluetoothDevice device)
             {
+                l.stop();
                 FOUNDLOCK = device ;
                 foundLock.setText(device.getName());
                 TTLockClient.getDefault().stopScanLock();
@@ -2087,6 +2089,7 @@ public class RoomManager extends AppCompatActivity
             @Override
             public void onFail(LockError error)
             {
+                l.stop();
                 Log.e("tttt",error.getErrorMsg());
                 //ToastMaker.MakeToast(error.getErrorMsg(),act);
             }
@@ -2113,11 +2116,13 @@ public class RoomManager extends AppCompatActivity
                     else
                     {
                         //ToastMaker.MakeToast("--lock is initialized success--",act);
+                        lodingDialog l = new lodingDialog(act);
                         String url = Login.SelectedHotel.URL+"setLockStatusValue.php";
                         StringRequest request = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
                             @Override
                             public void onResponse(String response)
                             {
+                                l.stop();
                                 if (response.equals("1"))
                                 {
                                     Toast.makeText(act, "--lock is initialized success--", Toast.LENGTH_LONG).show();
@@ -2129,7 +2134,8 @@ public class RoomManager extends AppCompatActivity
                         }, new Response.ErrorListener() {
                             @Override
                             public void onErrorResponse(VolleyError error) {
-
+                                l.stop();
+                                Toast.makeText(act, error.getMessage(), Toast.LENGTH_LONG).show();
                             }
                         })
                         {
