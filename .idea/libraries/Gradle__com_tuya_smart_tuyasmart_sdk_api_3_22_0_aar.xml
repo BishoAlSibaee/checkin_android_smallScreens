@@ -1,12 +1,12 @@
 <component name="libraryTable">
   <library name="Gradle: com.tuya.smart:tuyasmart-sdk-api:3.22.0@aar">
     <ANNOTATIONS>
-      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/caf42bc0160b8a7eb2ca39474b6df9bb/jetified-tuyasmart-sdk-api-3.22.0/annotations.zip!/" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/a06686982eb62e4401b672b3e917c84a/jetified-tuyasmart-sdk-api-3.22.0/annotations.zip!/" />
     </ANNOTATIONS>
     <CLASSES>
-      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/caf42bc0160b8a7eb2ca39474b6df9bb/jetified-tuyasmart-sdk-api-3.22.0/jars/classes.jar!/" />
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/caf42bc0160b8a7eb2ca39474b6df9bb/jetified-tuyasmart-sdk-api-3.22.0/res" />
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/caf42bc0160b8a7eb2ca39474b6df9bb/jetified-tuyasmart-sdk-api-3.22.0/AndroidManifest.xml" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/a06686982eb62e4401b672b3e917c84a/jetified-tuyasmart-sdk-api-3.22.0/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/a06686982eb62e4401b672b3e917c84a/jetified-tuyasmart-sdk-api-3.22.0/AndroidManifest.xml" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/a06686982eb62e4401b672b3e917c84a/jetified-tuyasmart-sdk-api-3.22.0/res" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

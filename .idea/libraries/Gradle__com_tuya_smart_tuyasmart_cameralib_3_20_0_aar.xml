@@ -1,9 +1,9 @@
 <component name="libraryTable">
   <library name="Gradle: com.tuya.smart:tuyasmart-cameralib:3.20.0@aar">
     <CLASSES>
-      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/08e2a0cf034681e4e119d347dfcc9e38/jetified-tuyasmart-cameralib-3.20.0/jars/classes.jar!/" />
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/08e2a0cf034681e4e119d347dfcc9e38/jetified-tuyasmart-cameralib-3.20.0/res" />
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/08e2a0cf034681e4e119d347dfcc9e38/jetified-tuyasmart-cameralib-3.20.0/AndroidManifest.xml" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/7595d1f6d8dc6ff49b6046bce0bc44ff/jetified-tuyasmart-cameralib-3.20.0/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/7595d1f6d8dc6ff49b6046bce0bc44ff/jetified-tuyasmart-cameralib-3.20.0/AndroidManifest.xml" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/7595d1f6d8dc6ff49b6046bce0bc44ff/jetified-tuyasmart-cameralib-3.20.0/jars/classes.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

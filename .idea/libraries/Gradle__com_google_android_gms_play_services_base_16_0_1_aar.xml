@@ -1,9 +1,15 @@
 <component name="libraryTable">
   <library name="Gradle: com.google.android.gms:play-services-base:16.0.1@aar">
     <CLASSES>
-      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/0f27918cf6e910258de3fe5cded3373e/jetified-play-services-base-16.0.1/jars/classes.jar!/" />
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/0f27918cf6e910258de3fe5cded3373e/jetified-play-services-base-16.0.1/res" />
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/0f27918cf6e910258de3fe5cded3373e/jetified-play-services-base-16.0.1/AndroidManifest.xml" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/d8a7cf309140b0a303dd80e8d51cfaca/jetified-play-services-base-16.0.1/AndroidManifest.xml" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/d8a7cf309140b0a303dd80e8d51cfaca/jetified-play-services-base-16.0.1/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/d8a7cf309140b0a303dd80e8d51cfaca/jetified-play-services-base-16.0.1/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/5bdf2f7f3b2a9dcb9eb409faa53c8817/jetified-play-services-base-16.0.1/res" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/5bdf2f7f3b2a9dcb9eb409faa53c8817/jetified-play-services-base-16.0.1/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/5bdf2f7f3b2a9dcb9eb409faa53c8817/jetified-play-services-base-16.0.1/AndroidManifest.xml" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/e1c93bc063eb41ab2edd9586a06a7cf0/jetified-play-services-base-16.0.1/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/e1c93bc063eb41ab2edd9586a06a7cf0/jetified-play-services-base-16.0.1/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/e1c93bc063eb41ab2edd9586a06a7cf0/jetified-play-services-base-16.0.1/AndroidManifest.xml" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

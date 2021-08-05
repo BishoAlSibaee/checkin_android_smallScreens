@@ -1,9 +1,9 @@
 <component name="libraryTable">
   <library name="Gradle: com.tuya.smart:tuyasmart-user:3.20.0@aar">
     <CLASSES>
-      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/46edf9dc2f4d83f635c3db3de89ea3c2/jetified-tuyasmart-user-3.20.0/jars/classes.jar!/" />
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/46edf9dc2f4d83f635c3db3de89ea3c2/jetified-tuyasmart-user-3.20.0/res" />
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/46edf9dc2f4d83f635c3db3de89ea3c2/jetified-tuyasmart-user-3.20.0/AndroidManifest.xml" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/86a7e57633fffc58db58928a09114b5b/jetified-tuyasmart-user-3.20.0/res" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/86a7e57633fffc58db58928a09114b5b/jetified-tuyasmart-user-3.20.0/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/86a7e57633fffc58db58928a09114b5b/jetified-tuyasmart-user-3.20.0/AndroidManifest.xml" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
