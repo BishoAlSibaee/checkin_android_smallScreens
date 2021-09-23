@@ -67,7 +67,9 @@ public class LogIn extends AppCompatActivity {
         job = (TextInputLayout) findViewById(R.id.Login_jobNumber);
         pass = (TextInputLayout) findViewById(R.id.Login_password);
         facilities = (Spinner) findViewById(R.id.facility_spinner);
-        facilities.setVisibility(View.GONE);
+        //facilities.setVisibility(View.GONE);
+        LinearLayout logo = (LinearLayout)findViewById(R.id.logo_layout);
+        logo.setVisibility(View.VISIBLE);
         facilities.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id)
@@ -130,31 +132,32 @@ public class LogIn extends AppCompatActivity {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                LinearLayout logo = (LinearLayout)findViewById(R.id.logo_layout);
-                                Animation anim =  AnimationUtils.loadAnimation(act , R.anim.main_anim);
-                                anim.setAnimationListener(new Animation.AnimationListener() {
-                                    @Override
-                                    public void onAnimationStart(Animation animation)
-                                    {
-                                        Log.d("Yvalue",logo.getY()+"start");
-                                        //logo.setVisibility(View.VISIBLE);
-                                    }
-
-                                    @Override
-                                    public void onAnimationEnd(Animation animation) {
-                                        Log.d("Yvalue",logo.getY()+"end");
-                                        logo.setY(360);
-                                        //loginLayout.setVisibility(View.VISIBLE);
-                                    }
-
-                                    @Override
-                                    public void onAnimationRepeat(Animation animation) {
-                                        Log.d("Yvalue",logo.getY()+"repeat");
-                                    }
-                                });
-                                if (act.getResources().getConfiguration().orientation == ORIENTATION_PORTRAIT) {
-                                    logo.startAnimation(anim);
-                                }
+//                                LinearLayout logo = (LinearLayout)findViewById(R.id.logo_layout);
+//                                Animation anim =  AnimationUtils.loadAnimation(act , R.anim.main_anim);
+//                                anim.setAnimationListener(new Animation.AnimationListener() {
+//                                    @Override
+//                                    public void onAnimationStart(Animation animation)
+//                                    {
+//                                        Log.d("Yvalue",logo.getY()+"start");
+//                                        //logo.setVisibility(View.VISIBLE);
+//                                    }
+//
+//                                    @Override
+//                                    public void onAnimationEnd(Animation animation) {
+//                                        Log.d("Yvalue",logo.getY()+"end");
+//                                        logo.setY(360);
+//                                        //loginLayout.setVisibility(View.VISIBLE);
+//                                    }
+//
+//                                    @Override
+//                                    public void onAnimationRepeat(Animation animation) {
+//                                        Log.d("Yvalue",logo.getY()+"repeat");
+//                                    }
+//                                });
+//                                if (act.getResources().getConfiguration().orientation == ORIENTATION_PORTRAIT) {
+//                                    //logo.startAnimation(anim);
+//                                }
+                                loginLayout.setVisibility(View.GONE);
                             }
                         });
 
@@ -179,28 +182,29 @@ public class LogIn extends AppCompatActivity {
                             public void run() {
                                 LinearLayout logo = (LinearLayout)findViewById(R.id.logo_layout);
                                 Animation anim =  AnimationUtils.loadAnimation(act , R.anim.main_anim);
-                                anim.setAnimationListener(new Animation.AnimationListener() {
-                                    @Override
-                                    public void onAnimationStart(Animation animation)
-                                    {
-                                        Log.d("Yvalue",logo.getY()+"start");
-                                        logo.setVisibility(View.VISIBLE);
-                                    }
-
-                                    @Override
-                                    public void onAnimationEnd(Animation animation) {
-                                        Log.d("Yvalue",logo.getY()+"end");
-                                        logo.setY(360);
-                                        loginLayout.setVisibility(View.VISIBLE);
-                                    }
-
-                                    @Override
-                                    public void onAnimationRepeat(Animation animation) {
-                                        Log.d("Yvalue",logo.getY()+"repeat");
-                                    }
-                                });
-                                logo.startAnimation(anim);
-
+                                loginLayout.setVisibility(View.VISIBLE);
+                                logo.setVisibility(View.VISIBLE);
+//                                anim.setAnimationListener(new Animation.AnimationListener() {
+//                                    @Override
+//                                    public void onAnimationStart(Animation animation)
+//                                    {
+//                                        Log.d("Yvalue",logo.getY()+"start");
+//
+//                                    }
+//
+//                                    @Override
+//                                    public void onAnimationEnd(Animation animation) {
+//                                        Log.d("Yvalue",logo.getY()+"end");
+//                                        logo.setY(360);
+//
+//                                    }
+//
+//                                    @Override
+//                                    public void onAnimationRepeat(Animation animation) {
+//                                        Log.d("Yvalue",logo.getY()+"repeat");
+//                                    }
+//                                });
+                                //logo.startAnimation(anim);
                             }
                         });
 
@@ -239,7 +243,7 @@ public class LogIn extends AppCompatActivity {
                     @Override
                     public void onResponse(String response)
                     {
-                        //Toast.makeText(act , response , Toast.LENGTH_LONG).show();
+                        Log.d("loginResp" , response);
                         if (response.equals("0"))
                         {
                             d.close();
@@ -249,8 +253,9 @@ public class LogIn extends AppCompatActivity {
                         {
                                 d.close();
                                 try {
-                                    JSONArray arr = new JSONArray(response);
-                                    JSONObject user = arr.getJSONObject(0);
+                                    //JSONArray arr = new JSONArray(response);
+                                    JSONObject user = new JSONObject(response);
+                                    //JSONObject uuu =
                                     int id=0 ;
                                     String name="";
                                     int mobile=0 ;

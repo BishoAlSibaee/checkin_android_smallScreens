@@ -796,7 +796,7 @@ public class RestaurantActivity extends AppCompatActivity {
     }
 
     public void OpenTheDoor(View view) {
-        FullscreenActivity.OpenTheDoor(view);
+        FullscreenActivity.OpenDoorAndSaveIt(view);
     }
 
     public void SOS(View view) {

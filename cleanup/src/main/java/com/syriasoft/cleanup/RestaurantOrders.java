@@ -27,11 +27,16 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.InstanceIdResult;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
@@ -90,6 +95,22 @@ public class RestaurantOrders extends AppCompatActivity {
         });
         mainText.setText(LogIn.db.getUser().department + " Orders");
         orders = (ListView) findViewById(R.id.restaurant_orders);
+        FirebaseInstanceId.getInstance().getInstanceId()
+                .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>()
+                {
+                    @Override
+                    public void onComplete(@NonNull Task<InstanceIdResult> task)
+                    {
+                        if (!task.isSuccessful())
+                        {
+
+                            return;
+                        }
+                        String token = task.getResult().getToken();
+                        //Toast.makeText(act,token , Toast.LENGTH_LONG).show();
+                        sendRegistrationToServer(token);
+                    }
+                });
         getRestaurantOrders();
 
     }
@@ -432,4 +453,48 @@ public class RestaurantOrders extends AppCompatActivity {
         Volley.newRequestQueue(act).add(request);
     }
 
+    void sendRegistrationToServer(final String token)
+    {
+        String url = LogIn.URL+"registerRestaurantToken.php";
+        StringRequest r = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response)
+            {
+                Log.d("TokenResp" , response) ;
+                if (response.equals("1"))
+                {
+
+                }
+                else
+                {
+
+                }
+
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error)
+            {
+
+            }
+        })
+        {
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError
+            {
+                Map<String,String> params = new HashMap<String,String>();
+                params.put("token",token);
+                params.put("id", String.valueOf(LogIn.db.getUser().id));
+                return params;
+            }
+        };
+
+        Volley.newRequestQueue(this ).add(r);
+
+    }
+
+    @Override
+    public void onBackPressed() {
+
+    }
 }

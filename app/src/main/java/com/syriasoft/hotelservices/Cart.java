@@ -34,6 +34,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -74,6 +75,8 @@ public class Cart extends AppCompatActivity
     static long x = 0 ;
     static Handler H ;
     private ConstraintLayout mainlayout ;
+    String geRestEmpsUrl = LogIn.URL+"getRestaurantEmps.php";
+    List<REST_EMPS_CLASS> restEmps ;
 
 
     @SuppressLint("WrongConstant")
@@ -85,6 +88,7 @@ public class Cart extends AppCompatActivity
         act = this;
         FullscreenActivity.RestaurantActivities.add(act);
         list = FullscreenActivity.order.getItems();
+        restEmps = new ArrayList<REST_EMPS_CLASS>();
         itemsGridView = (RecyclerView) findViewById(R.id.recycler);
         GridLayoutManager manager = new GridLayoutManager(act, 1);
         manager.setOrientation(LinearLayoutManager.VERTICAL);
@@ -356,6 +360,7 @@ public class Cart extends AppCompatActivity
             }
         };
         backHomeThread.run();
+        getRestEmps();
     }
 
     @Override
@@ -420,7 +425,12 @@ public class Cart extends AppCompatActivity
 
                                     }
                                 });
-                                makemessage("/topics/Restaurant" , LogIn.room.getRoomNumber() , dep );
+                                //makemessage("/topics/Restaurant" , LogIn.room.getRoomNumber() , dep );
+//                                for(REST_EMPS_CLASS emp : restEmps) {
+//                                    if (emp.Facility == Facility) {
+//                                        emp.makemessage(emp.token,"Restaurant",true,act);
+//                                    }
+//                                }
                                 Button totalBtn = (Button) findViewById(R.id.button3);
                                 totalBtn.setVisibility(View.INVISIBLE);
                                 for (int i = 0 ; i < Cart.itemsGridView.getAdapter().getItemCount(); i++)
@@ -753,6 +763,41 @@ public class Cart extends AppCompatActivity
         //sosImage.setImageResource(R.drawable.group_33);
         restaurantIcon.setVisibility(View.GONE);
         //sosText.setTextColor(Color.WHITE);
+    }
+
+
+    void getRestEmps() {
+        StringRequest request = new StringRequest(Request.Method.POST, geRestEmpsUrl, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                if (response != null && !response.equals("0")) {
+                    try {
+                        JSONArray arr = new JSONArray(response);
+                        for (int i=0;i<arr.length();i++) {
+                            JSONObject row = arr.getJSONObject(i);
+                            REST_EMPS_CLASS emp = new REST_EMPS_CLASS(row.getInt("id"),row.getInt("Facility"),row.getString("UserName"),row.getString("Name"),row.getString("Mobile"),row.getString("token"));
+                            restEmps.add(emp);
+                        }
+                        Log.d("EmpsCount" , restEmps.size()+"");
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+                else {
+                    ToastMaker.MakeToast("No service emps",act);
+                }
+
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
+            }
+        })
+        {
+
+        };
+        Volley.newRequestQueue(act).add(request);
     }
 
 }

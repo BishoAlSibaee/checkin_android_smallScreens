@@ -57,6 +57,7 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.squareup.picasso.Picasso;
 import com.syriasoft.hotelservices.TUYA.Tuya_Devices;
 import com.syriasoft.hotelservices.TUYA.Tuya_Login;
+import com.syriasoft.hotelservices.lock.ApiService;
 import com.syriasoft.hotelservices.lock.LockObj;
 import com.ttlock.bl.sdk.api.TTLockClient;
 import com.ttlock.bl.sdk.callback.ControlLockCallback;
@@ -154,11 +155,11 @@ public class FullscreenActivity extends AppCompatActivity {
     private ConstraintLayout   mainLayout ;
     static String LOGO ;
     static int checkInModeTime=0 , checkOutModeTime=0 ;
-    static String registerDoorOpenUrl="https://ratco-solutions.com/HotelServicesTest/TestProject/p/insertDoorOpen.php";
+    static String registerDoorOpenUrl = LogIn.URL+"insertDoorOpen.php";
     private int WelcomeLight = 0 ;
     private LinearLayoutManager Laundrymanager ;
     public static MediaPlayer mediaPlayer , lightPlayer;
-    private static List<ServiceEmps> Emps ;
+    public static List<ServiceEmps> Emps ;
     private boolean LightingBind = false;
 
 
@@ -185,23 +186,21 @@ public class FullscreenActivity extends AppCompatActivity {
         setActivity();
         order = new OrderDB(act);
         order.removeOrder();
-        FirebaseMessaging.getInstance().getToken()
-                .addOnCompleteListener(new OnCompleteListener<String>()
-                {
-                    @Override
-                    public void onComplete(@NonNull Task<String> task)
-                    {
-                        if (!task.isSuccessful())
-                        {
-                            Log.w(TAG, "Fetching FCM registration token failed", task.getException());
-                            return;
-                        }
-                        // Get new FCM registration token
-                        String token = task.getResult();
-                        Log.e("tokeneee" , token);
-                        sendRegistrationToServer(token);
-                    }
-                });
+//        FirebaseMessaging.getInstance().getToken().addOnCompleteListener(new OnCompleteListener<String>() {
+//                    @Override
+//                    public void onComplete(@NonNull Task<String> task)
+//                    {
+//                        if (!task.isSuccessful())
+//                        {
+//                            Log.w(TAG, "Fetching FCM registration token failed", task.getException());
+//                            return;
+//                        }
+//                        // Get new FCM registration token
+//                        String token = task.getResult();
+//                        Log.e("tokeneee" , token);
+//                        sendRegistrationToServer(token);
+//                    }
+//                });
         KeepScreenFull();
     }
 
@@ -2264,6 +2263,36 @@ public class FullscreenActivity extends AppCompatActivity {
                                                             });
                                                         }
                                                     }
+                                                    if (Switch3Bean != null ) {
+                                                        if (Switch3Bean.dps.get("1").toString().equals("true")) {
+                                                            Switch3.publishDps("{\" 1\":false}", new IResultCallback() {
+                                                                @Override
+                                                                public void onError(String code, String error) {
+
+                                                                }
+
+                                                                @Override
+                                                                public void onSuccess() {
+
+                                                                }
+                                                            });
+                                                        }
+                                                        if (Switch3Bean.dps.keySet().contains("2")) {
+                                                            if (Switch3Bean.dps.get("2").toString().equals("true")) {
+                                                                Switch3.publishDps("{\" 2\":false}", new IResultCallback() {
+                                                                    @Override
+                                                                    public void onError(String code, String error) {
+
+                                                                    }
+
+                                                                    @Override
+                                                                    public void onSuccess() {
+
+                                                                    }
+                                                                });
+                                                            }
+                                                        }
+                                                    }
                                                 }
                                                 else {
                                                     b1.setBackgroundResource(R.drawable.group_62);
@@ -2455,6 +2484,41 @@ public class FullscreenActivity extends AppCompatActivity {
 
                                              */
 
+                                            if (dpStr != null ) {
+                                                if (dpStr.get("switch_1") != null ) {
+                                                    if (dpStr.get("switch_1").toString().equals("true")) {
+                                                        Switch1.publishDps("{\" 3\":false}", new IResultCallback() {
+                                                            @Override
+                                                            public void onError(String code, String error) {
+
+                                                            }
+
+                                                            @Override
+                                                            public void onSuccess() {
+
+                                                            }
+                                                        });
+                                                    }
+                                                }
+
+                                                if (dpStr.get("switch_2") != null ) {
+                                                    if (dpStr.get("switch_2").toString().equals("true") ) {
+                                                        Switch1.publishDps("{\" 3\":false}", new IResultCallback() {
+                                                            @Override
+                                                            public void onError(String code, String error) {
+
+                                                            }
+
+                                                            @Override
+                                                            public void onSuccess() {
+
+                                                            }
+                                                        });
+                                                    }
+                                                }
+
+                                            }
+
                                         }
 
                                         @Override
@@ -2557,6 +2621,40 @@ public class FullscreenActivity extends AppCompatActivity {
                                     Switch3.registerDeviceListener(new IDeviceListener() {
                                         @Override
                                         public void onDpUpdate(String devId, Map<String, Object> dpStr) {
+                                            if (dpStr != null ) {
+                                                if (dpStr.get("switch_1") != null ) {
+                                                    if (dpStr.get("switch_1").toString().equals("true")) {
+                                                        Switch1.publishDps("{\" 3\":false}", new IResultCallback() {
+                                                            @Override
+                                                            public void onError(String code, String error) {
+
+                                                            }
+
+                                                            @Override
+                                                            public void onSuccess() {
+
+                                                            }
+                                                        });
+                                                    }
+                                                }
+                                                if (Switch3Bean.dps.keySet().contains("2")) {
+                                                    if (dpStr.get("switch_2") != null ) {
+                                                        if (dpStr.get("switch_2").toString().equals("true") ) {
+                                                            Switch1.publishDps("{\" 3\":false}", new IResultCallback() {
+                                                                @Override
+                                                                public void onError(String code, String error) {
+
+                                                                }
+
+                                                                @Override
+                                                                public void onSuccess() {
+
+                                                                }
+                                                            });
+                                                        }
+                                                    }
+                                                }
+                                            }
 
                                         }
 
@@ -5440,8 +5538,7 @@ public class FullscreenActivity extends AppCompatActivity {
 //--------------------------------------------------------------
     // open room door
 
-    public static void OpenTheDoor(View view)
-    {
+    public static void OpenTheDoor(View view) {
         mediaPlayer.start();
         if(myTestLockEKey == null)
         {
@@ -5476,70 +5573,72 @@ public class FullscreenActivity extends AppCompatActivity {
     }
 
     public static void OpenDoorAndSaveIt (View view){
-
         mediaPlayer.start();
-        final LoadingDialog dd = new LoadingDialog(act);
-        StringRequest request = new StringRequest(Request.Method.POST, registerDoorOpenUrl, new Response.Listener<String>() {
+        //final LoadingDialog dd = new LoadingDialog(act);
+        openDoorByGateway();
+//        TTLockClient.getDefault().controlLock(ControlAction.UNLOCK, myTestLockEKey.getLockData(), myTestLockEKey.getLockMac(),new ControlLockCallback()
+//        {
+//            @Override
+//            public void onControlLockSuccess(ControlLockResult controlLockResult) {
+//                dd.stop();
+//                Log.d("registerOpen" , "opened");
+//                ToastMaker.MakeToast("Door Opened",act);
+//                saveOpenDoorToDB();
+//            }
+//
+//            @Override
+//            public void onFail(LockError error) {
+//                Log.d("registerOpen" , error.getErrorMsg());
+//
+//            }
+//        });
+    }
+
+    static void openDoorByGateway() {
+        LoadingDialog dd = new LoadingDialog(act);
+        StringRequest re = new StringRequest(Request.Method.POST, "https://api.ttlock.com/v3/lock/unlock", new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                Log.d("registerOpen" , response);
-                if (response.equals("1")){
-                    TTLockClient.getDefault().controlLock(ControlAction.UNLOCK, myTestLockEKey.getLockData(), myTestLockEKey.getLockMac(),new ControlLockCallback()
-                    {
-                        @Override
-                        public void onControlLockSuccess(ControlLockResult controlLockResult) {
-                            dd.stop();
-                            Log.d("registerOpen" , "opened");
-                            //
-                            // Toast.makeText(holder.itemView.getContext(),"Room "+list.get(position).RoomNumber+" Door Opened" , Toast.LENGTH_LONG);
-                           // messageDialog m = new messageDialog("Room "+THEROOM.RoomNumber+" Door Opened","Door Opened",act);
-                            ToastMaker.MakeToast("Door Opened",act);
-                        }
+                dd.stop();
+                Log.d("unLockResponse",response);
 
-                        @Override
-                        public void onFail(LockError error) {
-                            dd.stop();
-                            Log.d("registerOpen" , error.getErrorMsg());
-                            //d.dismiss();
-                            //Toast.makeText(holder.itemView.getContext(),error.getErrorMsg() , Toast.LENGTH_LONG);
-                            //messageDialog m = new messageDialog("Room "+THEROOM.RoomNumber+" Door Open Failed .. Try to be Closer","Door Open Failed",act);
-                            ToastMaker.MakeToast("Open Fail!  "+error,act);
-                        }
-                    });
+                try {
+                    JSONObject j = new JSONObject(response);
+                    int r = j.getInt("errcode");
+                    Log.d("unLockResponse",r+"");
+                    if (r == 1 || r == 0) {
+                        //ToastMaker.MakeToast("Door Opened",act);
+                        saveOpenDoorToDB();
+                    }
+                    else {
+                        ToastMaker.MakeToast("Open Failed",act);
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
+
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
                 dd.stop();
-                Toast.makeText(act,error.getMessage() , Toast.LENGTH_LONG);
-                Log.d("registerOpen" , error.getMessage());
+                Log.d("unLockResponse",error.getMessage());
+                //ToastMaker.MakeToast("Open Fail!  "+error,act);
             }
-        }){
+        })
+        {
             @Override
             protected Map<String, String> getParams() throws AuthFailureError {
-                Calendar c = Calendar.getInstance(Locale.getDefault());
-                String Date = c.get(Calendar.YEAR)+"-"+(c.get(Calendar.MONTH)+1)+"-"+c.get(Calendar.DAY_OF_MONTH);
-                String Time = c.get(Calendar.HOUR)+":"+c.get(Calendar.MINUTE)+":"+c.get(Calendar.SECOND);
                 Map<String,String> par = new HashMap<String, String>();
-                par.put("EmpID" , "0");
-                par.put("JNum" , "0");
-                String name = "";
-                if (THERESERVATION != null ){
-                    name = THERESERVATION.ClientFirstName+" "+THERESERVATION.ClientLastName ;
-                }
-                else {
-                    name = "Client" ;
-                }
-                par.put("Name" , name);
-                par.put("Department" , "Client");
-                par.put("Room" , String.valueOf(THEROOM.RoomNumber));
-                par.put("Date" , Date);
-                par.put("Time" , Time);
+                Calendar c = Calendar.getInstance(Locale.getDefault());
+                par.put("clientId", ApiService.CLIENT_ID);
+                par.put("accessToken",LogIn.acc.getAccess_token());
+                par.put("lockId",String.valueOf(myTestLockEKey.getLockId()));
+                par.put("date", String.valueOf(c.getTimeInMillis()));
                 return par;
             }
         };
-        Volley.newRequestQueue(act).add(request);
+        Volley.newRequestQueue(act).add(re);
     }
 
 //--------------------------------------------------------------
@@ -8577,5 +8676,48 @@ public class FullscreenActivity extends AppCompatActivity {
 
             }
         });
+    }
+
+    static void saveOpenDoorToDB() {
+        StringRequest request = new StringRequest(Request.Method.POST, registerDoorOpenUrl, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                Log.d("registerOpen" , response);
+                if (response.equals("1")){
+
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                //dd.stop();
+                Toast.makeText(act,error.getMessage() , Toast.LENGTH_LONG);
+                Log.d("registerOpen" , error.getMessage());
+            }
+        }){
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Calendar c = Calendar.getInstance(Locale.getDefault());
+                String Date = c.get(Calendar.YEAR)+"-"+(c.get(Calendar.MONTH)+1)+"-"+c.get(Calendar.DAY_OF_MONTH);
+                String Time = c.get(Calendar.HOUR)+":"+c.get(Calendar.MINUTE)+":"+c.get(Calendar.SECOND);
+                Map<String,String> par = new HashMap<String, String>();
+                par.put("EmpID" , "0");
+                par.put("JNum" , "0");
+                String name = "";
+                if (THERESERVATION != null ){
+                    name = THERESERVATION.ClientFirstName+" "+THERESERVATION.ClientLastName ;
+                }
+                else {
+                    name = "Client" ;
+                }
+                par.put("Name" , name);
+                par.put("Department" , "Client");
+                par.put("Room" , String.valueOf(THEROOM.RoomNumber));
+                par.put("Date" , Date);
+                par.put("Time" , Time);
+                return par;
+            }
+        };
+        Volley.newRequestQueue(act).add(request);
     }
 }

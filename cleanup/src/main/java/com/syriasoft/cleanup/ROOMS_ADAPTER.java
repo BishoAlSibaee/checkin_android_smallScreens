@@ -40,7 +40,7 @@ import java.util.Map;
 
 public class ROOMS_ADAPTER extends RecyclerView.Adapter<ROOMS_ADAPTER.HOLDER> {
 
-    String registerDoorOpenUrl="https://ratco-solutions.com/HotelServicesTest/TestProject/p/insertDoorOpen.php";
+    String registerDoorOpenUrl = LogIn.URL+"insertDoorOpen.php";
 
     List<ROOM> list = new ArrayList<ROOM>();
 
@@ -74,59 +74,59 @@ public class ROOMS_ADAPTER extends RecyclerView.Adapter<ROOMS_ADAPTER.HOLDER> {
                         public void onClick(View v) {
                             if (list.get(position).getLOCK() != null ){
                                 final LoadingDialog dd = new LoadingDialog(holder.itemView.getContext());
-                                StringRequest request = new StringRequest(Request.Method.POST, registerDoorOpenUrl, new Response.Listener<String>() {
+                                TTLockClient.getDefault().controlLock(ControlAction.UNLOCK, list.get(position).getLOCK().getLockData(), list.get(position).getLOCK().getLockMac(),new ControlLockCallback()
+                                {
                                     @Override
-                                    public void onResponse(String response) {
-                                        Log.d("registerOpen" , response);
-                                        if (response.equals("1")){
-                                            TTLockClient.getDefault().controlLock(ControlAction.UNLOCK, list.get(position).getLOCK().getLockData(), list.get(position).getLOCK().getLockMac(),new ControlLockCallback()
-                                            {
-                                                @Override
-                                                public void onControlLockSuccess(ControlLockResult controlLockResult) {
-                                                    dd.close();
-                                                    Log.d("registerOpen" , "opened");
-                                                    d.dismiss();
-                                                    //
-                                                    //Toast.makeText(holder.itemView.getContext(),"Room "+list.get(position).RoomNumber+" Door Opened" , Toast.LENGTH_LONG);
-                                                    messageDialog m = new messageDialog("Room "+list.get(position).RoomNumber+" Door Opened","Door Opened",holder.itemView.getContext());
-                                                }
-
-                                                @Override
-                                                public void onFail(LockError error) {
-                                                    dd.close();
-                                                    Log.d("registerOpen" , error.getErrorMsg());
-                                                    d.dismiss();
-                                                    //Toast.makeText(holder.itemView.getContext(),error.getErrorMsg() , Toast.LENGTH_LONG);
-                                                    messageDialog m = new messageDialog("Room "+list.get(position).RoomNumber+" Door Open Failed .. Try to be Closer","Door Open Failed",holder.itemView.getContext());
-                                                }
-                                            });
-                                        }
-                                    }
-                                }, new Response.ErrorListener() {
-                                    @Override
-                                    public void onErrorResponse(VolleyError error) {
+                                    public void onControlLockSuccess(ControlLockResult controlLockResult) {
                                         dd.close();
-                                        Toast.makeText(holder.itemView.getContext(),error.getMessage() , Toast.LENGTH_LONG);
-                                        Log.d("registerOpen" , error.getMessage());
+                                        Log.d("registerOpen" , "opened");
+                                        d.dismiss();
+                                        messageDialog m = new messageDialog("Room "+list.get(position).RoomNumber+" Door Opened","Door Opened",holder.itemView.getContext());
+                                        StringRequest request = new StringRequest(Request.Method.POST, registerDoorOpenUrl, new Response.Listener<String>() {
+                                            @Override
+                                            public void onResponse(String response) {
+                                                Log.d("registerOpen" , response);
+                                                if (response.equals("1")){
+
+                                                }
+                                            }
+                                        }, new Response.ErrorListener() {
+                                            @Override
+                                            public void onErrorResponse(VolleyError error) {
+                                                dd.close();
+                                                Toast.makeText(holder.itemView.getContext(),error.getMessage() , Toast.LENGTH_LONG);
+                                                Log.d("registerOpen" , error.getMessage());
+                                            }
+                                        }){
+                                            @Override
+                                            protected Map<String, String> getParams() throws AuthFailureError {
+                                                Calendar c = Calendar.getInstance(Locale.getDefault());
+                                                String Date = c.get(Calendar.YEAR)+"-"+(c.get(Calendar.MONTH)+1)+"-"+c.get(Calendar.DAY_OF_MONTH);
+                                                String Time = c.get(Calendar.HOUR)+":"+c.get(Calendar.MINUTE)+":"+c.get(Calendar.SECOND);
+                                                Map<String,String> par = new HashMap<String, String>();
+                                                par.put("EmpID" , String.valueOf(LogIn.db.getUser().id));
+                                                par.put("JNum" , String.valueOf(LogIn.db.getUser().jobNumber));
+                                                par.put("Name" , LogIn.db.getUser().name);
+                                                par.put("Department" , LogIn.db.getUser().department);
+                                                par.put("Room" , String.valueOf(list.get(position).RoomNumber));
+                                                par.put("Date" , Date);
+                                                par.put("Time" , Time);
+                                                return par;
+                                            }
+                                        };
+                                        Volley.newRequestQueue(holder.itemView.getContext()).add(request);
                                     }
-                                }){
+
                                     @Override
-                                    protected Map<String, String> getParams() throws AuthFailureError {
-                                        Calendar c = Calendar.getInstance(Locale.getDefault());
-                                        String Date = c.get(Calendar.YEAR)+"-"+(c.get(Calendar.MONTH)+1)+"-"+c.get(Calendar.DAY_OF_MONTH);
-                                        String Time = c.get(Calendar.HOUR)+":"+c.get(Calendar.MINUTE)+":"+c.get(Calendar.SECOND);
-                                        Map<String,String> par = new HashMap<String, String>();
-                                        par.put("EmpID" , String.valueOf(LogIn.db.getUser().id));
-                                        par.put("JNum" , String.valueOf(LogIn.db.getUser().jobNumber));
-                                        par.put("Name" , LogIn.db.getUser().name);
-                                        par.put("Department" , LogIn.db.getUser().department);
-                                        par.put("Room" , String.valueOf(list.get(position).RoomNumber));
-                                        par.put("Date" , Date);
-                                        par.put("Time" , Time);
-                                        return par;
+                                    public void onFail(LockError error) {
+                                        dd.close();
+                                        Log.d("registerOpen" , error.getErrorMsg());
+                                        d.dismiss();
+                                        //Toast.makeText(holder.itemView.getContext(),error.getErrorMsg() , Toast.LENGTH_LONG);
+                                        messageDialog m = new messageDialog("Room "+list.get(position).RoomNumber+" Door Open Failed .. Try to be Closer","Door Open Failed",holder.itemView.getContext());
                                     }
-                                };
-                                Volley.newRequestQueue(holder.itemView.getContext()).add(request);
+                                });
+
                             }
                         }
                     });
@@ -174,7 +174,7 @@ public class ROOMS_ADAPTER extends RecyclerView.Adapter<ROOMS_ADAPTER.HOLDER> {
                                                                     public void onSuccess() {
                                                                         Log.d("power", 2+" on");
                                                                         B[0] = true ;
-                                                                        list.get(position).getPower().publishDps("{\"8\":300}", new IResultCallback() {
+                                                                        list.get(position).getPower().publishDps("{\"8\":900}", new IResultCallback() {
                                                                             @Override
                                                                             public void onError(String code, String error) {
                                                                                 //Toast.makeText(act, "turn on the light failure", Toast.LENGTH_SHORT).show();
@@ -251,4 +251,5 @@ public class ROOMS_ADAPTER extends RecyclerView.Adapter<ROOMS_ADAPTER.HOLDER> {
             room = (Button) itemView.findViewById(R.id.rooms_roomBtn);
         }
     }
+
 }

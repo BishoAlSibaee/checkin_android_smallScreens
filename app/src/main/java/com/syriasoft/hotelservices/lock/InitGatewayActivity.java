@@ -12,6 +12,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.syriasoft.hotelservices.LogIn;
 import com.syriasoft.hotelservices.R;
 import com.syriasoft.hotelservices.ToastMaker;
 import com.ttlock.bl.sdk.api.ExtendedBluetoothDevice;
@@ -61,7 +62,7 @@ public class InitGatewayActivity extends AppCompatActivity {
     private void uploadGatewayDetail(DeviceInfo deviceInfo, int gatewayId) {
         TextView wifiName = (TextView) findViewById(com.syriasoft.hotelservices.R.id.wifi_name);
         ApiService apiService = RetrofitAPIManager.provideClientApi();
-        Call<String> call = apiService.uploadGatewayDetail(ApiService.CLIENT_ID, AuthActivity.acc.getAccess_token(), gatewayId, deviceInfo.getModelNum(), deviceInfo.hardwareRevision, deviceInfo.getFirmwareRevision(), wifiName.getText().toString(), System.currentTimeMillis());
+        Call<String> call = apiService.uploadGatewayDetail(ApiService.CLIENT_ID, LogIn.acc.getAccess_token(), gatewayId, deviceInfo.getModelNum(), deviceInfo.hardwareRevision, deviceInfo.getFirmwareRevision(), wifiName.getText().toString(), System.currentTimeMillis());
         LogUtil.d("call server isSuccess api");
         call.enqueue(new Callback<String>() {
             @Override
@@ -88,7 +89,7 @@ public class InitGatewayActivity extends AppCompatActivity {
 
     private void isInitSuccess(final DeviceInfo deviceInfo) {
         ApiService apiService = RetrofitAPIManager.provideClientApi();
-        Call<String> call = apiService.gatewayIsInitSuccess(ApiService.CLIENT_ID, AuthActivity.acc.getAccess_token(), device.getAddress(), System.currentTimeMillis());
+        Call<String> call = apiService.gatewayIsInitSuccess(ApiService.CLIENT_ID, LogIn.acc.getAccess_token(), device.getAddress(), System.currentTimeMillis());
         LogUtil.d("call server isSuccess api");
         call.enqueue(new Callback<String>() {
             @Override
@@ -115,12 +116,13 @@ public class InitGatewayActivity extends AppCompatActivity {
         b.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                configureGatewayInfo.uid = AuthActivity.acc.getUid();
-                configureGatewayInfo.userPwd = AuthActivity.acc.getMd5Pwd();
+                configureGatewayInfo.uid = LogIn.acc.getUid();
+                configureGatewayInfo.userPwd = LogIn.acc.getMd5Pwd();
                 TextView wifiName = (TextView) findViewById(R.id.wifi_name);
                 EditText wifiPwd = (EditText) findViewById(com.syriasoft.hotelservices.R.id.wifi_pwd);
+                EditText gwName = (EditText) findViewById(com.syriasoft.hotelservices.R.id.gateway_name);
                 configureGatewayInfo.ssid = wifiName.getText().toString().trim();
-//            configureGatewayInfo.plugName = binding.gatewayName.getText().toString().trim();
+                configureGatewayInfo.plugName = gwName.getText().toString().trim();
                 configureGatewayInfo.wifiPwd = wifiPwd.getText().toString().trim();
 
                 //TODO:

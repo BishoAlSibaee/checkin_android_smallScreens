@@ -89,7 +89,7 @@ public class MessagingService extends FirebaseMessagingService {
     }
 
     void sendRegistrationToServer(String token) {
-        String url = Login.SelectedHotel.URL+ "modifyTokenForNonScreenRooms.php" ;
+        String url = Login.SelectedHotel.URL+ "modifyTokenForAllRooms.php" ;
         StringRequest re  = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {

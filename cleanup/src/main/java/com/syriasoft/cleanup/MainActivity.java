@@ -18,7 +18,10 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -33,6 +36,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
+import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
@@ -92,6 +96,7 @@ public class MainActivity extends AppCompatActivity {
     private static Activity act ;
     private static String makeOrderDone =LogIn.URL+"makeServiceOrderDone.php";
     private String getRoomsUrl = LogIn.URL+"getAllRooms.php" ;
+    private String changePasswordUrl = LogIn.URL+"changeUserPassword.php";
     static boolean activityStatus = false ;
     private static ProgressBar p ;
     private static UserDB db ;
@@ -264,6 +269,9 @@ public class MainActivity extends AppCompatActivity {
             case R.id.goToRooms:
                 Intent i = new Intent(act,ROOMS.class);
                 startActivity(i);
+                break;
+            case R.id.changePassword :
+                changePasswordDialog();
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -2639,6 +2647,81 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+    }
+
+    void changePasswordDialog () {
+        Dialog D = new Dialog(act) ;
+        D.setContentView(R.layout.change_password_dialog);
+        Window window = D.getWindow();
+        window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        EditText oldPassword = (EditText) D.findViewById(R.id.changePassword_oldPassword);
+        EditText newPassword = (EditText) D.findViewById(R.id.changePassword_NewPassword);
+        EditText Conferm = (EditText) D.findViewById(R.id.changePassword_ConNewPassword);
+        Button cancel = (Button) D.findViewById(R.id.changePassword_cancel) ;
+        Button send = (Button) D.findViewById(R.id.changePassword_send) ;
+        cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                D.dismiss();
+            }
+        });
+        send.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (oldPassword.getText() == null || oldPassword.getText().toString().isEmpty()) {
+                    Toast.makeText(act,"enter old password" ,Toast.LENGTH_SHORT).show();
+                    oldPassword.setHint("old password");
+                    oldPassword.setHintTextColor(Color.RED);
+                    return;
+                }
+                if (newPassword.getText() == null || newPassword.getText().toString().isEmpty()) {
+                    Toast.makeText(act,"enter new password" ,Toast.LENGTH_SHORT).show();
+                    newPassword.setHint("new password");
+                    newPassword.setHintTextColor(Color.RED);
+                    return;
+                }
+                if (Conferm.getText() == null || Conferm.getText().toString().isEmpty()) {
+                    Toast.makeText(act,"enter password confirmation" ,Toast.LENGTH_SHORT).show();
+                    Conferm.setHint("password confirm");
+                    Conferm.setHintTextColor(Color.RED);
+                    return;
+                }
+                LoadingDialog l = new LoadingDialog(act);
+                StringRequest request = new StringRequest(Request.Method.POST, changePasswordUrl , new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        Log.d("passwordResp" , response);
+                        l.close();
+                        if (response.equals("1")) {
+                            Toast.makeText(act,"Password Changed" ,Toast.LENGTH_LONG).show();
+                            D.dismiss();
+                        }
+                        else if (response.equals("-1")) {
+                            Toast.makeText(act,"Old Password Is Wrong" ,Toast.LENGTH_LONG).show();
+                        }
+                    }
+                }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.d("passwordResp" , error.toString());
+                        l.close();
+                        Toast.makeText(act,"error.. try again later" ,Toast.LENGTH_LONG).show();
+                    }
+                })
+                {
+                    @Override
+                    protected Map<String, String> getParams() throws AuthFailureError {
+                        Map<String,String> par = new HashMap<String, String>();
+                        par.put("oldPassword" , oldPassword.getText().toString());
+                        par.put("newPassword" , newPassword.getText().toString());
+                        par.put("jobNumber" , String.valueOf(LogIn.db.getUser().jobNumber));
+                        return par;
+                    }
+                };
+                Volley.newRequestQueue(act).add(request);
+            }
+        });
+        D.show();
     }
 
 

@@ -1,5 +1,6 @@
 package com.example.hotelservicesstandalone;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -7,12 +8,14 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.MessageQueue;
 import android.preference.PreferenceManager;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.LogPrinter;
 import android.view.KeyEvent;
@@ -46,9 +49,13 @@ import com.android.volley.toolbox.Volley;
 import com.example.hotelservicesstandalone.TUYA.Tuya_Login;
 import com.example.hotelservicesstandalone.lock.AccountInfo;
 import com.example.hotelservicesstandalone.lock.ApiService;
+import com.example.hotelservicesstandalone.lock.GatewayListAdapter;
 import com.example.hotelservicesstandalone.lock.GatewayObj;
+import com.example.hotelservicesstandalone.lock.InitGatewayActivity;
 import com.example.hotelservicesstandalone.lock.LockObj;
+import com.example.hotelservicesstandalone.lock.MyApplication;
 import com.example.hotelservicesstandalone.lock.RetrofitAPIManager;
+import com.example.hotelservicesstandalone.lock.ServerError;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
@@ -58,13 +65,22 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.gson.reflect.TypeToken;
+import com.ttlock.bl.sdk.api.ExtendedBluetoothDevice;
 import com.ttlock.bl.sdk.api.TTLockClient;
 import com.ttlock.bl.sdk.callback.ControlLockCallback;
 import com.ttlock.bl.sdk.constant.ControlAction;
 import com.ttlock.bl.sdk.entity.ControlLockResult;
 import com.ttlock.bl.sdk.entity.LockError;
+import com.ttlock.bl.sdk.gateway.api.GatewayClient;
+import com.ttlock.bl.sdk.gateway.callback.ConnectCallback;
+import com.ttlock.bl.sdk.gateway.callback.InitGatewayCallback;
+import com.ttlock.bl.sdk.gateway.callback.ScanGatewayCallback;
+import com.ttlock.bl.sdk.gateway.model.ConfigureGatewayInfo;
+import com.ttlock.bl.sdk.gateway.model.DeviceInfo;
+import com.ttlock.bl.sdk.gateway.model.GatewayError;
 import com.ttlock.bl.sdk.util.DigitUtil;
 import com.ttlock.bl.sdk.util.GsonUtil;
+import com.ttlock.bl.sdk.util.LogUtil;
 import com.tuya.smart.android.device.api.ITuyaDeviceMultiControl;
 import com.tuya.smart.android.device.bean.MultiControlBean;
 import com.tuya.smart.android.device.bean.MultiControlLinkBean;
@@ -86,6 +102,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -139,9 +156,14 @@ public class Rooms extends AppCompatActivity
     private DatabaseReference ServiceUsers ;
     static RequestQueue MessagesQueue;
     static boolean CHANGE_STATUS = false ;
-    RequestQueue REQ , REQ1;
+    RequestQueue REQ , REQ1 , CLEANUP_QUEUE , LAUNDRY_QUEUE , CHECKOUT_QUEUE ;
     EditText searchText ;
     Button searchBtn ;
+    List<ExtendedBluetoothDevice> gatewaysList = new ArrayList<ExtendedBluetoothDevice>() ;
+    ListView gatewaysListView ;
+    ExtendedBluetoothDevice TheFoundGateway ;
+    private ConfigureGatewayInfo configureGatewayInfo;
+
 
 
     @Override
@@ -152,6 +174,9 @@ public class Rooms extends AppCompatActivity
         act = this ;
         REQ = Volley.newRequestQueue(act);
         REQ1 = Volley.newRequestQueue(act);
+        CLEANUP_QUEUE = Volley.newRequestQueue(act);
+        LAUNDRY_QUEUE = Volley.newRequestQueue(act);
+        CHECKOUT_QUEUE = Volley.newRequestQueue(act);
         setActivity();
         setTuyaApplication();
         getRooms();
@@ -195,6 +220,8 @@ public class Rooms extends AppCompatActivity
             lockDB.removeAll();
             lockDB.insertLock("off");
         }
+        configureGatewayInfo = new ConfigureGatewayInfo();
+        gatewaysListView = (ListView) findViewById(R.id.scanLockGatewayList);
         searchText = (EditText) findViewById(R.id.search_text);
         searchBtn = (Button) findViewById(R.id.button16);
         searchBtn.setOnClickListener(new View.OnClickListener() {
@@ -478,7 +505,7 @@ public class Rooms extends AppCompatActivity
     {
 
         final lodingDialog loading = new lodingDialog(act);
-        StringRequest re = new StringRequest(Request.Method.POST, getUnregisteredRooms, new Response.Listener<String>()
+        StringRequest re = new StringRequest(Request.Method.POST, getRoomsUrl, new Response.Listener<String>()
         {
             @Override
             public void onResponse(String response)
@@ -496,6 +523,7 @@ public class Rooms extends AppCompatActivity
                         JSONObject row = arr.getJSONObject(i);
                         int id = row.getInt("id");
                         int rNum = row.getInt("RoomNumber");
+                        int Status = row.getInt("Status");
                         int Hotel = row.getInt("hotel");
                         int b = row.getInt("Building");
                         int bId = row.getInt("BuildingId");
@@ -535,7 +563,7 @@ public class Rooms extends AppCompatActivity
                         int doo = row.getInt("doorStatus");
                         int temp = row.getInt("temp");
                         String token =row.getString("token");
-                        ROOM room = new ROOM(id,rNum,Hotel,b,bId,f,fId,rType,ss,sn,si,rn,rs,t,dep,c,l,roomS,ch,res,sos,dnd,PowerSwitch,DoorSensor,MotionSensor,Thermostat,zbgateway,CurtainSwitch,ServiceSwitch,lock,Switch1,Switch2,Switch3,Switch4,LockGateway,LockName,po,cu,doo,temp,token);
+                        ROOM room = new ROOM(id,rNum,Status,Hotel,b,bId,f,fId,rType,ss,sn,si,rn,rs,t,dep,c,l,roomS,ch,res,sos,dnd,PowerSwitch,DoorSensor,MotionSensor,Thermostat,zbgateway,CurtainSwitch,ServiceSwitch,lock,Switch1,Switch2,Switch3,Switch4,LockGateway,LockName,po,cu,doo,temp,token);
                         room.printRoomOnLog();
                         list.add(room);
                         FireRooms.add(database.getReference(Login.SelectedHotel.ProjectName+"/B"+room.Building+"/F"+room.Floor+"/R"+room.RoomNumber));
@@ -796,12 +824,14 @@ public class Rooms extends AppCompatActivity
             {
                 loading.stop();
                 Devices = homeBean.getDeviceList();
-                String[] dd = new String[Devices.size()];
-                for (int i=0;i<Devices.size();i++)
-                {
-                    dd[i] = Devices.get(i).name ;
-                }
-                ArrayAdapter<String> adapter = new ArrayAdapter<String>(act,R.layout.spinners_item,dd);
+                //String[] dd = new String[Devices.size()];
+//                for (int i=0;i<Devices.size();i++)
+//                {
+//                    dd[i] = Devices.get(i).name ;
+//                    Log.d("deviceOnline",Devices.get(i).name +" local: "+Devices.get(i).getIsLocalOnline()+ " net: "+Devices.get(i).getIsOnline().toString()+" cloud: "+Devices.get(i).isCloudOnline());
+//                }
+                //ArrayAdapter<String> adapter = new ArrayAdapter<String>(act,R.layout.spinners_item,dd);
+                Devices_Adapter adapter = new Devices_Adapter(Devices,act);
                 devicesListView.setAdapter(adapter);
                 if (Devices.size() == 0)
                 {
@@ -820,7 +850,6 @@ public class Rooms extends AppCompatActivity
                             {
                                 list.get(j).setPOWER_B(Devices.get(i));
                                 list.get(j).setPOWER(TuyaHomeSdk.newDeviceInstance(list.get(j).getPOWER_B().devId));
-
                             }
                             else if (Devices.get(i).getName().equals(list.get(j).RoomNumber+"ZGatway"))
                             {
@@ -1080,400 +1109,401 @@ public class Rooms extends AppCompatActivity
         for (int i=0;i<list.size();i++)
         {
             int finalI3 = i;
-            if(list.get(i).getDOORSENSOR_B() != null )
-            {
-                int finalI = i;
-                list.get(i).getDOORSENSOR().registerDeviceListener(new IDeviceListener() {
-                    @Override
-                    public void onDpUpdate(String devId, Map<String, Object> dpStr)
-                    {
-                        //Toast.makeText(act,list.get(finalI).RoomNumber+"door",Toast.LENGTH_SHORT).show();
-                        if (dpStr.get("doorcontact_state") != null )
+            if(list.get(i).Status != 1) {
+                if(list.get(i).getDOORSENSOR_B() != null )
+                {
+                    int finalI = i;
+                    list.get(i).getDOORSENSOR().registerDeviceListener(new IDeviceListener() {
+                        @Override
+                        public void onDpUpdate(String devId, Map<String, Object> dpStr)
                         {
-
-                            if (dpStr.get("doorcontact_state").toString().equals("true") )
+                            //Toast.makeText(act,list.get(finalI).RoomNumber+"door",Toast.LENGTH_SHORT).show();
+                            if (dpStr.get("doorcontact_state") != null )
                             {
-                                //ToastMaker.MakeToast("Door is Open" , act);
-                                //myRefDoor.setValue("1");
-                                FireRooms.get(finalI).child("doorStatus").setValue(1);
-                                //thermostatStartTime = System.currentTimeMillis() ;
-                                start[finalI] = System.currentTimeMillis() ;
-                                DoorStart[finalI] = System.currentTimeMillis() ;
-                                AC_SENARIO_Status[finalI] = true ;
-                                DOORSTATUS[finalI] = true ;
-                                period[finalI] = 0;
-                                DoorPeriod[finalI]= 0;
-                                TempRonnableList[finalI].run();
-                                DoorRunnable[finalI].run();
-                                //x[0] = true ;
-                                //theThermoPeriod = 0 ;
-                                //TempRonnable.run();
-                            }
-                            else
-                            {
-                                FireRooms.get(finalI).child("doorStatus").setValue(0);
-                                DOORSTATUS[finalI] = false ;
-                                //ToastMaker.MakeToast("Door Closed" , act);
-                            }
-                        }
-                    }
-                    @Override
-                    public void onRemoved(String devId)
-                    {
-                        Log.d("DoorSensor" , "Removed" );
-                        //setDoorSensorStatus(list.get(finalI),"0");
-                    }
-                    @Override
-                    public void onStatusChanged(String devId, boolean online)
-                    {
-                        Log.d("DoorSensor" , "status changed " + online );
 
-                    }
-
-                    @Override
-                    public void onNetworkStatusChanged(String devId, boolean status)
-                    {
-                        Log.d("DoorSensor" , "network status changed " + status );
-                    }
-
-                    @Override
-                    public void onDevInfoUpdate(String devId)
-                    {
-                        Log.d("DoorSensor" , "DevInfo"  );
-                    }
-                });
-            }
-            if (list.get(i).getSERVICE_B() != null)
-            {
-                CLEANUP[i] = Boolean.getBoolean(list.get(i).getSERVICE_B().dps.get("2").toString()) ;
-                LAUNDRY[i] = Boolean.getBoolean( list.get(i).getSERVICE_B().dps.get("3").toString());
-                DND[i] = Boolean.getBoolean( list.get(i).getSERVICE_B().dps.get("1").toString());
-                CHECKOUT[i] = Boolean.getBoolean(list.get(i).getSERVICE_B().dps.get("4").toString());
-                int finalI1 = i;
-                list.get(i).getSERVICE().registerDeviceListener(new IDeviceListener() {
-                    @Override
-                    public void onDpUpdate(String devId, Map<String, Object> dpStr)
-                    {
-                        //Log.d("serviceswitch" , "1 "+list.get(finalI1).getSERVICE_B().dps.get("1").toString()+" 2 "+list.get(finalI1).getSERVICE_B().dps.get("2").toString()+" 3 "+list.get(finalI1).getSERVICE_B().dps.get("3").toString()+ "    c "+CLEANUP[finalI1]+" l "+LAUNDRY[finalI1]+" d "+DND[finalI1]+"    "+dpStr.toString());
-
-
-                        if (dpStr.get("switch_2") != null)
-                        {
-                            if (dpStr.get("switch_2").toString().equals("true") && !CLEANUP[finalI1])
-                            {
-                                Calendar c = Calendar.getInstance(Locale.getDefault());
-                                long time = c.getTimeInMillis();
-                                CLEANUP[finalI1] = true ;
-                                FireRooms.get(finalI1).child("Cleanup").setValue(time);
-                                FireRooms.get(finalI1).child("dep").setValue("Cleanup");
-                                addCleanupOrder(list.get(finalI1),finalI1);
-                                for(ServiceEmps u : Emps) {
-                                    if (u.department.equals("Cleanup") || u.department.equals("Service")) {
-                                        makemessage(u.token,"Cleanup",true,list.get(finalI1).RoomNumber);
-                                    }
-                                }
-                                if (list.get(finalI1).getSERVICE_B().dps.get("1").toString().equals("true"))
+                                if (dpStr.get("doorcontact_state").toString().equals("true") )
                                 {
-                                    DND[finalI1] = false ;
-                                    list.get(finalI1).getSERVICE().publishDps("{\" 1\":false}", new IResultCallback() {
-                                        @Override
-                                        public void onError(String code, String error) {
-
-                                        }
-
-                                        @Override
-                                        public void onSuccess() {
-
-                                        }
-                                    });
-                                    FireRooms.get(finalI1).child("DND").setValue(0);
-                                    cancelDNDOrder(list.get(finalI1),finalI1);
-                                }
-                            }
-                            else if (dpStr.get("switch_2").toString().equals("false") && CLEANUP[finalI1])
-                            {
-                                CLEANUP[finalI1] = false ;
-                                cancelCleanupOrder(list.get(finalI1),finalI1);
-                                FireRooms.get(finalI1).child("Cleanup").setValue(0);
-                                for(ServiceEmps u : Emps) {
-                                    if (u.department.equals("Cleanup") || u.department.equals("Service")) {
-                                        makemessage(u.token,"Cleanup",false,list.get(finalI1).RoomNumber);
-                                    }
-                                }
-                                if (DND[finalI1])
-                                {
-                                    FireRooms.get(finalI1).child("dep").setValue("DND");
-                                    //cancelCleanupOrder(list.get(finalI1),finalI1);
-                                }
-                                else if (LAUNDRY[finalI1])
-                                {
-                                    FireRooms.get(finalI1).child("dep").setValue("Laundry");
+                                    //ToastMaker.MakeToast("Door is Open" , act);
+                                    //myRefDoor.setValue("1");
+                                    FireRooms.get(finalI).child("doorStatus").setValue(1);
+                                    //thermostatStartTime = System.currentTimeMillis() ;
+                                    start[finalI] = System.currentTimeMillis() ;
+                                    DoorStart[finalI] = System.currentTimeMillis() ;
+                                    AC_SENARIO_Status[finalI] = true ;
+                                    DOORSTATUS[finalI] = true ;
+                                    period[finalI] = 0;
+                                    DoorPeriod[finalI]= 0;
+                                    TempRonnableList[finalI].run();
+                                    DoorRunnable[finalI].run();
+                                    //x[0] = true ;
+                                    //theThermoPeriod = 0 ;
+                                    //TempRonnable.run();
                                 }
                                 else
                                 {
-                                    FireRooms.get(finalI1).child("dep").setValue(0);
+                                    FireRooms.get(finalI).child("doorStatus").setValue(0);
+                                    DOORSTATUS[finalI] = false ;
+                                    //ToastMaker.MakeToast("Door Closed" , act);
                                 }
-
-
                             }
                         }
-                        if(dpStr.get("switch_3") != null)
+                        @Override
+                        public void onRemoved(String devId)
                         {
-                            if (dpStr.get("switch_3").toString().equals("true") && !LAUNDRY[finalI1])
+                            Log.d("DoorSensor" , "Removed" );
+                            //setDoorSensorStatus(list.get(finalI),"0");
+                        }
+                        @Override
+                        public void onStatusChanged(String devId, boolean online)
+                        {
+                            Log.d("DoorSensor" , "status changed " + online );
+
+                        }
+
+                        @Override
+                        public void onNetworkStatusChanged(String devId, boolean status)
+                        {
+                            Log.d("DoorSensor" , "network status changed " + status );
+                        }
+
+                        @Override
+                        public void onDevInfoUpdate(String devId)
+                        {
+                            Log.d("DoorSensor" , "DevInfo"  );
+                        }
+                    });
+                }
+                if (list.get(i).getSERVICE_B() != null)
+                {
+                    CLEANUP[i] = Boolean.getBoolean(list.get(i).getSERVICE_B().dps.get("2").toString()) ;
+                    LAUNDRY[i] = Boolean.getBoolean( list.get(i).getSERVICE_B().dps.get("3").toString());
+                    DND[i] = Boolean.getBoolean( list.get(i).getSERVICE_B().dps.get("1").toString());
+                    CHECKOUT[i] = Boolean.getBoolean(list.get(i).getSERVICE_B().dps.get("4").toString());
+                    int finalI1 = i;
+                    list.get(i).getSERVICE().registerDeviceListener(new IDeviceListener() {
+                        @Override
+                        public void onDpUpdate(String devId, Map<String, Object> dpStr)
+                        {
+                            //Log.d("serviceswitch" , "1 "+list.get(finalI1).getSERVICE_B().dps.get("1").toString()+" 2 "+list.get(finalI1).getSERVICE_B().dps.get("2").toString()+" 3 "+list.get(finalI1).getSERVICE_B().dps.get("3").toString()+ "    c "+CLEANUP[finalI1]+" l "+LAUNDRY[finalI1]+" d "+DND[finalI1]+"    "+dpStr.toString());
+
+
+                            if (dpStr.get("switch_2") != null)
                             {
-                                Calendar c = Calendar.getInstance(Locale.getDefault());
-                                long time = c.getTimeInMillis();
-                                LAUNDRY[finalI1] = true ;
-                                addLaundryOrder(list.get(finalI1) , finalI1);
-                                FireRooms.get(finalI1).child("Laundry").setValue(time);
-                                FireRooms.get(finalI1).child("dep").setValue("Laundry");
-                                for(ServiceEmps u : Emps) {
-                                    if (u.department.equals("Laundry") || u.department.equals("Service")) {
-                                        makemessage(u.token,"Laundry",true,list.get(finalI1).RoomNumber);
-                                    }
-                                }
-                                if (list.get(finalI1).getSERVICE_B().dps.get("1").toString().equals("true"))
+                                if (dpStr.get("switch_2").toString().equals("true") && !CLEANUP[finalI1])
                                 {
-                                    list.get(finalI1).getSERVICE().publishDps("{\" 1\":false}", new IResultCallback() {
-                                        @Override
-                                        public void onError(String code, String error) {
-
-                                        }
-
-                                        @Override
-                                        public void onSuccess() {
-
-                                        }
-                                    });
-                                    DND[finalI1] = false ;
-                                    FireRooms.get(finalI1).child("DND").setValue(0);
-                                    cancelDNDOrder(list.get(finalI1) , finalI1);
-                                }
-                            }
-                            else if(dpStr.get("switch_3").toString().equals("false") && LAUNDRY[finalI1])
-                            {
-                                LAUNDRY[finalI1] = false ;
-                                cancelLaundryOrder(list.get(finalI1) , finalI1);
-                                FireRooms.get(finalI1).child("Laundry").setValue(0);
-                                for(ServiceEmps u : Emps) {
-                                    if (u.department.equals("Laundry") || u.department.equals("Service")) {
-                                        makemessage(u.token,"Laundry",false,list.get(finalI1).RoomNumber);
-                                    }
-                                }
-                                if (DND[finalI1])
-                                {
-                                    FireRooms.get(finalI1).child("dep").setValue("DND");
-                                }
-                                else if (CLEANUP[finalI1])
-                                {
+                                    Calendar c = Calendar.getInstance(Locale.getDefault());
+                                    long time = c.getTimeInMillis();
+                                    CLEANUP[finalI1] = true ;
+                                    FireRooms.get(finalI1).child("Cleanup").setValue(time);
                                     FireRooms.get(finalI1).child("dep").setValue("Cleanup");
-                                }
-                                else
-                                {
-                                    FireRooms.get(finalI1).child("dep").setValue(0);
-                                }
-                            }
-                        }
-                        if (dpStr.get("switch_1") != null)
-                        {
-                            if (dpStr.get("switch_1").toString().equals("true") && !DND[finalI1])
-                            {
-                                Calendar c = Calendar.getInstance(Locale.getDefault());
-                                long time = c.getTimeInMillis();
-                                DND[finalI1] = true ;
-                                FireRooms.get(finalI1).child("DND").setValue(time);
-                                FireRooms.get(finalI1).child("dep").setValue("DND");
-                                addDNDOrder(list.get(finalI1) , finalI1);
-                                for(ServiceEmps u : Emps) {
-                                    if (u.department.equals("Service") || u.department.equals("Cleanup") || u.department.equals("Laundry") || u.department.equals("RoomService")) {
-                                        makemessage(u.token, "DND", true, list.get(finalI1).RoomNumber);
+                                    addCleanupOrder(list.get(finalI1),finalI1);
+                                    for(ServiceEmps u : Emps) {
+                                        if (u.department.equals("Cleanup") || u.department.equals("Service")) {
+                                            makemessage(u.token,"Cleanup",true,list.get(finalI1).RoomNumber);
+                                        }
+                                    }
+                                    if (list.get(finalI1).getSERVICE_B().dps.get("1").toString().equals("true"))
+                                    {
+                                        DND[finalI1] = false ;
+                                        list.get(finalI1).getSERVICE().publishDps("{\" 1\":false}", new IResultCallback() {
+                                            @Override
+                                            public void onError(String code, String error) {
+
+                                            }
+
+                                            @Override
+                                            public void onSuccess() {
+
+                                            }
+                                        });
+                                        FireRooms.get(finalI1).child("DND").setValue(0);
+                                        cancelDNDOrder(list.get(finalI1),finalI1);
                                     }
                                 }
-                                if (list.get(finalI1).getSERVICE_B().dps.get("2").toString().equals("true"))
+                                else if (dpStr.get("switch_2").toString().equals("false") && CLEANUP[finalI1])
                                 {
-                                    list.get(finalI1).getSERVICE().publishDps("{\" 2\":false}", new IResultCallback() {
-                                        @Override
-                                        public void onError(String code, String error) {
-
-                                        }
-
-                                        @Override
-                                        public void onSuccess() {
-
-                                        }
-                                    });
                                     CLEANUP[finalI1] = false ;
+                                    cancelCleanupOrder(list.get(finalI1),finalI1);
                                     FireRooms.get(finalI1).child("Cleanup").setValue(0);
-                                    cancelCleanupOrder(list.get(finalI1) , finalI1);
+                                    for(ServiceEmps u : Emps) {
+                                        if (u.department.equals("Cleanup") || u.department.equals("Service")) {
+                                            makemessage(u.token,"Cleanup",false,list.get(finalI1).RoomNumber);
+                                        }
+                                    }
+                                    if (DND[finalI1])
+                                    {
+                                        FireRooms.get(finalI1).child("dep").setValue("DND");
+                                        //cancelCleanupOrder(list.get(finalI1),finalI1);
+                                    }
+                                    else if (LAUNDRY[finalI1])
+                                    {
+                                        FireRooms.get(finalI1).child("dep").setValue("Laundry");
+                                    }
+                                    else
+                                    {
+                                        FireRooms.get(finalI1).child("dep").setValue(0);
+                                    }
+
+
                                 }
-                                if (list.get(finalI1).getSERVICE_B().dps.get("3").toString().equals("true"))
+                            }
+                            if(dpStr.get("switch_3") != null)
+                            {
+                                if (dpStr.get("switch_3").toString().equals("true") && !LAUNDRY[finalI1])
                                 {
-                                    list.get(finalI1).getSERVICE().publishDps("{\" 3\":false}", new IResultCallback() {
-                                        @Override
-                                        public void onError(String code, String error) {
-
+                                    Calendar c = Calendar.getInstance(Locale.getDefault());
+                                    long time = c.getTimeInMillis();
+                                    LAUNDRY[finalI1] = true ;
+                                    addLaundryOrder(list.get(finalI1) , finalI1);
+                                    FireRooms.get(finalI1).child("Laundry").setValue(time);
+                                    FireRooms.get(finalI1).child("dep").setValue("Laundry");
+                                    for(ServiceEmps u : Emps) {
+                                        if (u.department.equals("Laundry") || u.department.equals("Service")) {
+                                            makemessage(u.token,"Laundry",true,list.get(finalI1).RoomNumber);
                                         }
+                                    }
+                                    if (list.get(finalI1).getSERVICE_B().dps.get("1").toString().equals("true"))
+                                    {
+                                        list.get(finalI1).getSERVICE().publishDps("{\" 1\":false}", new IResultCallback() {
+                                            @Override
+                                            public void onError(String code, String error) {
 
-                                        @Override
-                                        public void onSuccess() {
+                                            }
 
-                                        }
-                                    });
+                                            @Override
+                                            public void onSuccess() {
+
+                                            }
+                                        });
+                                        DND[finalI1] = false ;
+                                        FireRooms.get(finalI1).child("DND").setValue(0);
+                                        cancelDNDOrder(list.get(finalI1) , finalI1);
+                                    }
+                                }
+                                else if(dpStr.get("switch_3").toString().equals("false") && LAUNDRY[finalI1])
+                                {
                                     LAUNDRY[finalI1] = false ;
-                                    FireRooms.get(finalI1).child("Laundry").setValue(0);
                                     cancelLaundryOrder(list.get(finalI1) , finalI1);
+                                    FireRooms.get(finalI1).child("Laundry").setValue(0);
+                                    for(ServiceEmps u : Emps) {
+                                        if (u.department.equals("Laundry") || u.department.equals("Service")) {
+                                            makemessage(u.token,"Laundry",false,list.get(finalI1).RoomNumber);
+                                        }
+                                    }
+                                    if (DND[finalI1])
+                                    {
+                                        FireRooms.get(finalI1).child("dep").setValue("DND");
+                                    }
+                                    else if (CLEANUP[finalI1])
+                                    {
+                                        FireRooms.get(finalI1).child("dep").setValue("Cleanup");
+                                    }
+                                    else
+                                    {
+                                        FireRooms.get(finalI1).child("dep").setValue(0);
+                                    }
                                 }
-                                if (list.get(finalI1).getSERVICE_B().dps.get("4").toString().equals("true"))
+                            }
+                            if (dpStr.get("switch_1") != null)
+                            {
+                                if (dpStr.get("switch_1").toString().equals("true") && !DND[finalI1])
                                 {
-                                    list.get(finalI1).getSERVICE().publishDps("{\" 4\":false}", new IResultCallback() {
-                                        @Override
-                                        public void onError(String code, String error) {
-
+                                    Calendar c = Calendar.getInstance(Locale.getDefault());
+                                    long time = c.getTimeInMillis();
+                                    DND[finalI1] = true ;
+                                    FireRooms.get(finalI1).child("DND").setValue(time);
+                                    FireRooms.get(finalI1).child("dep").setValue("DND");
+                                    addDNDOrder(list.get(finalI1) , finalI1);
+                                    for(ServiceEmps u : Emps) {
+                                        if (u.department.equals("Service") || u.department.equals("Cleanup") || u.department.equals("Laundry") || u.department.equals("RoomService")) {
+                                            makemessage(u.token, "DND", true, list.get(finalI1).RoomNumber);
                                         }
+                                    }
+                                    if (list.get(finalI1).getSERVICE_B().dps.get("2").toString().equals("true"))
+                                    {
+                                        list.get(finalI1).getSERVICE().publishDps("{\" 2\":false}", new IResultCallback() {
+                                            @Override
+                                            public void onError(String code, String error) {
 
-                                        @Override
-                                        public void onSuccess() {
+                                            }
 
+                                            @Override
+                                            public void onSuccess() {
+
+                                            }
+                                        });
+                                        CLEANUP[finalI1] = false ;
+                                        FireRooms.get(finalI1).child("Cleanup").setValue(0);
+                                        cancelCleanupOrder(list.get(finalI1) , finalI1);
+                                    }
+                                    if (list.get(finalI1).getSERVICE_B().dps.get("3").toString().equals("true"))
+                                    {
+                                        list.get(finalI1).getSERVICE().publishDps("{\" 3\":false}", new IResultCallback() {
+                                            @Override
+                                            public void onError(String code, String error) {
+
+                                            }
+
+                                            @Override
+                                            public void onSuccess() {
+
+                                            }
+                                        });
+                                        LAUNDRY[finalI1] = false ;
+                                        FireRooms.get(finalI1).child("Laundry").setValue(0);
+                                        cancelLaundryOrder(list.get(finalI1) , finalI1);
+                                    }
+                                    if (list.get(finalI1).getSERVICE_B().dps.get("4").toString().equals("true"))
+                                    {
+                                        list.get(finalI1).getSERVICE().publishDps("{\" 4\":false}", new IResultCallback() {
+                                            @Override
+                                            public void onError(String code, String error) {
+
+                                            }
+
+                                            @Override
+                                            public void onSuccess() {
+
+                                            }
+                                        });
+                                        CHECKOUT[finalI1] = false ;
+                                        FireRooms.get(finalI1).child("Checkout").setValue(0);
+                                        cancelCheckoutOrder(list.get(finalI1) , finalI1);
+                                    }
+                                }
+                                else if (dpStr.get("switch_1").toString().equals("false") && DND[finalI1])
+                                {
+                                    DND[finalI1] = false ;
+                                    cancelDNDOrder(list.get(finalI1) , finalI1);
+                                    FireRooms.get(finalI1).child("DND").setValue(0);
+                                    for(ServiceEmps u : Emps) {
+                                        if (u.department.equals("Service") || u.department.equals("Cleanup") || u.department.equals("Laundry") || u.department.equals("RoomService")) {
+                                            makemessage(u.token, "DND", false, list.get(finalI1).RoomNumber);
                                         }
-                                    });
+                                    }
+                                    if (LAUNDRY[finalI1])
+                                    {
+                                        FireRooms.get(finalI1).child("dep").setValue("Laundry");
+                                    }
+                                    else if (CLEANUP[finalI1])
+                                    {
+                                        FireRooms.get(finalI1).child("dep").setValue("Cleanup");
+                                    }
+                                    else
+                                    {
+                                        FireRooms.get(finalI1).child("dep").setValue(0);
+                                    }
+                                }
+                            }
+                            if (dpStr.get("switch_4") != null )
+                            {
+                                if (dpStr.get("switch_4").toString().equals("true") && !CHECKOUT[finalI1]){
+                                    Calendar c = Calendar.getInstance(Locale.getDefault());
+                                    long time = c.getTimeInMillis();
+                                    CHECKOUT[finalI1] = true ;
+                                    FireRooms.get(finalI1).child("Checkout").setValue(time);
+                                    FireRooms.get(finalI1).child("dep").setValue("Checkout");
+                                    addCheckoutOrder(list.get(finalI1),finalI1);
+                                    if (list.get(finalI1).getSERVICE_B().dps.get("1").toString().equals("true"))
+                                    {
+                                        DND[finalI1] = false ;
+                                        list.get(finalI1).getSERVICE().publishDps("{\" 1\":false}", new IResultCallback() {
+                                            @Override
+                                            public void onError(String code, String error) {
+
+                                            }
+
+                                            @Override
+                                            public void onSuccess() {
+
+                                            }
+                                        });
+                                        FireRooms.get(finalI1).child("DND").setValue(0);
+                                        cancelDNDOrder(list.get(finalI1),finalI1);
+                                    }
+                                }
+                                else if (dpStr.get("switch_4").toString().equals("false") && CHECKOUT[finalI1]){
+                                    //Log.d("checkoutProblem" , " from here " + CheckoutStatus+dpStr.get("switch_4").toString() ) ;
                                     CHECKOUT[finalI1] = false ;
                                     FireRooms.get(finalI1).child("Checkout").setValue(0);
-                                    cancelCheckoutOrder(list.get(finalI1) , finalI1);
+                                    cancelCheckoutOrder(list.get(finalI1),finalI1);
                                 }
                             }
-                            else if (dpStr.get("switch_1").toString().equals("false") && DND[finalI1])
+
+                        }
+                        @Override
+                        public void onRemoved(String devId)
+                        {
+                            setServiceSwitchStatus(list.get(finalI1),"0");
+                        }
+                        @Override
+                        public void onStatusChanged(String devId, boolean online) {
+
+                        }
+
+                        @Override
+                        public void onNetworkStatusChanged(String devId, boolean status) {
+
+                        }
+
+                        @Override
+                        public void onDevInfoUpdate(String devId) {
+
+                        }
+                    });
+                }
+                if (list.get(i).getAC_B() !=null)
+                {
+                    int finalI2 = i;
+                    list.get(i).getAC().registerDeviceListener(new IDeviceListener() {
+                        @Override
+                        public void onDpUpdate(String devId, Map<String, Object> dpStr)
+                        {
+                            //Toast.makeText(act,list.get(finalI2).RoomNumber+"AC",Toast.LENGTH_LONG).show();
+                            if (dpStr.get("temp_current") != null)
                             {
-                                DND[finalI1] = false ;
-                                cancelDNDOrder(list.get(finalI1) , finalI1);
-                                FireRooms.get(finalI1).child("DND").setValue(0);
-                                for(ServiceEmps u : Emps) {
-                                    if (u.department.equals("Service") || u.department.equals("Cleanup") || u.department.equals("Laundry") || u.department.equals("RoomService")) {
-                                        makemessage(u.token, "DND", false, list.get(finalI1).RoomNumber);
-                                    }
-                                }
-                                if (LAUNDRY[finalI1])
-                                {
-                                    FireRooms.get(finalI1).child("dep").setValue("Laundry");
-                                }
-                                else if (CLEANUP[finalI1])
-                                {
-                                    FireRooms.get(finalI1).child("dep").setValue("Cleanup");
-                                }
-                                else
-                                {
-                                    FireRooms.get(finalI1).child("dep").setValue(0);
-                                }
+                                double temp = (Integer.parseInt(dpStr.get("temp_current").toString())*0.1);
+                                FireRooms.get(finalI2).child("temp").setValue(temp) ;
                             }
-                        }
-                        if (dpStr.get("switch_4") != null )
-                        {
-                            if (dpStr.get("switch_4").toString().equals("true") && !CHECKOUT[finalI1]){
-                                Calendar c = Calendar.getInstance(Locale.getDefault());
-                                long time = c.getTimeInMillis();
-                                CHECKOUT[finalI1] = true ;
-                                FireRooms.get(finalI1).child("Checkout").setValue(time);
-                                FireRooms.get(finalI1).child("dep").setValue("Checkout");
-                                addCheckoutOrder(list.get(finalI1),finalI1);
-                                if (list.get(finalI1).getSERVICE_B().dps.get("1").toString().equals("true"))
-                                {
-                                    DND[finalI1] = false ;
-                                    list.get(finalI1).getSERVICE().publishDps("{\" 1\":false}", new IResultCallback() {
-                                        @Override
-                                        public void onError(String code, String error) {
-
-                                        }
-
-                                        @Override
-                                        public void onSuccess() {
-
-                                        }
-                                    });
-                                    FireRooms.get(finalI1).child("DND").setValue(0);
-                                    cancelDNDOrder(list.get(finalI1),finalI1);
-                                }
-                            }
-                            else if (dpStr.get("switch_4").toString().equals("false") && CHECKOUT[finalI1]){
-                                //Log.d("checkoutProblem" , " from here " + CheckoutStatus+dpStr.get("switch_4").toString() ) ;
-                                CHECKOUT[finalI1] = false ;
-                                FireRooms.get(finalI1).child("Checkout").setValue(0);
-                                cancelCheckoutOrder(list.get(finalI1),finalI1);
-                            }
-                        }
-
-                    }
-                    @Override
-                    public void onRemoved(String devId)
-                    {
-                        setServiceSwitchStatus(list.get(finalI1),"0");
-                    }
-                    @Override
-                    public void onStatusChanged(String devId, boolean online) {
-
-                    }
-
-                    @Override
-                    public void onNetworkStatusChanged(String devId, boolean status) {
-
-                    }
-
-                    @Override
-                    public void onDevInfoUpdate(String devId) {
-
-                    }
-                });
-            }
-            if (list.get(i).getAC_B() !=null)
-            {
-                int finalI2 = i;
-                list.get(i).getAC().registerDeviceListener(new IDeviceListener() {
-                    @Override
-                    public void onDpUpdate(String devId, Map<String, Object> dpStr)
-                    {
-                        //Toast.makeText(act,list.get(finalI2).RoomNumber+"AC",Toast.LENGTH_LONG).show();
-                        if (dpStr.get("temp_current") != null)
-                        {
-                            double temp = (Integer.parseInt(dpStr.get("temp_current").toString())*0.1);
-                            FireRooms.get(finalI2).child("temp").setValue(temp) ;
-                        }
-                        if ( dpStr.get("temp_set") != null )
-                        {
-                            if (Double.parseDouble(dpStr.get("temp_set").toString()) !=  Double.parseDouble(TempSetPoint[finalI2]))
+                            if ( dpStr.get("temp_set") != null )
                             {
-                                ClientTemp[finalI2] = dpStr.get("temp_set").toString();
+                                if (Double.parseDouble(dpStr.get("temp_set").toString()) !=  Double.parseDouble(TempSetPoint[finalI2]))
+                                {
+                                    ClientTemp[finalI2] = dpStr.get("temp_set").toString();
+                                }
+
                             }
+                        }
+                        @Override
+                        public void onRemoved(String devId)
+                        {
+                            setThermostatStatus(list.get(finalI2) , "0");
+                        }
+                        @Override
+                        public void onStatusChanged(String devId, boolean online) {
 
                         }
-                    }
-                    @Override
-                    public void onRemoved(String devId)
-                    {
-                        setThermostatStatus(list.get(finalI2) , "0");
-                    }
-                    @Override
-                    public void onStatusChanged(String devId, boolean online) {
 
-                    }
+                        @Override
+                        public void onNetworkStatusChanged(String devId, boolean status) {
 
-                    @Override
-                    public void onNetworkStatusChanged(String devId, boolean status) {
+                        }
 
-                    }
+                        @Override
+                        public void onDevInfoUpdate(String devId) {
 
-                    @Override
-                    public void onDevInfoUpdate(String devId) {
+                        }
+                    });
+                }
+                if (list.get(i).getPOWER_B() != null)
+                {
 
-                    }
-                });
-            }
-            if (list.get(i).getPOWER_B() != null)
-            {
-
-                list.get(i).getPOWER().registerDeviceListener(new IDeviceListener() {
-                    @Override
-                    public void onDpUpdate(String devId, Map<String, Object> dpStr)
-                    {
-                        //Toast.makeText(act,list.get(finalI3).RoomNumber+"power",Toast.LENGTH_LONG).show();
-                        //Log.d("powerdps" , list.get(finalI3).getPOWER_B().dps.toString() +" "+ dpStr);
+                    list.get(i).getPOWER().registerDeviceListener(new IDeviceListener() {
+                        @Override
+                        public void onDpUpdate(String devId, Map<String, Object> dpStr)
+                        {
+                            //Toast.makeText(act,list.get(finalI3).RoomNumber+"power",Toast.LENGTH_LONG).show();
+                            //Log.d("powerdps" , list.get(finalI3).getPOWER_B().dps.toString() +" "+ dpStr);
                         /*
                         if (list.get(finalI3).getPOWER_B().dps.get("1").toString().equals("true"))
                         {
@@ -1485,178 +1515,151 @@ public class Rooms extends AppCompatActivity
                         }
 
                          */
-                        if (dpStr.get("switch_1") != null)
-                        {
-                            String S1 = dpStr.get("switch_1").toString() ;
-                            if (S1.equals("false"))
+                            if (dpStr.get("switch_1") != null)
                             {
-                                FireRooms.get(finalI3).child("powerStatus").setValue(0);
-                                //setPowerOnOff("0");
+                                String S1 = dpStr.get("switch_1").toString() ;
+                                if (S1.equals("false"))
+                                {
+                                    FireRooms.get(finalI3).child("powerStatus").setValue(0);
+                                    //setPowerOnOff("0");
+                                }
+                                else
+                                {
+                                    FireRooms.get(finalI3).child("powerStatus").setValue(1);
+                                    //setPowerOnOff("1");
+                                }
+                            }
+                        }
+
+                        @Override
+                        public void onRemoved(String devId)
+                        {
+                            setPowerSwitchStatus(list.get(finalI3),"0");
+                        }
+                        @Override
+                        public void onStatusChanged(String devId, boolean online) {
+
+                        }
+
+                        @Override
+                        public void onNetworkStatusChanged(String devId, boolean status) {
+
+                        }
+
+                        @Override
+                        public void onDevInfoUpdate(String devId) {
+
+                        }
+                    });
+                }
+                if (list.get(i).getCURTAIN_B() != null)
+                {
+                    list.get(i).getCURTAIN().registerDeviceListener(new IDeviceListener() {
+                        @Override
+                        public void onDpUpdate(String devId, Map<String, Object> dpStr)
+                        {
+                            //Toast.makeText(act,list.get(finalI3).RoomNumber+"curtain",Toast.LENGTH_LONG).show();
+                        }
+
+                        @Override
+                        public void onRemoved(String devId)
+                        {
+                            setCurtainSwitchStatus(list.get(finalI3),"0");
+                        }
+                        @Override
+                        public void onStatusChanged(String devId, boolean online) {
+
+                        }
+
+                        @Override
+                        public void onNetworkStatusChanged(String devId, boolean status) {
+
+                        }
+
+                        @Override
+                        public void onDevInfoUpdate(String devId) {
+
+                        }
+                    });
+                }
+                if (list.get(i).getMOTIONSENSOR_B() != null )
+                {
+                    list.get(i).getMOTIONSENSOR().registerDeviceListener(new IDeviceListener() {
+                        @Override
+                        public void onDpUpdate(String devId, Map<String, Object> dpStr)
+                        {
+                            Log.d("motion" , dpStr.toString());
+                            //Toast.makeText(act,list.get(finalI3).RoomNumber+"motion",Toast.LENGTH_LONG).show();
+                            if (AC_SENARIO_Status[finalI3])
+                            {
+                                AC_SENARIO_Status[finalI3] = false ;
                             }
                             else
                             {
-                                FireRooms.get(finalI3).child("powerStatus").setValue(1);
-                                //setPowerOnOff("1");
+                                String t ="";
+                                if (ClientTemp[finalI3].equals("0"))
+                                {
+                                    t="240";
+                                }
+                                else
+                                {
+                                    t = ClientTemp[finalI3] ;
+                                }
+                                String dp = "{\" 2\": "+t+"}";
+                                if (list.get(finalI3).getAC() != null )
+                                {
+                                    list.get(finalI3).getAC().publishDps(dp, new IResultCallback() {
+                                        @Override
+                                        public void onError(String code, String error) {
+
+                                        }
+
+                                        @Override
+                                        public void onSuccess()
+                                        {
+                                            //ToastMaker.MakeToast("Temp Set to Client Temp " , act);
+
+                                        }
+                                    });
+                                }
+
+
                             }
                         }
-                    }
 
-                    @Override
-                    public void onRemoved(String devId)
-                    {
-                        setPowerSwitchStatus(list.get(finalI3),"0");
-                    }
-                    @Override
-                    public void onStatusChanged(String devId, boolean online) {
-
-                    }
-
-                    @Override
-                    public void onNetworkStatusChanged(String devId, boolean status) {
-
-                    }
-
-                    @Override
-                    public void onDevInfoUpdate(String devId) {
-
-                    }
-                });
-            }
-            if (list.get(i).getCURTAIN_B() != null)
-            {
-                list.get(i).getCURTAIN().registerDeviceListener(new IDeviceListener() {
-                    @Override
-                    public void onDpUpdate(String devId, Map<String, Object> dpStr)
-                    {
-                        //Toast.makeText(act,list.get(finalI3).RoomNumber+"curtain",Toast.LENGTH_LONG).show();
-                    }
-
-                    @Override
-                    public void onRemoved(String devId)
-                    {
-                        setCurtainSwitchStatus(list.get(finalI3),"0");
-                    }
-                    @Override
-                    public void onStatusChanged(String devId, boolean online) {
-
-                    }
-
-                    @Override
-                    public void onNetworkStatusChanged(String devId, boolean status) {
-
-                    }
-
-                    @Override
-                    public void onDevInfoUpdate(String devId) {
-
-                    }
-                });
-            }
-            if (list.get(i).getMOTIONSENSOR_B() != null )
-            {
-                list.get(i).getMOTIONSENSOR().registerDeviceListener(new IDeviceListener() {
-                    @Override
-                    public void onDpUpdate(String devId, Map<String, Object> dpStr)
-                    {
-                        Log.d("motion" , dpStr.toString());
-                        //Toast.makeText(act,list.get(finalI3).RoomNumber+"motion",Toast.LENGTH_LONG).show();
-                        if (AC_SENARIO_Status[finalI3])
+                        @Override
+                        public void onRemoved(String devId)
                         {
-                            AC_SENARIO_Status[finalI3] = false ;
+                            setMotionSensorStatus(list.get(finalI3),"0");
                         }
-                        else
+                        @Override
+                        public void onStatusChanged(String devId, boolean online) {
+
+                        }
+
+                        @Override
+                        public void onNetworkStatusChanged(String devId, boolean status) {
+
+                        }
+
+                        @Override
+                        public void onDevInfoUpdate(String devId) {
+
+                        }
+                    });
+                }
+                if (list.get(i).getSWITCH1_B() != null)
+                {
+                    list.get(i).getSWITCH1().registerDeviceListener(new IDeviceListener() {
+                        @Override
+                        public void onDpUpdate(String devId, Map<String, Object> dpStr)
                         {
-                            String t ="";
-                            if (ClientTemp[finalI3].equals("0"))
-                            {
-                                t="240";
-                            }
-                            else
-                            {
-                                t = ClientTemp[finalI3] ;
-                            }
-                            String dp = "{\" 2\": "+t+"}";
-                            if (list.get(finalI3).getAC() != null )
-                            {
-                                list.get(finalI3).getAC().publishDps(dp, new IResultCallback() {
-                                    @Override
-                                    public void onError(String code, String error) {
+                            if (dpStr.get("switch_3") != null ){
 
-                                    }
+                                if (dpStr.get("switch_3").toString().equals("true")) {
 
-                                    @Override
-                                    public void onSuccess()
-                                    {
-                                        //ToastMaker.MakeToast("Temp Set to Client Temp " , act);
-
-                                    }
-                                });
-                            }
-
-
-                        }
-                    }
-
-                    @Override
-                    public void onRemoved(String devId)
-                    {
-                        setMotionSensorStatus(list.get(finalI3),"0");
-                    }
-                    @Override
-                    public void onStatusChanged(String devId, boolean online) {
-
-                    }
-
-                    @Override
-                    public void onNetworkStatusChanged(String devId, boolean status) {
-
-                    }
-
-                    @Override
-                    public void onDevInfoUpdate(String devId) {
-
-                    }
-                });
-            }
-            if (list.get(i).getSWITCH1_B() != null)
-            {
-                list.get(i).getSWITCH1().registerDeviceListener(new IDeviceListener() {
-                    @Override
-                    public void onDpUpdate(String devId, Map<String, Object> dpStr)
-                    {
-                        if (dpStr.get("switch_3") != null ){
-
-                            if (dpStr.get("switch_3").toString().equals("true")) {
-
-                                if (list.get(finalI3).getSWITCH1_B().dps.get("2").toString().equals("true")) {
-                                    list.get(finalI3).getSWITCH1().publishDps("{\" 2\":false}", new IResultCallback() {
-                                        @Override
-                                        public void onError(String code, String error) {
-
-                                        }
-
-                                        @Override
-                                        public void onSuccess() {
-
-                                        }
-                                    });
-                                }
-                                if (list.get(finalI3).getSWITCH1_B().dps.get("1").toString().equals("true")) {
-                                    list.get(finalI3).getSWITCH1().publishDps("{\" 1\":false}", new IResultCallback() {
-                                        @Override
-                                        public void onError(String code, String error) {
-
-                                        }
-
-                                        @Override
-                                        public void onSuccess() {
-
-                                        }
-                                    });
-                                }
-                                if (list.get(finalI3).getSWITCH2_B() != null ) {
-                                    if (list.get(finalI3).getSWITCH2_B().dps.get("1").toString().equals("true")) {
-                                        list.get(finalI3).getSWITCH2().publishDps("{\" 1\":false}", new IResultCallback() {
+                                    if (list.get(finalI3).getSWITCH1_B().dps.get("2").toString().equals("true")) {
+                                        list.get(finalI3).getSWITCH1().publishDps("{\" 2\":false}", new IResultCallback() {
                                             @Override
                                             public void onError(String code, String error) {
 
@@ -1668,8 +1671,8 @@ public class Rooms extends AppCompatActivity
                                             }
                                         });
                                     }
-                                    if (list.get(finalI3).getSWITCH2_B().dps.get("2").toString().equals("true")) {
-                                        list.get(finalI3).getSWITCH2().publishDps("{\" 2\":false}", new IResultCallback() {
+                                    if (list.get(finalI3).getSWITCH1_B().dps.get("1").toString().equals("true")) {
+                                        list.get(finalI3).getSWITCH1().publishDps("{\" 1\":false}", new IResultCallback() {
                                             @Override
                                             public void onError(String code, String error) {
 
@@ -1681,200 +1684,9 @@ public class Rooms extends AppCompatActivity
                                             }
                                         });
                                     }
-                                }
-                            }
-                        }
-                        if (dpStr.get("switch_2") != null ){
-                            if (dpStr.get("switch_2").toString().equals("true")){
-
-                                if (list.get(finalI3).getSWITCH1_B().dps.get("3").toString().equals("true")) {
-                                    list.get(finalI3).getSWITCH1().publishDps("{\" 3\":false}", new IResultCallback() {
-                                        @Override
-                                        public void onError(String code, String error) {
-
-                                        }
-
-                                        @Override
-                                        public void onSuccess() {
-
-                                        }
-                                    });
-                                }
-                            }
-                            else {
-
-                            }
-                        }
-                        if (dpStr.get("switch_1") != null ){
-//                                                if (dpStr.get("switch_3").toString().equals("true")){
-//                                                    Button b1 = (Button)findViewById(R.id.button17);
-//                                                    b1.setBackgroundResource(R.drawable.light_on);
-//                                                }
-//                                                else {
-//                                                    Button b1 = (Button)findViewById(R.id.button17);
-//                                                    b1.setBackgroundResource(R.drawable.group_62);
-//                                                }
-                            if (dpStr.get("switch_1").toString().equals("true")){
-                                if (list.get(finalI3).getSWITCH1_B().dps.get("3").toString().equals("true")) {
-                                    list.get(finalI3).getSWITCH1().publishDps("{\" 3\":false}", new IResultCallback() {
-                                        @Override
-                                        public void onError(String code, String error) {
-
-                                        }
-
-                                        @Override
-                                        public void onSuccess() {
-
-                                        }
-                                    });
-                                }
-                            }
-                            else {
-                            }
-
-                        }
-                    }
-
-                    @Override
-                    public void onRemoved(String devId)
-                    {
-                        setSwitch1Status(list.get(finalI3),"0");
-                    }
-                    @Override
-                    public void onStatusChanged(String devId, boolean online) {
-
-                    }
-
-                    @Override
-                    public void onNetworkStatusChanged(String devId, boolean status) {
-
-                    }
-
-                    @Override
-                    public void onDevInfoUpdate(String devId) {
-
-                    }
-                });
-            }
-            if (list.get(i).getSWITCH2_B() != null)
-            {
-                list.get(i).getSWITCH2().registerDeviceListener(new IDeviceListener() {
-                    @Override
-                    public void onDpUpdate(String devId, Map<String, Object> dpStr)
-                    {
-                        Log.d("switch2Data" , dpStr.toString());
-                        if (dpStr.get("switch_1") != null ) {
-                            if (dpStr.get("switch_1").toString().equals("true")) {
-                                if (list.get(finalI3).getSWITCH1_B() != null) {
-                                    if (list.get(finalI3).getSWITCH1_B().dps.get("3").toString().equals("true")) {
-                                        list.get(finalI3).getSWITCH1().publishDps("{\" 3\":false}", new IResultCallback() {
-                                            @Override
-                                            public void onError(String code, String error) {
-
-                                            }
-
-                                            @Override
-                                            public void onSuccess() {
-
-                                            }
-                                        });
-                                    }
-                                }
-                            }
-                        }
-                        if (dpStr.get("switch_2") != null ) {
-                            if (dpStr.get("switch_2").toString().equals("true")) {
-                                if (list.get(finalI3).getSWITCH1_B() != null) {
-                                    if (list.get(finalI3).getSWITCH1_B().dps.get("3").toString().equals("true")) {
-                                        list.get(finalI3).getSWITCH1().publishDps("{\" 3\":false}", new IResultCallback() {
-                                            @Override
-                                            public void onError(String code, String error) {
-
-                                            }
-
-                                            @Override
-                                            public void onSuccess() {
-
-                                            }
-                                        });
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    @Override
-                    public void onRemoved(String devId)
-                    {
-                        setSwitch2Status(list.get(finalI3),"0");
-                    }
-                    @Override
-                    public void onStatusChanged(String devId, boolean online) {
-
-                    }
-
-                    @Override
-                    public void onNetworkStatusChanged(String devId, boolean status) {
-
-                    }
-
-                    @Override
-                    public void onDevInfoUpdate(String devId) {
-
-                    }
-                });
-            }
-            if (list.get(i).getSWITCH3_B() != null)
-            {
-                list.get(i).getSWITCH3().registerDeviceListener(new IDeviceListener() {
-                    @Override
-                    public void onDpUpdate(String devId, Map<String, Object> dpStr)
-                    {
-                        //Toast.makeText(act,list.get(finalI3).RoomNumber+"switch3",Toast.LENGTH_LONG).show();
-                    }
-
-                    @Override
-                    public void onRemoved(String devId)
-                    {
-                        setSwitch3Status(list.get(finalI3),"0");
-                    }
-                    @Override
-                    public void onStatusChanged(String devId, boolean online) {
-
-                    }
-
-                    @Override
-                    public void onNetworkStatusChanged(String devId, boolean status) {
-
-                    }
-
-                    @Override
-                    public void onDevInfoUpdate(String devId) {
-
-                    }
-                });
-            }
-            if (list.get(i).getSWITCH4_B() != null)
-            {
-                list.get(i).getSWITCH4().registerDeviceListener(new IDeviceListener() {
-                    @Override
-                    public void onDpUpdate(String devId, Map<String, Object> dpStr)
-                    {
-                        //Toast.makeText(act,list.get(finalI3).RoomNumber+"switch4",Toast.LENGTH_LONG).show();
-                        Log.d("switch4" , dpStr.toString() );
-                        if ( dpStr.get("switch_1") != null )
-                        {
-                            if (dpStr.get("switch_1").toString().equals("true")) {
-                                if (list.get(finalI3).getLock() != null) {
-                                    Log.d("switch4", list.get(finalI3).getLock().getLockName());
-                                    TTLockClient.getDefault().controlLock(ControlAction.UNLOCK, list.get(finalI3).getLock().getLockData(), list.get(finalI3).getLock().getLockMac(), new ControlLockCallback() {
-                                        @Override
-                                        public void onControlLockSuccess(ControlLockResult controlLockResult) {
-                                            //Toast.makeText(act,"lock is unlock  success!",Toast.LENGTH_LONG).show();
-                                            //d.dismiss();
-                                            //ToastMaker.MakeToast("Door Opened",act);
-                                            Log.d("switch4", "open");
-                                            list.get(finalI3).getSWITCH4().publishDps("{\" 1\":false}", new IResultCallback() {
+                                    if (list.get(finalI3).getSWITCH2_B() != null ) {
+                                        if (list.get(finalI3).getSWITCH2_B().dps.get("1").toString().equals("true")) {
+                                            list.get(finalI3).getSWITCH2().publishDps("{\" 1\":false}", new IResultCallback() {
                                                 @Override
                                                 public void onError(String code, String error) {
 
@@ -1886,44 +1698,262 @@ public class Rooms extends AppCompatActivity
                                                 }
                                             });
                                         }
+                                        if (list.get(finalI3).getSWITCH2_B().dps.get("2").toString().equals("true")) {
+                                            list.get(finalI3).getSWITCH2().publishDps("{\" 2\":false}", new IResultCallback() {
+                                                @Override
+                                                public void onError(String code, String error) {
 
-                                        @Override
-                                        public void onFail(LockError error) {
-                                            // Toast.makeText(UnlockActivity.this,"unLock fail!--" + error.getDescription(),Toast.LENGTH_LONG).show();
-                                            //d.dismiss();
-                                            //ToastMaker.MakeToast("Open Fail!  "+error,act);
+                                                }
+
+                                                @Override
+                                                public void onSuccess() {
+
+                                                }
+                                            });
                                         }
-                                    });
-                                } else {
-                                    Log.d("switch4", "Lock in null");
+                                    }
+                                }
+                            }
+                            if (dpStr.get("switch_2") != null ){
+                                if (dpStr.get("switch_2").toString().equals("true")){
+
+                                    if (list.get(finalI3).getSWITCH1_B().dps.get("3").toString().equals("true")) {
+                                        list.get(finalI3).getSWITCH1().publishDps("{\" 3\":false}", new IResultCallback() {
+                                            @Override
+                                            public void onError(String code, String error) {
+
+                                            }
+
+                                            @Override
+                                            public void onSuccess() {
+
+                                            }
+                                        });
+                                    }
+                                }
+                                else {
+
+                                }
+                            }
+                            if (dpStr.get("switch_1") != null ){
+//                                                if (dpStr.get("switch_3").toString().equals("true")){
+//                                                    Button b1 = (Button)findViewById(R.id.button17);
+//                                                    b1.setBackgroundResource(R.drawable.light_on);
+//                                                }
+//                                                else {
+//                                                    Button b1 = (Button)findViewById(R.id.button17);
+//                                                    b1.setBackgroundResource(R.drawable.group_62);
+//                                                }
+                                if (dpStr.get("switch_1").toString().equals("true")){
+                                    if (list.get(finalI3).getSWITCH1_B().dps.get("3").toString().equals("true")) {
+                                        list.get(finalI3).getSWITCH1().publishDps("{\" 3\":false}", new IResultCallback() {
+                                            @Override
+                                            public void onError(String code, String error) {
+
+                                            }
+
+                                            @Override
+                                            public void onSuccess() {
+
+                                            }
+                                        });
+                                    }
+                                }
+                                else {
                                 }
 
                             }
                         }
-                    }
 
-                    @Override
-                    public void onRemoved(String devId)
-                    {
-                        setSwitch4Status(list.get(finalI3),"0");
-                    }
-                    @Override
-                    public void onStatusChanged(String devId, boolean online) {
+                        @Override
+                        public void onRemoved(String devId)
+                        {
+                            setSwitch1Status(list.get(finalI3),"0");
+                        }
+                        @Override
+                        public void onStatusChanged(String devId, boolean online) {
 
-                    }
+                        }
 
-                    @Override
-                    public void onNetworkStatusChanged(String devId, boolean status) {
+                        @Override
+                        public void onNetworkStatusChanged(String devId, boolean status) {
 
-                    }
+                        }
 
-                    @Override
-                    public void onDevInfoUpdate(String devId) {
+                        @Override
+                        public void onDevInfoUpdate(String devId) {
 
-                    }
-                });
+                        }
+                    });
+                }
+                if (list.get(i).getSWITCH2_B() != null)
+                {
+                    list.get(i).getSWITCH2().registerDeviceListener(new IDeviceListener() {
+                        @Override
+                        public void onDpUpdate(String devId, Map<String, Object> dpStr)
+                        {
+                            Log.d("switch2Data" , dpStr.toString());
+                            if (dpStr.get("switch_1") != null ) {
+                                if (dpStr.get("switch_1").toString().equals("true")) {
+                                    if (list.get(finalI3).getSWITCH1_B() != null) {
+                                        if (list.get(finalI3).getSWITCH1_B().dps.get("3").toString().equals("true")) {
+                                            list.get(finalI3).getSWITCH1().publishDps("{\" 3\":false}", new IResultCallback() {
+                                                @Override
+                                                public void onError(String code, String error) {
+
+                                                }
+
+                                                @Override
+                                                public void onSuccess() {
+
+                                                }
+                                            });
+                                        }
+                                    }
+                                }
+                            }
+                            if (dpStr.get("switch_2") != null ) {
+                                if (dpStr.get("switch_2").toString().equals("true")) {
+                                    if (list.get(finalI3).getSWITCH1_B() != null) {
+                                        if (list.get(finalI3).getSWITCH1_B().dps.get("3").toString().equals("true")) {
+                                            list.get(finalI3).getSWITCH1().publishDps("{\" 3\":false}", new IResultCallback() {
+                                                @Override
+                                                public void onError(String code, String error) {
+
+                                                }
+
+                                                @Override
+                                                public void onSuccess() {
+
+                                                }
+                                            });
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        @Override
+                        public void onRemoved(String devId)
+                        {
+                            setSwitch2Status(list.get(finalI3),"0");
+                        }
+                        @Override
+                        public void onStatusChanged(String devId, boolean online) {
+
+                        }
+
+                        @Override
+                        public void onNetworkStatusChanged(String devId, boolean status) {
+
+                        }
+
+                        @Override
+                        public void onDevInfoUpdate(String devId) {
+
+                        }
+                    });
+                }
+                if (list.get(i).getSWITCH3_B() != null)
+                {
+                    list.get(i).getSWITCH3().registerDeviceListener(new IDeviceListener() {
+                        @Override
+                        public void onDpUpdate(String devId, Map<String, Object> dpStr)
+                        {
+                            //Toast.makeText(act,list.get(finalI3).RoomNumber+"switch3",Toast.LENGTH_LONG).show();
+                        }
+
+                        @Override
+                        public void onRemoved(String devId)
+                        {
+                            setSwitch3Status(list.get(finalI3),"0");
+                        }
+                        @Override
+                        public void onStatusChanged(String devId, boolean online) {
+
+                        }
+
+                        @Override
+                        public void onNetworkStatusChanged(String devId, boolean status) {
+
+                        }
+
+                        @Override
+                        public void onDevInfoUpdate(String devId) {
+
+                        }
+                    });
+                }
+                if (list.get(i).getSWITCH4_B() != null)
+                {
+                    list.get(i).getSWITCH4().registerDeviceListener(new IDeviceListener() {
+                        @Override
+                        public void onDpUpdate(String devId, Map<String, Object> dpStr)
+                        {
+                            //Toast.makeText(act,list.get(finalI3).RoomNumber+"switch4",Toast.LENGTH_LONG).show();
+                            Log.d("switch4" , dpStr.toString() );
+                            if ( dpStr.get("switch_1") != null )
+                            {
+                                if (dpStr.get("switch_1").toString().equals("true")) {
+                                    if (list.get(finalI3).getLock() != null) {
+                                        Log.d("switch4", list.get(finalI3).getLock().getLockName());
+                                        TTLockClient.getDefault().controlLock(ControlAction.UNLOCK, list.get(finalI3).getLock().getLockData(), list.get(finalI3).getLock().getLockMac(), new ControlLockCallback() {
+                                            @Override
+                                            public void onControlLockSuccess(ControlLockResult controlLockResult) {
+                                                //Toast.makeText(act,"lock is unlock  success!",Toast.LENGTH_LONG).show();
+                                                //d.dismiss();
+                                                //ToastMaker.MakeToast("Door Opened",act);
+                                                Log.d("switch4", "open");
+                                                list.get(finalI3).getSWITCH4().publishDps("{\" 1\":false}", new IResultCallback() {
+                                                    @Override
+                                                    public void onError(String code, String error) {
+
+                                                    }
+
+                                                    @Override
+                                                    public void onSuccess() {
+
+                                                    }
+                                                });
+                                            }
+
+                                            @Override
+                                            public void onFail(LockError error) {
+                                                // Toast.makeText(UnlockActivity.this,"unLock fail!--" + error.getDescription(),Toast.LENGTH_LONG).show();
+                                                //d.dismiss();
+                                                //ToastMaker.MakeToast("Open Fail!  "+error,act);
+                                            }
+                                        });
+                                    } else {
+                                        Log.d("switch4", "Lock in null");
+                                    }
+
+                                }
+                            }
+                        }
+
+                        @Override
+                        public void onRemoved(String devId)
+                        {
+                            setSwitch4Status(list.get(finalI3),"0");
+                        }
+                        @Override
+                        public void onStatusChanged(String devId, boolean online) {
+
+                        }
+
+                        @Override
+                        public void onNetworkStatusChanged(String devId, boolean status) {
+
+                        }
+
+                        @Override
+                        public void onDevInfoUpdate(String devId) {
+
+                        }
+                    });
+                }
             }
-
         }
     }
 
@@ -1935,25 +1965,138 @@ public class Rooms extends AppCompatActivity
         for (int i=0;i<FireRooms.size();i++)
         {
             int finalI = i;
-            if (list.get(i).getSERVICE_B() != null)
-            {
-                FireRooms.get(i).child("Cleanup").addValueEventListener(new ValueEventListener() {
+            if (list.get(i).Status != 1 ) {
+                if (list.get(i).getSERVICE_B() != null) {
+                    FireRooms.get(i).child("Cleanup").addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot)
+                        {
+                            if (snapshot.getValue().toString().equals("0"))
+                            {
+                                list.get(finalI).getSERVICE().publishDps("{\" 2\":false}", new IResultCallback() {
+                                    @Override
+                                    public void onError(String code, String error) {
+
+                                    }
+
+                                    @Override
+                                    public void onSuccess() {
+
+                                    }
+                                });
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+
+                        }
+                    });
+                    FireRooms.get(i).child("Laundry").addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot)
+                        {
+                            if (snapshot.getValue().toString().equals("0"))
+                            {
+                                list.get(finalI).getSERVICE().publishDps("{\" 3\":false}", new IResultCallback() {
+                                    @Override
+                                    public void onError(String code, String error) {
+
+                                    }
+
+                                    @Override
+                                    public void onSuccess() {
+
+                                    }
+                                });
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+
+                        }
+                    });
+                    FireRooms.get(i).child("Checkout").addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot)
+                        {
+                            if (snapshot.getValue().toString().equals("0"))
+                            {
+                                list.get(finalI).getSERVICE().publishDps("{\" 4\":false}", new IResultCallback() {
+                                    @Override
+                                    public void onError(String code, String error) {
+                                        Log.d("checkout" , "not"+error) ;
+                                    }
+
+                                    @Override
+                                    public void onSuccess() {
+                                        Log.d("checkout" , "done") ;
+                                    }
+                                });
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+
+                        }
+                    });
+                }
+                FireRooms.get(i).child("TempSetPoint").addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot)
                     {
-                        if (snapshot.getValue().toString().equals("0"))
+                        if (snapshot.getValue() != null)
                         {
-                            list.get(finalI).getSERVICE().publishDps("{\" 2\":false}", new IResultCallback() {
-                                @Override
-                                public void onError(String code, String error) {
-
+                            try
+                            {
+                                if (Integer.parseInt(snapshot.getValue().toString()) > 15 )
+                                {
+                                    String temp = snapshot.getValue().toString() ;
+                                    if (temp.length()==2)
+                                    {
+                                        temp = temp+"0";
+                                        TempSetPoint[finalI] = temp ;
+                                    }
+                                    else if (temp.length()>2)
+                                    {
+                                        TempSetPoint[finalI] = temp ;
+                                    }
+                                    //TempSetPoint[finalI] = snapshot.getValue().toString();
                                 }
 
-                                @Override
-                                public void onSuccess() {
+                            }
+                            catch (Exception e)
+                            {
 
-                                }
-                            });
+                            }
+
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error)
+                    {
+
+                    }
+                });
+                FireRooms.get(i).child("SetPointInterval").addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot)
+                    {
+                        if (snapshot.getValue() != null)
+                        {
+                            try
+                            {
+                                THE_AC_INTERVAL_TIME = 1000*60* Integer.parseInt(snapshot.getValue().toString());
+                                Log.d("intervalsetpoint" , THE_AC_INTERVAL_TIME+"" );
+                            }
+                            catch (Exception e)
+                            {
+
+                            }
+
                         }
                     }
 
@@ -1962,23 +2105,18 @@ public class Rooms extends AppCompatActivity
 
                     }
                 });
-                FireRooms.get(i).child("Laundry").addValueEventListener(new ValueEventListener() {
+                FireRooms.get(i).child("DoorWarning").addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot)
                     {
-                        if (snapshot.getValue().toString().equals("0"))
+                        if (snapshot.getValue() != null )
                         {
-                            list.get(finalI).getSERVICE().publishDps("{\" 3\":false}", new IResultCallback() {
-                                @Override
-                                public void onError(String code, String error) {
+                            try {
+                                THEDOORWARNING_INTERVAL = 1000 * 60 * Integer.parseInt(snapshot.getValue().toString());
+                                Log.d("Doorinterval", THEDOORWARNING_INTERVAL + "");
+                            } catch (Exception e) {
 
-                                }
-
-                                @Override
-                                public void onSuccess() {
-
-                                }
-                            });
+                            }
                         }
                     }
 
@@ -1987,100 +2125,14 @@ public class Rooms extends AppCompatActivity
 
                     }
                 });
-            }
-            FireRooms.get(i).child("TempSetPoint").addValueEventListener(new ValueEventListener()
-            {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot)
-                {
-                       if (snapshot.getValue() != null)
-                       {
-                           try
-                           {
-                               if (Integer.parseInt(snapshot.getValue().toString()) > 15 )
-                               {
-                                   String temp = snapshot.getValue().toString() ;
-                                   if (temp.length()==2)
-                                   {
-                                       temp = temp+"0";
-                                       TempSetPoint[finalI] = temp ;
-                                   }
-                                   else if (temp.length()>2)
-                                   {
-                                       TempSetPoint[finalI] = temp ;
-                                   }
-                                   //TempSetPoint[finalI] = snapshot.getValue().toString();
-                               }
-
-                           }
-                           catch (Exception e)
-                           {
-
-                           }
-
-                       }
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError error)
-                {
-
-                }
-            });
-            FireRooms.get(i).child("SetPointInterval").addValueEventListener(new ValueEventListener()
-            {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot)
-                {
-                    if (snapshot.getValue() != null)
-                    {
-                        try
-                        {
-                            THE_AC_INTERVAL_TIME = 1000*60* Integer.parseInt(snapshot.getValue().toString());
-                            Log.d("intervalsetpoint" , THE_AC_INTERVAL_TIME+"" );
-                        }
-                        catch (Exception e)
-                        {
-
-                        }
-
-                    }
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-
-                }
-            });
-            FireRooms.get(i).child("DoorWarning").addValueEventListener(new ValueEventListener()
-            {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot)
-                {
-                    if (snapshot.getValue() != null )
-                    {
-                        try {
-                            THEDOORWARNING_INTERVAL = 1000 * 60 * Integer.parseInt(snapshot.getValue().toString());
-                            Log.d("Doorinterval", THEDOORWARNING_INTERVAL + "");
-                        } catch (Exception e) {
-
-                        }
-                    }
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-
-                }
-            });
-            FireRooms.get(i).child("roomStatus").addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    if (snapshot.getValue() != null ){
-                        Log.d("roomChangedTo" ,snapshot.getValue().toString() );
-                        if (snapshot.getValue().toString().equals("3")){
-                            if(list.get(finalI).getPOWER() != null ){
-                                checkoutModeRoom(list.get(finalI));
+                FireRooms.get(i).child("roomStatus").addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (snapshot.getValue() != null ){
+                            Log.d("roomChangedTo" ,snapshot.getValue().toString() );
+                            if (snapshot.getValue().toString().equals("3")){
+                                if(list.get(finalI).getPOWER() != null ){
+                                    checkoutModeRoom(list.get(finalI));
 //                                list.get(finalI).getPOWER().publishDps("{\"1\": true}", new IResultCallback() {
 //                                    @Override
 //                                    public void onError(String code, String error) {
@@ -2116,55 +2168,56 @@ public class Rooms extends AppCompatActivity
 //                                        //Toast.makeText(act, "turn on the light success", Toast.LENGTH_SHORT).show();
 //                                    }
 //                                });
+                                }
+
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+                FireRooms.get(i).child("CheckInModeTime").addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+
+                        if (snapshot.getValue() != null )
+                        {
+                            if (!snapshot.getValue().toString().equals("0"))
+                            {
+                                checkInModeTime = Integer.parseInt( snapshot.getValue().toString());
+                                //Log.d("checkinModeDuration" , "check in chenged to "+checkInModeTime);
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+                FireRooms.get(i).child("CheckOutModeTime").addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (snapshot.getValue() != null ){
+                            if (!snapshot.getValue().toString().equals("0"))
+                            {
+                                checkOutModeTime = Integer.parseInt( snapshot.getValue().toString());
+                                //Log.d("checkoutModeDuration" , "changed to "+checkOutModeTime+"");
+                                //Toast.makeText(act,"checkout changed to "+checkOutModeTime+"",Toast.LENGTH_LONG).show();
                             }
 
                         }
                     }
-                }
 
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-
-                }
-            });
-            FireRooms.get(i).child("CheckInModeTime").addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-
-                    if (snapshot.getValue() != null )
-                    {
-                        if (!snapshot.getValue().toString().equals("0"))
-                        {
-                            checkInModeTime = Integer.parseInt( snapshot.getValue().toString());
-                            Log.d("checkinModeDuration" , "check in chenged to "+checkInModeTime);
-                        }
-                    }
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-
-                }
-            });
-            FireRooms.get(i).child("CheckOutModeTime").addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    if (snapshot.getValue() != null ){
-                        if (!snapshot.getValue().toString().equals("0"))
-                        {
-                            checkOutModeTime = Integer.parseInt( snapshot.getValue().toString());
-                            Log.d("checkoutModeDuration" , "changed to "+checkOutModeTime+"");
-                            //Toast.makeText(act,"checkout changed to "+checkOutModeTime+"",Toast.LENGTH_LONG).show();
-                        }
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
 
                     }
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-
-                }
-            });
+                });
+            }
         }
     }
 
@@ -2276,7 +2329,7 @@ public class Rooms extends AppCompatActivity
 
             };
             //Volley volley = new Volley();
-            Volley.newRequestQueue(act).add(addOrder);
+            CLEANUP_QUEUE.add(addOrder);
         }
         catch (Exception e)
         {
@@ -2331,7 +2384,7 @@ public class Rooms extends AppCompatActivity
                 }
             };
             //Volley volley = new Volley();
-            Volley.newRequestQueue(act).add(removOrder);
+            CLEANUP_QUEUE.add(removOrder);
         }
         catch (Exception e )
         {
@@ -2391,7 +2444,7 @@ public class Rooms extends AppCompatActivity
 
             };
             //Volley volley = new Volley();
-            Volley.newRequestQueue(act).add(addOrder);
+            LAUNDRY_QUEUE.add(addOrder);
         }
         catch (Exception e)
         {
@@ -2445,7 +2498,7 @@ public class Rooms extends AppCompatActivity
                 }
             };
             //Volley volley = new Volley();
-            Volley.newRequestQueue(act).add(removOrder);
+            LAUNDRY_QUEUE.add(removOrder);
         }
         catch (Exception e)
         {
@@ -2565,7 +2618,7 @@ public class Rooms extends AppCompatActivity
                 return params;
             }
         };
-        Volley.newRequestQueue(act).add(re);
+        CHECKOUT_QUEUE.add(re);
     }
 
     public void addCheckoutOrder (ROOM room , int index ) {
@@ -2616,7 +2669,7 @@ public class Rooms extends AppCompatActivity
 
         };
         //Volley volley = new Volley();
-        Volley.newRequestQueue(act).add(addOrder);
+        CHECKOUT_QUEUE.add(addOrder);
     }
 
     private void getHotelTempSetpoint()
@@ -3953,7 +4006,7 @@ public class Rooms extends AppCompatActivity
     }
 
     void sendRegistrationToServer(String token) {
-        String url = Login.SelectedHotel.URL+ "modifyTokenForNonScreenRooms.php" ;
+        String url = Login.SelectedHotel.URL+ "modifyTokenForAllRooms.php" ;
         StringRequest re  = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -3962,7 +4015,7 @@ public class Rooms extends AppCompatActivity
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Log.d("tokenRegister" , error.getMessage()) ;
+                Log.d("tokenRegister" , error.toString()) ;
             }
         })
         {
@@ -4201,30 +4254,38 @@ public class Rooms extends AppCompatActivity
             Toast.makeText(act,"this room has no lock " , Toast.LENGTH_LONG).show();
             return;
         }
-        final Dialog d = new Dialog(act);
-        d.setContentView(R.layout.loading_layout);
-        TextView t = (TextView) d.findViewById(R.id.textViewdfsdf);
-        t.setText("Door Opening");
-        d.setCancelable(false);
-        d.show();
-        ensureBluetoothIsEnabled();
-        //showConnectLockToast();
-        TTLockClient.getDefault().controlLock(ControlAction.UNLOCK, THEROOM.getLock().getLockData(), THEROOM.getLock().getLockMac(),new ControlLockCallback()
-        {
-            @Override
-            public void onControlLockSuccess(ControlLockResult controlLockResult) {
-                //Toast.makeText(act,"lock is unlock  success!",Toast.LENGTH_LONG).show();
-                d.dismiss();
-                //ToastMaker.MakeToast("Door Opened",act);
-            }
 
+        //showConnectLockToast();
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
             @Override
-            public void onFail(LockError error) {
-                // Toast.makeText(UnlockActivity.this,"unLock fail!--" + error.getDescription(),Toast.LENGTH_LONG).show();
-                d.dismiss();
-                //ToastMaker.MakeToast("Open Fail!  "+error,act);
+            public void run()
+            {
+//                final Dialog d = new Dialog(act);
+//                d.setContentView(R.layout.loading_layout);
+//                TextView t = (TextView) d.findViewById(R.id.textViewdfsdf);
+//                t.setText("Door Opening");
+//                d.setCancelable(false);
+//                d.show();
+                ensureBluetoothIsEnabled();
+                TTLockClient.getDefault().controlLock(ControlAction.UNLOCK, THEROOM.getLock().getLockData(), THEROOM.getLock().getLockMac(),new ControlLockCallback()
+                {
+                    @Override
+                    public void onControlLockSuccess(ControlLockResult controlLockResult) {
+                        //Toast.makeText(act,"lock is unlock  success!",Toast.LENGTH_LONG).show();
+                        //d.dismiss();
+                        //ToastMaker.MakeToast("Door Opened",act);
+                    }
+
+                    @Override
+                    public void onFail(LockError error) {
+                        // Toast.makeText(UnlockActivity.this,"unLock fail!--" + error.getDescription(),Toast.LENGTH_LONG).show();
+                        //d.dismiss();
+                        //ToastMaker.MakeToast("Open Fail!  "+error,act);
+                    }
+                });
             }
         });
+
 
     }
 
@@ -4519,6 +4580,137 @@ public class Rooms extends AppCompatActivity
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
 
+            }
+        });
+    }
+
+    public void scanLockGateway(View view) {
+        int REQUEST_PERMISSION_REQ_CODE = 18 ;
+        if (act.checkSelfPermission( Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_PERMISSION_REQ_CODE);
+            return;
+        }
+        getScanGatewayCallback();
+    }
+
+    private void getScanGatewayCallback(){
+        GatewayClient.getDefault().startScanGateway(new ScanGatewayCallback() {
+            @Override
+            public void onScanGatewaySuccess(ExtendedBluetoothDevice device) {
+//                LogUtil.d("device:" + device);
+                TheFoundGateway = device ;
+                gatewaysList.add(device);
+                String[] xx = new String[gatewaysList.size()];
+                for (int i=0; i<gatewaysList.size();i++) {
+                    xx[i] = gatewaysList.get(i).getName();
+                }
+                ArrayAdapter<String> ad = new ArrayAdapter<String>(act,R.layout.gateway_list_item,xx);
+                gatewaysListView.setAdapter(ad);
+                GatewayClient.getDefault().stopScanGateway();
+//                if (mListApapter != null)
+//                    mListApapter.updateData(device);
+            }
+
+            @Override
+            public void onScanFailed(int errorCode) {
+
+            }
+        });
+    }
+
+    public void initLockGateway(View view) {
+
+        if (TheFoundGateway == null ) {
+
+        }
+        else {
+                GatewayClient.getDefault().connectGateway(TheFoundGateway, new ConnectCallback() {
+                    @Override
+                    public void onConnectSuccess(ExtendedBluetoothDevice device) {
+                        //InitGatewayActivity.launch(act, TheFoundGateway);
+                        //LogUtil.d("connect success");
+                        Toast.makeText(act,"gateway connected",Toast.LENGTH_LONG);
+                        EditText wifiName = (EditText) findViewById(R.id.wifiName);
+                        EditText wifiPassword = (EditText) findViewById(R.id.wifiPassword);
+                        configureGatewayInfo.uid = acc.getUid();
+                        configureGatewayInfo.userPwd = acc.getMd5Pwd();
+                        configureGatewayInfo.ssid = wifiName.getText().toString().trim();
+                        configureGatewayInfo.wifiPwd = wifiPassword.getText().toString().trim();
+                        configureGatewayInfo.plugName = device.getAddress();
+                        GatewayClient.getDefault().initGateway(configureGatewayInfo, new InitGatewayCallback() {
+                            @Override
+                            public void onInitGatewaySuccess(DeviceInfo deviceInfo) {
+                                LogUtil.d("gateway init success");
+                                Toast.makeText(act,"gateway inited",Toast.LENGTH_LONG);
+                                isInitSuccess(deviceInfo);
+                            }
+
+                            @Override
+                            public void onFail(GatewayError error) {
+                                Toast.makeText(act,error.getDescription(),Toast.LENGTH_LONG);
+                                finish();
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onDisconnected() {
+                        Toast.makeText(act, "gateway_out_of_time", Toast.LENGTH_LONG).show();
+                    }
+
+                });
+
+
+        }
+    }
+
+    private void isInitSuccess(DeviceInfo deviceInfo) {
+        ApiService apiService = RetrofitAPIManager.provideClientApi();
+        Call<String> call = apiService.gatewayIsInitSuccess(ApiService.CLIENT_ID, MyApplication.getmInstance().getAccountInfo().getAccess_token(), TheFoundGateway.getAddress(), System.currentTimeMillis());
+        LogUtil.d("call server isSuccess api");
+        call.enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, retrofit2.Response<String> response) {
+                String json = response.body();
+                if (!TextUtils.isEmpty(json)) {
+                    GatewayObj gatewayObj = GsonUtil.toObject(json, GatewayObj.class);
+                    if (gatewayObj.errcode == 0) {
+                        Toast.makeText(act, "init success", Toast.LENGTH_LONG);
+                        uploadGatewayDetail(deviceInfo, gatewayObj.getGatewayId());
+                    }
+                    else Toast.makeText(act,gatewayObj.errmsg,Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                Toast.makeText(act,t.getMessage(),Toast.LENGTH_LONG).show();
+                LogUtil.d("t.getMessage():" + t.getMessage());
+            }
+        });
+    }
+
+    private void uploadGatewayDetail(DeviceInfo deviceInfo, int gatewayId) {
+        ApiService apiService = RetrofitAPIManager.provideClientApi();
+        EditText wifiName = (EditText) findViewById(R.id.wifiName);
+        Call<String> call = apiService.uploadGatewayDetail(ApiService.CLIENT_ID, MyApplication.getmInstance().getAccountInfo().getAccess_token(), gatewayId, deviceInfo.getModelNum(), deviceInfo.hardwareRevision, deviceInfo.getFirmwareRevision(), wifiName.getText().toString(), System.currentTimeMillis());
+        LogUtil.d("call server isSuccess api");
+        call.enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, retrofit2.Response<String> response) {
+                String json = response.body();
+                if (!TextUtils.isEmpty(json)) {
+                    ServerError error = GsonUtil.toObject(json, ServerError.class);
+                    if (error.errcode == 0)
+                        Toast.makeText(act,"Done",Toast.LENGTH_LONG).show();
+                    else Toast.makeText(act,error.errmsg,Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                Toast.makeText(act,t.getMessage(),Toast.LENGTH_LONG).show();
+                LogUtil.d("t.getMessage():" + t.getMessage());
             }
         });
     }

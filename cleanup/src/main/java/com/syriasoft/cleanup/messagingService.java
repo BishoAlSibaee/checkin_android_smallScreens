@@ -195,7 +195,7 @@ public class messagingService extends FirebaseMessagingService {
                 showNotification(getApplicationContext(),remoteMessage.getData().get("title"),remoteMessage.getData().get("message"),ii,reqCode);
             }
             else {
-                Intent i = new Intent(getApplicationContext(),MainActivity.class);
+                Intent i = new Intent(getApplicationContext(),LogIn.class);
                 showNotification(getApplicationContext(),remoteMessage.getData().get("title"),remoteMessage.getData().get("message"),i,reqCode);
             }
 

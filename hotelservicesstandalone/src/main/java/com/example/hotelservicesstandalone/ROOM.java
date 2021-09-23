@@ -11,6 +11,7 @@ public class ROOM
 {
     public int id ;
     public int RoomNumber ;
+    public int Status ;
     public int Hotel ;
     public int Building ;
     public int BuildingId ;
@@ -60,9 +61,10 @@ public class ROOM
 
 
 
-    public ROOM(int id, int roomNumber, int hotel, int building, int buildingId, int floor, int floorId, String roomType, int suiteStatus, int suiteNumber, int suiteId, int reservationNumber, int roomStatus, int tablet, String dep, int cleanup, int laundry, int roomService, int checkout, int restaurant, int SOS, int DND, int powerSwitch, int doorSensor, int motionSensor, int thermostat,int ZBGateway , int curtainSwitch ,int ServiceSwitch, int lock, int switch1, int switch2, int switch3, int switch4, String lockGateway, String lockName, int powerStatus, int curtainStatus, int doorStatus, int temp, String token) {
+    public ROOM(int id, int roomNumber,int Status, int hotel, int building, int buildingId, int floor, int floorId, String roomType, int suiteStatus, int suiteNumber, int suiteId, int reservationNumber, int roomStatus, int tablet, String dep, int cleanup, int laundry, int roomService, int checkout, int restaurant, int SOS, int DND, int powerSwitch, int doorSensor, int motionSensor, int thermostat,int ZBGateway , int curtainSwitch ,int ServiceSwitch, int lock, int switch1, int switch2, int switch3, int switch4, String lockGateway, String lockName, int powerStatus, int curtainStatus, int doorStatus, int temp, String token) {
         this.id = id;
         RoomNumber = roomNumber;
+        this.Status = Status ;
         Hotel = hotel;
         Building = building;
         BuildingId = buildingId;
