@@ -4,6 +4,9 @@
       <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/68cdc9161338f6f1661c7688737baafd/jetified-ttlock-3.1.0/res" />
       <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/68cdc9161338f6f1661c7688737baafd/jetified-ttlock-3.1.0/jars/classes.jar!/" />
       <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/68cdc9161338f6f1661c7688737baafd/jetified-ttlock-3.1.0/AndroidManifest.xml" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/45e6ffe5bd7b299bb092cfbdd1e9317d/jetified-ttlock-3.1.0/AndroidManifest.xml" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/45e6ffe5bd7b299bb092cfbdd1e9317d/jetified-ttlock-3.1.0/res" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/45e6ffe5bd7b299bb092cfbdd1e9317d/jetified-ttlock-3.1.0/jars/classes.jar!/" />
     </CLASSES>
     <JAVADOC>
       <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.tongtonglock/ttlock/3.1.0/dea28a75fca30582e6d0a4895655e5d4b0e05a13/ttlock-3.1.0-javadoc.jar!/" />

@@ -4,6 +4,9 @@
       <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/123155ca27ee9905ed55b631d32a4d77/jetified-dfu-1.8.1/jars/classes.jar!/" />
       <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/123155ca27ee9905ed55b631d32a4d77/jetified-dfu-1.8.1/res" />
       <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/123155ca27ee9905ed55b631d32a4d77/jetified-dfu-1.8.1/AndroidManifest.xml" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/59f57ee6373944786f2e88a38ae4cb92/jetified-dfu-1.8.1/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/59f57ee6373944786f2e88a38ae4cb92/jetified-dfu-1.8.1/AndroidManifest.xml" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/59f57ee6373944786f2e88a38ae4cb92/jetified-dfu-1.8.1/jars/classes.jar!/" />
     </CLASSES>
     <JAVADOC>
       <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/no.nordicsemi.android/dfu/1.8.1/98492216c1bab691673c77fc926c753a17a18582/dfu-1.8.1-javadoc.jar!/" />
