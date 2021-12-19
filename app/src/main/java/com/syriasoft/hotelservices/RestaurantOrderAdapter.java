@@ -63,6 +63,8 @@ public class RestaurantOrderAdapter extends RecyclerView.Adapter<RestaurantOrder
                     Cart.adapter = new RestaurantOrderAdapter(list , c);
                     Cart.itemsGridView.setAdapter(Cart.adapter);
                     ToastMaker.MakeToast("Deleted", c);
+                    Cart.setTotal();
+                    Cart.refreshItems();
                     if (FullscreenActivity.order.getItems().size() == 0 )
                     {
                         RestaurantActivity.items.setText("");
@@ -91,10 +93,31 @@ public class RestaurantOrderAdapter extends RecyclerView.Adapter<RestaurantOrder
                 TextView PRICE = d.findViewById(R.id.item_price);
                 TextView TOTAL = d.findViewById(R.id.item_total);
                 EditText NEWQ = d.findViewById(R.id.new_item_quantity);
+                NEWQ.addTextChangedListener(new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                    }
+
+                    @Override
+                    public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                    }
+
+                    @Override
+                    public void afterTextChanged(Editable s) {
+                        if (NEWQ.getText() == null || NEWQ.getText().toString().isEmpty() ) {
+                            ToastMaker.MakeToast("Enter New Quantity",holder.itemView.getContext());
+                            return;
+                        }
+                        double tot = Double.parseDouble(NEWQ.getText().toString()) *  list.get(position).price ;
+                        TOTAL.setText(String.valueOf(tot));
+                    }
+                });
                 Button CANCEL = d.findViewById(R.id.cancel_modify_item);
                 Button MODIFY = d.findViewById(R.id.modify_item_btn);
                 PRICE.setText(String.valueOf(list.get(position).price));
-                TOTAL.setText(String.valueOf(list.get(position).total));
+                //TOTAL.setText(String.valueOf(list.get(position).total));
                 NEWQ.addTextChangedListener(new TextWatcher() {
                     @Override
                     public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -133,6 +156,8 @@ public class RestaurantOrderAdapter extends RecyclerView.Adapter<RestaurantOrder
                             {
                                 holder.quantity.setText(NEWQ.getText().toString());
                                 holder.total.setText(TOTAL.getText().toString());
+                                Cart.setTotal();
+                                Cart.refreshItems();
                                 d.dismiss();
                             }
                         }

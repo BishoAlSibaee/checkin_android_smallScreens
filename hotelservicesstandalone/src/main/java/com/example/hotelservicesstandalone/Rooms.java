@@ -236,20 +236,21 @@ public class Rooms extends AppCompatActivity
 
                     if (devicesListView.getVisibility() == View.VISIBLE ) {
                         String Text = searchText.getText().toString() ;
-                        List<String> Results = new ArrayList<String>();
+                        List<DeviceBean> Results = new ArrayList<DeviceBean>();
                         for (int i = 0 ; i < Devices.size() ; i++) {
                             if (Devices.get(i).getName().contains(Text)) {
-                                Results.add(Devices.get(i).getName());
+                                Results.add(Devices.get(i));
                             }
                         }
                         if (Results.size() > 0 ) {
                             searchBtn.setText("X");
-                            String[] x = new String[Results.size()];
-                            for (int j=0; j<Results.size(); j++) {
-                                x[j] = Results.get(j);
-                            }
-                            ArrayAdapter<String> ad = new ArrayAdapter<String>(act,R.layout.spinners_item,x);
-                            devicesListView.setAdapter(ad);
+//                            String[] x = new String[Results.size()];
+//                            for (int j=0; j<Results.size(); j++) {
+//                                x[j] = Results.get(j);
+//                            }
+                            //ArrayAdapter<String> ad = new ArrayAdapter<String>(act,R.layout.spinners_item,x);
+                            Devices_Adapter adapter = new Devices_Adapter(Results,act);
+                            devicesListView.setAdapter(adapter);
                         }
                         else {
                             Toast.makeText(act,"no results",Toast.LENGTH_SHORT).show();
@@ -259,12 +260,12 @@ public class Rooms extends AppCompatActivity
                 else {
                     if (devicesListView.getVisibility() == View.VISIBLE) {
                         searchBtn.setText("Search");
-                        String[] dd = new String[Devices.size()];
-                        for (int i=0;i<Devices.size();i++)
-                        {
-                            dd[i] = Devices.get(i).name ;
-                        }
-                        ArrayAdapter<String> adapter = new ArrayAdapter<String>(act,R.layout.spinners_item,dd);
+//                        String[] dd = new String[Devices.size()];
+//                        for (int i=0;i<Devices.size();i++)
+//                        {
+//                            dd[i] = Devices.get(i).name ;
+//                        }
+                        Devices_Adapter adapter = new Devices_Adapter(Devices,act);
                         devicesListView.setAdapter(adapter);
                     }
                 }
@@ -295,108 +296,114 @@ public class Rooms extends AppCompatActivity
         iTuyaDeviceMultiControl = TuyaHomeSdk.getDeviceMultiControlInstance();
         //roomsListView.setNestedScrollingEnabled(false);
         //devicesListView.setNestedScrollingEnabled(false);
-        devicesListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                view.setBackgroundColor(Color.DKGRAY);
-                Dialog d = new Dialog(act);
-                d.setContentView(R.layout.rename_device_dialog);
-                Spinner s = (Spinner) d.findViewById(R.id.devicerenamespinner);
-                Spinner rr = (Spinner) d.findViewById(R.id.roomsspinner);
-                String [] Types = new String[]{"Power","ZGatway","AC","DoorSensor","MotionSensor","Curtain","ServiceSwitch","Switch1","Switch2","Switch3","Switch4"};
-                String [] therooms = new String [list.size()];
-                for (int i=0; i<list.size() ; i++) {
-                    therooms[i] = String.valueOf( list.get(i).RoomNumber );
-                }
-                ArrayAdapter<String> a = new ArrayAdapter<String>(act,R.layout.spinners_item,Types);
-                ArrayAdapter<String> r = new ArrayAdapter<String>(act,R.layout.spinners_item,therooms);
-                s.setAdapter(a);
-                rr.setAdapter(r);
-                TextView title = (TextView) d.findViewById(R.id.RenameDialog_title);
-                for (int i=0;i<Devices.size();i++) {
-                    if (Devices.get(i).getName().equals(devicesListView.getAdapter().getItem(position).toString())) {
-                        title.setText("Modify "+Devices.get(i).getName() + " Device");
-                    }
-                }
-                Button cancel = (Button) d.findViewById(R.id.cancel_diallog);
-                Button rename = (Button) d.findViewById(R.id.DoTheRename);
-                Button delete = (Button) d.findViewById(R.id.deleteDevice);
-                cancel.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        d.dismiss();
-                    }
-                });
-                rename.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        for (int i=0;i<Devices.size();i++) {
-                            if (Devices.get(i).getName().equals(devicesListView.getAdapter().getItem(position).toString())) {
-                                ITuyaDevice Device = TuyaHomeSdk.newDeviceInstance(Devices.get(i).getDevId());
-                                Device.renameDevice(rr.getSelectedItem().toString()+s.getSelectedItem().toString(), new IResultCallback() {
-                                    @Override
-                                    public void onError(String code, String error) {
-                                        Toast.makeText(act,"Error. "+error,Toast.LENGTH_LONG).show();
-                                    }
-
-                                    @Override
-                                    public void onSuccess() {
-                                        Rooms.CHANGE_STATUS = true ;
-                                        Toast.makeText(act,"Device Renamed .",Toast.LENGTH_LONG).show();
-                                        d.dismiss();
-                                    }
-                                });
-                            }
-                        }
-
-                    }
-                });
-                delete.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        for (int i=0;i<Devices.size();i++) {
-                            if (Devices.get(i).getName().equals(devicesListView.getAdapter().getItem(position).toString())) {
-                                ITuyaDevice Device = TuyaHomeSdk.newDeviceInstance(Devices.get(i).getDevId());
-                                Device.removeDevice(new IResultCallback() {
-                                    @Override
-                                    public void onError(String code, String error) {
-                                        Toast.makeText(act,"Error. "+error,Toast.LENGTH_LONG).show();
-                                    }
-
-                                    @Override
-                                    public void onSuccess() {
-                                        Rooms.CHANGE_STATUS = true ;
-                                        Toast.makeText(act,"Device Deleted .",Toast.LENGTH_LONG).show();
-                                        d.dismiss();
-                                    }
-                                });
-                            }
-                        }
-
-                    }
-                });
-                d.show();
-
-                d.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                    @Override
-                    public void onDismiss(DialogInterface dialog) {
-                        view.setBackgroundColor(Color.LTGRAY);
-                    }
-                });
-                return false;
-            }
-        });
-        devicesListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                for (int i=0;i<Devices.size();i++) {
-                    if (Devices.get(i).getName().equals(devicesListView.getAdapter().getItem(position).toString())) {
-                        Log.d("SelectedDeviceInfo","name: "+Devices.get(i).getName()+" dps: "+Devices.get(position).getDps()+" category: "+Devices.get(position).getDeviceCategory());
-                        }
-                    }
-
-            }
-        });
+//        devicesListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+//            @Override
+//            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+//                view.setBackgroundColor(Color.DKGRAY);
+//                Dialog d = new Dialog(act);
+//                d.setContentView(R.layout.rename_device_dialog);
+//                Spinner s = (Spinner) d.findViewById(R.id.devicerenamespinner);
+//                Spinner rr = (Spinner) d.findViewById(R.id.roomsspinner);
+//                String [] Types = new String[]{"Power","ZGatway","AC","DoorSensor","MotionSensor","Curtain","ServiceSwitch","Switch1","Switch2","Switch3","Switch4"};
+//                String [] therooms = new String [list.size()];
+//                for (int i=0; i<list.size() ; i++) {
+//                    therooms[i] = String.valueOf( list.get(i).RoomNumber );
+//                }
+//                ArrayAdapter<String> a = new ArrayAdapter<String>(act,R.layout.spinners_item,Types);
+//                ArrayAdapter<String> r = new ArrayAdapter<String>(act,R.layout.spinners_item,therooms);
+//                s.setAdapter(a);
+//                rr.setAdapter(r);
+//                TextView title = (TextView) d.findViewById(R.id.RenameDialog_title);
+//                for (int i=0;i<Devices.size();i++) {
+//                    if (Devices.get(i).getName().equals(devicesListView.getAdapter().getItem(position).toString())) {
+//                        title.setText("Modify "+Devices.get(i).getName() + " Device "+Devices.get(i).getIsOnline().toString());
+//                    }
+//                }
+//                Button cancel = (Button) d.findViewById(R.id.cancel_diallog);
+//                Button rename = (Button) d.findViewById(R.id.DoTheRename);
+//                Button delete = (Button) d.findViewById(R.id.deleteDevice);
+//                cancel.setOnClickListener(new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View v) {
+//                        d.dismiss();
+//                    }
+//                });
+//                rename.setOnClickListener(new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View v) {
+//                        for (int i=0;i<Devices.size();i++) {
+//                            if (Devices.get(i).getName().equals(devicesListView.getAdapter().getItem(position).toString())) {
+//                                ITuyaDevice Device = TuyaHomeSdk.newDeviceInstance(Devices.get(i).getDevId());
+//                                Device.renameDevice(rr.getSelectedItem().toString()+s.getSelectedItem().toString(), new IResultCallback() {
+//                                    @Override
+//                                    public void onError(String code, String error) {
+//                                        Toast.makeText(act,"Error. "+error,Toast.LENGTH_LONG).show();
+//                                    }
+//
+//                                    @Override
+//                                    public void onSuccess() {
+//                                        Rooms.CHANGE_STATUS = true ;
+//                                        Toast.makeText(act,"Device Renamed .",Toast.LENGTH_LONG).show();
+//                                        d.dismiss();
+//                                    }
+//                                });
+//                            }
+//                        }
+//
+//                    }
+//                });
+//                delete.setOnClickListener(new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View v) {
+//                        for (int i=0;i<Devices.size();i++) {
+//                            if (Devices.get(i).getName().equals(devicesListView.getAdapter().getItem(position).toString())) {
+//                                ITuyaDevice Device = TuyaHomeSdk.newDeviceInstance(Devices.get(i).getDevId());
+//                                Device.removeDevice(new IResultCallback() {
+//                                    @Override
+//                                    public void onError(String code, String error) {
+//                                        Toast.makeText(act,"Error. "+error,Toast.LENGTH_LONG).show();
+//                                    }
+//
+//                                    @Override
+//                                    public void onSuccess() {
+//                                        Rooms.CHANGE_STATUS = true ;
+//                                        Toast.makeText(act,"Device Deleted .",Toast.LENGTH_LONG).show();
+//                                        d.dismiss();
+//                                    }
+//                                });
+//                            }
+//                        }
+//
+//                    }
+//                });
+//                d.show();
+//
+//                d.setOnDismissListener(new DialogInterface.OnDismissListener() {
+//                    @Override
+//                    public void onDismiss(DialogInterface dialog) {
+//                        view.setBackgroundColor(Color.LTGRAY);
+//                    }
+//                });
+//                return false;
+//            }
+//        });
+//        devicesListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//            @Override
+//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+//                for (int i=0;i<Devices.size();i++) {
+//                    if (Devices.get(i).getName().equals(devicesListView.getAdapter().getItem(position).toString())) {
+//                        Log.d("SelectedDeviceInfo","name: "+Devices.get(i).getName()+" dps: "+Devices.get(position).getDps()+" category: "+Devices.get(position).getDeviceCategory());
+//                            if (Devices.get(i).getIsOnline()) {
+//                                Toast.makeText(act,"online",Toast.LENGTH_LONG).show();
+//                            }
+//                            else {
+//                                Toast.makeText(act,"offline",Toast.LENGTH_LONG).show();
+//                            }
+//                        }
+//                    }
+//
+//            }
+//        });
         mainLogo.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
@@ -877,7 +884,6 @@ public class Rooms extends AppCompatActivity
                             {
                                 list.get(j).setDOORSENSOR_B(Devices.get(i));
                                 list.get(j).setDOORSENSOR(TuyaHomeSdk.newDeviceInstance(list.get(j).getDOORSENSOR_B().devId));
-
                             }
                             else if (Devices.get(i).getName().equals(list.get(j).RoomNumber+"MotionSensor"))
                             {
@@ -1185,8 +1191,6 @@ public class Rooms extends AppCompatActivity
                         public void onDpUpdate(String devId, Map<String, Object> dpStr)
                         {
                             //Log.d("serviceswitch" , "1 "+list.get(finalI1).getSERVICE_B().dps.get("1").toString()+" 2 "+list.get(finalI1).getSERVICE_B().dps.get("2").toString()+" 3 "+list.get(finalI1).getSERVICE_B().dps.get("3").toString()+ "    c "+CLEANUP[finalI1]+" l "+LAUNDRY[finalI1]+" d "+DND[finalI1]+"    "+dpStr.toString());
-
-
                             if (dpStr.get("switch_2") != null)
                             {
                                 if (dpStr.get("switch_2").toString().equals("true") && !CLEANUP[finalI1])
@@ -1205,7 +1209,7 @@ public class Rooms extends AppCompatActivity
                                     if (list.get(finalI1).getSERVICE_B().dps.get("1").toString().equals("true"))
                                     {
                                         DND[finalI1] = false ;
-                                        list.get(finalI1).getSERVICE().publishDps("{\" 1\":false}", new IResultCallback() {
+                                        list.get(finalI1).getSERVICE().publishDps("{\"1\": false}", new IResultCallback() {
                                             @Override
                                             public void onError(String code, String error) {
 
@@ -1217,7 +1221,7 @@ public class Rooms extends AppCompatActivity
                                             }
                                         });
                                         FireRooms.get(finalI1).child("DND").setValue(0);
-                                        cancelDNDOrder(list.get(finalI1),finalI1);
+                                        //cancelDNDOrder(list.get(finalI1),finalI1);
                                     }
                                 }
                                 else if (dpStr.get("switch_2").toString().equals("false") && CLEANUP[finalI1])
@@ -1264,7 +1268,7 @@ public class Rooms extends AppCompatActivity
                                     }
                                     if (list.get(finalI1).getSERVICE_B().dps.get("1").toString().equals("true"))
                                     {
-                                        list.get(finalI1).getSERVICE().publishDps("{\" 1\":false}", new IResultCallback() {
+                                        list.get(finalI1).getSERVICE().publishDps("{\"1\": false}", new IResultCallback() {
                                             @Override
                                             public void onError(String code, String error) {
 
@@ -1277,7 +1281,7 @@ public class Rooms extends AppCompatActivity
                                         });
                                         DND[finalI1] = false ;
                                         FireRooms.get(finalI1).child("DND").setValue(0);
-                                        cancelDNDOrder(list.get(finalI1) , finalI1);
+                                        //cancelDNDOrder(list.get(finalI1) , finalI1);
                                     }
                                 }
                                 else if(dpStr.get("switch_3").toString().equals("false") && LAUNDRY[finalI1])
@@ -1313,7 +1317,7 @@ public class Rooms extends AppCompatActivity
                                     DND[finalI1] = true ;
                                     FireRooms.get(finalI1).child("DND").setValue(time);
                                     FireRooms.get(finalI1).child("dep").setValue("DND");
-                                    addDNDOrder(list.get(finalI1) , finalI1);
+                                    //addDNDOrder(list.get(finalI1) , finalI1);
                                     for(ServiceEmps u : Emps) {
                                         if (u.department.equals("Service") || u.department.equals("Cleanup") || u.department.equals("Laundry") || u.department.equals("RoomService")) {
                                             makemessage(u.token, "DND", true, list.get(finalI1).RoomNumber);
@@ -1321,7 +1325,7 @@ public class Rooms extends AppCompatActivity
                                     }
                                     if (list.get(finalI1).getSERVICE_B().dps.get("2").toString().equals("true"))
                                     {
-                                        list.get(finalI1).getSERVICE().publishDps("{\" 2\":false}", new IResultCallback() {
+                                        list.get(finalI1).getSERVICE().publishDps("{\"2\": false}", new IResultCallback() {
                                             @Override
                                             public void onError(String code, String error) {
 
@@ -1338,7 +1342,7 @@ public class Rooms extends AppCompatActivity
                                     }
                                     if (list.get(finalI1).getSERVICE_B().dps.get("3").toString().equals("true"))
                                     {
-                                        list.get(finalI1).getSERVICE().publishDps("{\" 3\":false}", new IResultCallback() {
+                                        list.get(finalI1).getSERVICE().publishDps("{\"3\": false}", new IResultCallback() {
                                             @Override
                                             public void onError(String code, String error) {
 
@@ -1355,7 +1359,7 @@ public class Rooms extends AppCompatActivity
                                     }
                                     if (list.get(finalI1).getSERVICE_B().dps.get("4").toString().equals("true"))
                                     {
-                                        list.get(finalI1).getSERVICE().publishDps("{\" 4\":false}", new IResultCallback() {
+                                        list.get(finalI1).getSERVICE().publishDps("{\"4\": false}", new IResultCallback() {
                                             @Override
                                             public void onError(String code, String error) {
 
@@ -1374,7 +1378,7 @@ public class Rooms extends AppCompatActivity
                                 else if (dpStr.get("switch_1").toString().equals("false") && DND[finalI1])
                                 {
                                     DND[finalI1] = false ;
-                                    cancelDNDOrder(list.get(finalI1) , finalI1);
+                                    //cancelDNDOrder(list.get(finalI1) , finalI1);
                                     FireRooms.get(finalI1).child("DND").setValue(0);
                                     for(ServiceEmps u : Emps) {
                                         if (u.department.equals("Service") || u.department.equals("Cleanup") || u.department.equals("Laundry") || u.department.equals("RoomService")) {
@@ -1407,7 +1411,7 @@ public class Rooms extends AppCompatActivity
                                     if (list.get(finalI1).getSERVICE_B().dps.get("1").toString().equals("true"))
                                     {
                                         DND[finalI1] = false ;
-                                        list.get(finalI1).getSERVICE().publishDps("{\" 1\":false}", new IResultCallback() {
+                                        list.get(finalI1).getSERVICE().publishDps("{\"1\": false}", new IResultCallback() {
                                             @Override
                                             public void onError(String code, String error) {
 
@@ -1419,7 +1423,7 @@ public class Rooms extends AppCompatActivity
                                             }
                                         });
                                         FireRooms.get(finalI1).child("DND").setValue(0);
-                                        cancelDNDOrder(list.get(finalI1),finalI1);
+                                        //cancelDNDOrder(list.get(finalI1),finalI1);
                                     }
                                 }
                                 else if (dpStr.get("switch_4").toString().equals("false") && CHECKOUT[finalI1]){
@@ -1973,7 +1977,8 @@ public class Rooms extends AppCompatActivity
                         {
                             if (snapshot.getValue().toString().equals("0"))
                             {
-                                list.get(finalI).getSERVICE().publishDps("{\" 2\":false}", new IResultCallback() {
+                                CLEANUP[finalI] = false ;
+                                list.get(finalI).getSERVICE().publishDps("{\" 2\": false}", new IResultCallback() {
                                     @Override
                                     public void onError(String code, String error) {
 
@@ -1998,6 +2003,7 @@ public class Rooms extends AppCompatActivity
                         {
                             if (snapshot.getValue().toString().equals("0"))
                             {
+                                LAUNDRY[finalI] = false ;
                                 list.get(finalI).getSERVICE().publishDps("{\" 3\":false}", new IResultCallback() {
                                     @Override
                                     public void onError(String code, String error) {
@@ -2023,6 +2029,7 @@ public class Rooms extends AppCompatActivity
                         {
                             if (snapshot.getValue().toString().equals("0"))
                             {
+                                CHECKOUT[finalI] = false ;
                                 list.get(finalI).getSERVICE().publishDps("{\" 4\":false}", new IResultCallback() {
                                     @Override
                                     public void onError(String code, String error) {

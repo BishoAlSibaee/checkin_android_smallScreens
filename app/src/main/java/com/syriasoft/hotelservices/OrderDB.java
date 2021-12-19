@@ -230,8 +230,10 @@ public class OrderDB extends SQLiteOpenHelper {
                 cv.put("quantity" , quantity );
                 double total = quantity*price ;
                 cv.put("total" , total);
-                db.update("orders" , cv , "id="+String.valueOf(id) , null ) ;
-                res = true ;
+                if (db.update("orders" , cv , "id="+String.valueOf(id) , null ) > 0 ) {
+                    res = true ;
+                }
+
             }
             //c.moveToNext();
         }

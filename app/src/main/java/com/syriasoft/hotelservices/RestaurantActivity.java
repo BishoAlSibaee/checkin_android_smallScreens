@@ -2,14 +2,17 @@ package com.syriasoft.hotelservices;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -248,7 +251,7 @@ public class RestaurantActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot)
             {
-                if (Integer.parseInt(snapshot.getValue().toString()) > 0 )
+                if (!snapshot.getValue().toString().equals("0") )
                 {
                     dndOn();
                 }
@@ -269,7 +272,7 @@ public class RestaurantActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot)
             {
-                if (Integer.parseInt(snapshot.getValue().toString()) > 0 )
+                if (!snapshot.getValue().toString().equals("0"))
                 {
                     sosOn();
                 }
@@ -289,7 +292,7 @@ public class RestaurantActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot)
             {
-                if (Integer.parseInt(snapshot.getValue().toString()) > 0 )
+                if (!snapshot.getValue().toString().equals("0") )
                 {
                     laundryOn();
                 }
@@ -309,7 +312,7 @@ public class RestaurantActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot)
             {
-                if (Integer.parseInt(snapshot.getValue().toString())>0)
+                if (!snapshot.getValue().toString().equals("0"))
                 {
                     cleanupOn();
                 }
@@ -328,7 +331,7 @@ public class RestaurantActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot)
             {
-                if (Integer.parseInt(snapshot.getValue().toString()) > 0 )
+                if (!snapshot.getValue().toString().equals("0"))
                 {
                     checkoutOn();
                 }
@@ -673,125 +676,41 @@ public class RestaurantActivity extends AppCompatActivity {
 
 
     public void setDND(View view) {
-
         if (!FullscreenActivity.DNDStatus ) {
-            String dep = "DND";
-            Calendar x = Calendar.getInstance(Locale.getDefault());
-            long timee = x.getTimeInMillis();
-            LoadingDialog loading = new LoadingDialog(act);
-            FullscreenActivity.DNDStatus = true;
-            StringRequest request = new StringRequest(Request.Method.POST, insertServiceOrderUrl, new Response.Listener<String>() {
-                @Override
-                public void onResponse(String response) {
-                    if (FullscreenActivity.THEROOM.getSERVICE_B() != null) {
-                        Log.d("serviceSwitch", "not null");
-                        Log.d("serviceSwitch", FullscreenActivity.THEROOM.getSERVICE_B().dps.toString());
+            if (FullscreenActivity.THEROOM.getSERVICE_B() != null) {
+                if (FullscreenActivity.THEROOM.getSERVICE_B().dps.get("1") != null) {
+                    if (FullscreenActivity.THEROOM.getSERVICE_B().dps.get("1").toString().equals("false")) {
+                        FullscreenActivity.THEROOM.getSERVICE().publishDps("{\"1\": true}", new IResultCallback() {
+                            @Override
+                            public void onError(String code, String error) {
+                                Log.d("serviceSwitch", error);
+                            }
 
-                        if (FullscreenActivity.THEROOM.getSERVICE_B().dps.get("1").toString().equals("false")) {
-
-                            FullscreenActivity.THEROOM.getSERVICE().publishDps("{\"1\":true}", new IResultCallback() {
-                                @Override
-                                public void onError(String code, String error) {
-                                    Log.d("serviceSwitch", error);
-                                }
-
-                                @Override
-                                public void onSuccess() {
-                                    Log.d("serviceSwitch", "success");
-                                }
-                            });
-                        } else {
-                            Log.d("serviceSwitch", "is null");
-                        }
-
+                            @Override
+                            public void onSuccess() {
+                                Log.d("serviceSwitch", "success");
+                            }
+                        });
                     }
-                    if (FullscreenActivity.CleanupStatus) {
-                        FullscreenActivity.removeCleanupOrderInDataBase();
-                    }
-                    if (FullscreenActivity.LaundryStatus) {
-                        removeLaundryOrderInDataBase();
-                    }
-                    try {
-                        Log.e("DND", response);
-                        if (Integer.parseInt(response) > 0) {
-                            loading.stop();
-                            int dndId = Integer.parseInt(response);
-                            myRefDND.setValue(dndId);
-                            myRefdep.setValue("DND");
-                            dndOn();
-                        }
-                    } catch (Exception e) {
-                        Log.e("DND", e.getMessage());
-                    }
-
                 }
             }
-                    , new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError error) {
-                    Log.e("DNDerror", error.getMessage());
-                }
-            }) {
-                @Override
-                protected Map<String, String> getParams() throws AuthFailureError {
-                    Map<String, String> params = new HashMap<String, String>();
-                    params.put("roomNumber", String.valueOf(LogIn.room.getRoomNumber()));
-                    params.put("time", String.valueOf(timee));
-                    params.put("dep", dep);
-                    params.put("Hotel", String.valueOf(LogIn.room.getHotel()));
-                    params.put("RorS", String.valueOf(FullscreenActivity.RoomOrSuite));
-                    params.put("Reservation", String.valueOf(FullscreenActivity.RESERVATION));
-                    return params;
-                }
-            };
-            Volley.newRequestQueue(act).add(request);
         }
         else {
-            String dep = "DND";
-            LoadingDialog loading = new LoadingDialog(act);
-            FullscreenActivity.DNDStatus = false;
-            StringRequest rrr = new StringRequest(Request.Method.POST, removeServiceOrderUrl, new Response.Listener<String>() {
-                @Override
-                public void onResponse(String response) {
-                    if(FullscreenActivity.THEROOM.getSERVICE_B() != null ){
-                        if (FullscreenActivity.THEROOM.getSERVICE_B().dps.get("1").toString().equals("true")){
-                            FullscreenActivity.THEROOM.getSERVICE().publishDps("{\"1\":false}", new IResultCallback() {
-                                @Override
-                                public void onError(String code, String error) {
+            if(FullscreenActivity.THEROOM.getSERVICE_B() != null ){
+                if (FullscreenActivity.THEROOM.getSERVICE_B().dps.get("1").toString().equals("true")){
+                    FullscreenActivity.THEROOM.getSERVICE().publishDps("{\"1\":false}", new IResultCallback() {
+                        @Override
+                        public void onError(String code, String error) {
 
-                                }
+                        }
 
-                                @Override
-                                public void onSuccess() {
+                        @Override
+                        public void onSuccess() {
 
-                                }
-                            });
-                        }else {Log.d("serviceSwitch" , "is null");}
-                    }
-                    if (response.equals("1")) {
-                        loading.stop();
-                        myRefDND.setValue(0);
-                        dndOff();
-                    }
-
+                        }
+                    });
                 }
-            }, new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError error) {
-
-                }
-            }) {
-                @Override
-                protected Map<String, String> getParams() throws AuthFailureError {
-                    Map<String, String> params = new HashMap<String, String>();
-                    params.put("id", String.valueOf(FullscreenActivity.dndId));
-                    params.put("room", String.valueOf(LogIn.room.getRoomNumber()));
-                    params.put("dep", dep);
-                    params.put("Hotel", String.valueOf(LogIn.room.getHotel()));
-                    return params;
-                }
-            };
-            Volley.newRequestQueue(act).add(rrr);
+            }
         }
     }
 
@@ -800,6 +719,153 @@ public class RestaurantActivity extends AppCompatActivity {
     }
 
     public void SOS(View view) {
-        FullscreenActivity.SOS(view);
+        if (FullscreenActivity.CURRENT_ROOM_STATUS == 2)
+        {
+            if (FullscreenActivity.SosStatus == false)
+            {
+                final Dialog d = new Dialog(act);
+                d.setContentView(R.layout.confermation_dialog);
+                TextView message = (TextView) d.findViewById(R.id.confermationDialog_Text);
+                message.setText("Send Emergency Order .. ?                   ");
+                Button cancel = (Button)d.findViewById(R.id.confermationDialog_cancel);
+                cancel.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v)
+                    {
+                        d.dismiss();
+                    }
+                });
+                Button ok = (Button)d.findViewById(R.id.messageDialog_ok);
+                ok.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v)
+                    {
+                        d.dismiss();
+                        final String depo = "SOS";
+                        Calendar x = Calendar.getInstance(Locale.getDefault());
+                        long timee =  x.getTimeInMillis();
+                        myRefSos.setValue(timee);
+                        myRefdep.setValue(depo);
+                        myRefDND.setValue(0);
+                        FullscreenActivity.SosStatus = true ;
+                        sosOn();
+                        for(ServiceEmps emp : FullscreenActivity.Emps) {
+                            if (emp.department.equals("Service") || emp.department.equals("RoomService") || emp.department.equals("Cleanup")) {
+                                emp.makemessage(emp.token,"SOS",true,act);
+                            }
+                        }
+                        LoadingDialog dd = new LoadingDialog(act);
+                        StringRequest addOrder = new StringRequest(Request.Method.POST, insertServiceOrderUrl , new Response.Listener<String>() {
+                            @Override
+                            public void onResponse(String response)
+                            {
+                                dd.stop();
+                                if (Integer.parseInt(response) > 0 )
+                                {
+                                    FullscreenActivity.sosId = Integer.parseInt(response);
+                                    ToastMaker.MakeToast("تم ارسال طلب " +"SOS" , act);
+                                    Calendar x = Calendar.getInstance(Locale.getDefault());
+                                }
+                                else
+                                {
+                                    Toast.makeText(act , response,Toast.LENGTH_LONG).show();
+                                }
+
+                            }
+                        }, new Response.ErrorListener() {
+                            @Override
+                            public void onErrorResponse(VolleyError error)
+                            {
+                                dd.stop();
+                                //Toast.makeText(act , error.getMessage(),Toast.LENGTH_LONG).show();
+                            }
+                        })
+                        {
+                            @Override
+                            protected Map<String, String> getParams() throws AuthFailureError
+                            {
+                                Map<String,String> params = new HashMap<String, String>();
+                                params.put("roomNumber" ,String.valueOf(LogIn.room.getRoomNumber()));
+                                params.put("time" ,String.valueOf(timee));
+                                params.put("dep" ,depo);
+                                params.put("Hotel" , String.valueOf(LogIn.room.getHotel()));
+                                params.put("RorS" ,String.valueOf( FullscreenActivity.RoomOrSuite));
+                                params.put("Reservation" ,String.valueOf( FullscreenActivity.RESERVATION));
+                                return params;
+                            }
+
+                        };
+                        Volley.newRequestQueue(act).add(addOrder);
+                    }
+                });
+                d.show();
+            }
+            else
+            {
+                myRefSos.setValue(0);
+                FullscreenActivity.SosStatus = false ;
+                sosOff();
+                for(ServiceEmps emp : FullscreenActivity.Emps) {
+                    if (emp.department.equals("Service") || emp.department.equals("RoomService") || emp.department.equals("Cleanup")) {
+                        emp.makemessage(emp.token,"SOS",false,act);
+                    }
+                }
+                LoadingDialog ddd = new LoadingDialog(act);
+                myRefSos.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot)
+                    {
+                        if (Long.parseLong(snapshot.getValue().toString()) > 0 )
+                        {
+                            FullscreenActivity.sosId = Long.parseLong(snapshot.getValue().toString()) ;
+                        }
+                    }
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+                final String depo = "SOS";
+                StringRequest removOrder = new StringRequest(Request.Method.POST, removeServiceOrderUrl , new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response)
+                    {
+                        ddd.stop();
+                        if (response.equals("1")  )
+                        {
+                            ToastMaker.MakeToast("تم الغاء طلب " + "SOS" , act);
+                            Calendar x = Calendar.getInstance(Locale.getDefault());
+                        }
+                        else
+                        {
+                        }
+
+                    }
+                }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error)
+                    {
+                        ddd.stop();
+                    }
+                })
+                {
+                    @Override
+                    protected Map<String, String> getParams() throws AuthFailureError
+                    {
+                        Map<String,String> params = new HashMap<String, String>();
+                        params.put("id" , String.valueOf( FullscreenActivity.sosId));
+                        params.put("room" , String.valueOf( LogIn.room.getRoomNumber()));
+                        params.put("dep" , "SOS");
+                        params.put("Hotel" , String.valueOf( LogIn.room.getHotel()));
+                        return params;
+                    }
+                };
+                Volley.newRequestQueue(act).add(removOrder);
+            }
+        }
+        else
+        {
+            ToastMaker.MakeToast("This Room Is Vacant" , act);
+        }
     }
 }

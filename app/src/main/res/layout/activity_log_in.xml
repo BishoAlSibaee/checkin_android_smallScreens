@@ -53,6 +53,13 @@
                     android:layout_marginTop="20dp"
                     android:foregroundGravity="center"
                     app:indicatorName="LineSpinFadeLoaderIndicator" />
+
+                <TextView
+                    android:id="@+id/textView64"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:textColor="@color/light_blue_A200" />
             </LinearLayout>
 
             <LinearLayout

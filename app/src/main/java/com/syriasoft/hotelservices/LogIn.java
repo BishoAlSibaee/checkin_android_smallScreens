@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.ConnectivityManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -14,6 +15,7 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -74,7 +76,7 @@ public class LogIn extends AppCompatActivity
     private String password ;
     private EditText  passwordEntry ;
     private String url=URL+"insertUniqueRoom.php";
-    Activity act = this ;
+    static Activity act ;
     private String projectsUrl = URL+"getProjects.php";
     private String buildingsUrl=URL+"getBuildings.php?Hotel=";
     private String floorsUrl = URL+"getFloors.php?buildingId=";
@@ -106,12 +108,14 @@ public class LogIn extends AppCompatActivity
     List<HomeBean> Homs ;
     public static HomeBean selectedHome ;
     public static List<Activity> ActList ;
+    TextView vertion ;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_log_in);
+        act = this ;
         ActList = new ArrayList<Activity>();
         ActList.add(act);
         if (ActList.size() >1 )
@@ -127,9 +131,10 @@ public class LogIn extends AppCompatActivity
         setTuyaApplication() ;
         Login = (LinearLayout) findViewById(R.id.Login_Layout);
         LoginImage = (LinearLayout) findViewById(R.id.LoginImage);
+        vertion = (TextView) findViewById(R.id.textView64);
         LoginImage.setVisibility(View.VISIBLE);
         Login.setVisibility(View.GONE);
-
+        vertion.setText("Version "+BuildConfig.VERSION_NAME+" "+Project);
 
         StringRequest request = new StringRequest(Request.Method.POST, projectsUrl, new Response.Listener<String>()
         {
@@ -578,6 +583,7 @@ public class LogIn extends AppCompatActivity
                     }
                 });
                 Volley.newRequestQueue(act).add(re);
+
             }
             else
             {
@@ -733,6 +739,7 @@ public class LogIn extends AppCompatActivity
             @Override
             public void onResponse(Call<String> call, retrofit2.Response<String> response)
             {
+                Log.d("listResp" , response.toString());
                 String json = response.body();
                 accountInfo = GsonUtil.toObject(json, AccountInfo.class);
                 Log.d("accountInfo" , accountInfo.getAccess_token());
@@ -742,6 +749,33 @@ public class LogIn extends AppCompatActivity
                     {
                         accountInfo.setMd5Pwd(pass);
                         acc = accountInfo;
+                        StringRequest request = new StringRequest(Request.Method.POST, "https://api.ttlock.com/v3/lock/list", new Response.Listener<String>() {
+                            @Override
+                            public void onResponse(String response) {
+                                Log.d("listResp" , response);
+                            }
+                        }, new Response.ErrorListener() {
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+
+                            }
+                        })
+                        {
+                            @Override
+                            protected Map<String, String> getParams() throws AuthFailureError {
+                                Calendar c = Calendar.getInstance(Locale.getDefault());
+                                Map<String,String> par = new HashMap<String, String>();
+                                par.put("clientId",ApiService.CLIENT_ID);
+                                par.put("accessToken" , LogIn.acc.getAccess_token());
+                                par.put("lockAlias" ,"lock");
+                                par.put("groupId" , "");
+                                par.put("pageNo","1");
+                                par.put("pageSize","100") ;
+                                par.put("date" , String.valueOf(c.getTimeInMillis() ));
+                                return par;
+                            }
+                        };
+                        Volley.newRequestQueue(act).add(request);
                         Intent i = new Intent(act,IndexActivity.class);
                         startActivity(i);
                     } else
@@ -760,6 +794,7 @@ public class LogIn extends AppCompatActivity
             @Override
             public void onFailure(Call<String> call, Throwable t)
             {
+                Log.d("listResp" , t.getMessage());
                 //d.dismiss();
                 //ToastMaker.MakeToast(t.getMessage() , act);
                 Calendar x = Calendar.getInstance(Locale.getDefault());
@@ -888,11 +923,6 @@ public class LogIn extends AppCompatActivity
                 ErrorRegister.rigestError(act , LogIn.room.getProjectName() , LogIn.room.getRoomNumber() , time ,004 ,accountInfo.errmsg , "LogIn To TTlock Account" );
             }
         });
-
-
-
-        //piService apiService = RetrofitAPIManager.provideClientApi();
-
     }
 
     private void getTheLockGatway()
@@ -1095,6 +1125,7 @@ public class LogIn extends AppCompatActivity
             public void onError (String code, String error) {
 
                 Toast.makeText (act, "code:" + code + "error:" + error, Toast.LENGTH_SHORT) .show();
+                Log.d("tuyaError", error +" "+code);
                 Calendar c = Calendar.getInstance(Locale.getDefault());
                 long time = c.getTimeInMillis();
                 ErrorRegister.rigestError( act , LogIn.room.getProjectName() , LogIn.room.getRoomNumber() , time ,9,error,"error logging in to tuya account");

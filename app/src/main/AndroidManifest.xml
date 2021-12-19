@@ -35,6 +35,11 @@
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true"
         tools:replace="android:allowBackup,android:supportsRtl">
+        <activity android:name=".ScreenButtons"></activity>
+        <activity android:name=".MasterOff" />
+        <activity android:name=".LightingControl" />
+        <activity android:name=".DoubleControlSelectDps" />
+        <activity android:name=".LightingDoubleControl" />
         <activity
             android:name=".Minibar_Menu"
             android:configChanges="orientation|keyboardHidden|screenSize"
@@ -51,10 +56,10 @@
 
         <meta-data
             android:name="TUYA_SMART_APPKEY"
-            android:value="hjucvkp8crmjt5vvevre" />
+            android:value="hjucvkp8crmjt5vvevre" /> <!--hjucvkp8crmjt5vvevre-->
         <meta-data
             android:name="TUYA_SMART_SECRET"
-            android:value="netymnmhf4mvnvantyd9mhhqaahnc8ea" />
+            android:value="netymnmhf4mvnvantyd9mhhqaahnc8ea" /> <!--netymnmhf4mvnvantyd9mhhqaahnc8ea-->
 
         <activity
             android:name=".RestaurantMenues"
@@ -90,9 +95,9 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
-                <category android:name="android.intent.category.HOME"/>
+                <!--<category android:name="android.intent.category.HOME"/>
                 <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.MONKEY"/>
+                <category android:name="android.intent.category.MONKEY"/>-->
             </intent-filter>
         </activity>
         <activity

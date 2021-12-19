@@ -11,6 +11,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.widget.TabHost;
 import android.widget.Toast;
 
 import androidx.core.app.NotificationCompat;
@@ -28,6 +29,8 @@ import com.ttlock.bl.sdk.callback.ControlLockCallback;
 import com.ttlock.bl.sdk.constant.ControlAction;
 import com.ttlock.bl.sdk.entity.ControlLockResult;
 import com.ttlock.bl.sdk.entity.LockError;
+import com.tuya.smart.home.sdk.TuyaHomeSdk;
+import com.tuya.smart.sdk.api.IResultCallback;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -51,6 +54,8 @@ public class messagingService extends FirebaseMessagingService {
         //startActivity(i);
         //showNotification(FullscreenActivity.act , remoteMessage.getData().get("title") ,remoteMessage.getData().get("service"),i,0 );
        String title =  remoteMessage.getData().get("title");
+
+       Log.d("messageReceved" , title);
        if (title.equals("labor"))
        {
            String service = remoteMessage.getData().get("service");
@@ -122,6 +127,29 @@ public class messagingService extends FirebaseMessagingService {
        }
        else if (title.equals("poweron")) {
            FullscreenActivity.PowerOn();
+       }
+       else if (title.equals("New Cleanup")) {
+           if (FullscreenActivity.THEROOM != null ) {
+               if (FullscreenActivity.THEROOM.getSERVICE_B() != null ) {
+                   if (FullscreenActivity.THEROOM.getSERVICE_B().dps.get("2") != null ) {
+                       if (FullscreenActivity.THEROOM.getSERVICE_B().dps.get("2").toString().equals("false")) {
+                           TuyaHomeSdk.newDeviceInstance(FullscreenActivity.THEROOM.getSERVICE_B().devId).publishDps("{\"2\": true}", new IResultCallback() {
+                               @Override
+                               public void onError(String code, String error) {
+
+                               }
+
+                               @Override
+                               public void onSuccess() {
+
+                               }
+                           });
+                       }
+
+                   }
+
+               }
+           }
        }
     }
     @Override

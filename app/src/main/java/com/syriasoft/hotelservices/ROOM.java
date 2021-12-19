@@ -52,8 +52,8 @@ public class ROOM
     public String token ;
 
 
-    private DeviceBean POWER_B , AC_B , GATEWAY_B , DOORSENSOR_B , MOTIONSENSOR_B , CURTAIN_B , SERVICE_B , SWITCH1_B , SWITCH2_B , SWITCH3_B , SWITCH4_B ,LOCK_B ;
-    private ITuyaDevice POWER , AC , GATEWAY , DOORSENSOR , MOTIONSENSOR , CURTAIN , SERVICE , SWITCH1 , SWITCH2 , SWITCH3 , SWITCH4 ,LOCK ;
+    private DeviceBean POWER_B , AC_B , GATEWAY_B , DOORSENSOR_B , MOTIONSENSOR_B , CURTAIN_B , SERVICE_B , SWITCH1_B , SWITCH2_B , SWITCH3_B , SWITCH4_B ,LOCK_B , SERVICE_B2;
+    private ITuyaDevice POWER , AC , GATEWAY , DOORSENSOR , MOTIONSENSOR , CURTAIN , SERVICE , SWITCH1 , SWITCH2 , SWITCH3 , SWITCH4 ,LOCK,SERVICE2 ;
     private ITuyaGateway WiredZBGateway ;
     private LockObj Lock ;
 
@@ -317,4 +317,19 @@ public class ROOM
         return Lock;
     }
 
+    public void setSERVICE_B2(DeviceBean SERVICE_B2) {
+        this.SERVICE_B2 = SERVICE_B2;
+    }
+
+    public void setSERVICE2(ITuyaDevice SERVICE2) {
+        this.SERVICE2 = SERVICE2;
+    }
+
+    public DeviceBean getSERVICE_B2() {
+        return SERVICE_B2;
+    }
+
+    public ITuyaDevice getSERVICE2() {
+        return SERVICE2;
+    }
 }

@@ -54,11 +54,11 @@ public class Cart extends AppCompatActivity
     public static final String FCM_MESSAGE_URL = "https://fcm.googleapis.com/fcm/send";
     final private String serverKey = "key=" + "AAAAQmygXvw:APA91bFt5CiONiZPDDj4_kz9hmKXlL1cjfTa_ZNGfobMPmt0gamhzEoN2NHiOxypCDr_r5yfpLvJy-bQSgrykXvaqKkThAniTr-0hpXPBrXm7qWThMmkiaN9o6qaUqfIUwStMMuNedTw";
     final private String contentType = "application/json";
-    List<RestaurantOrderItem> list = new ArrayList<RestaurantOrderItem>();
+    static List<RestaurantOrderItem> list = new ArrayList<RestaurantOrderItem>();
     String sendUrl =LogIn.URL+"insertRestaurantOrder.php";
     String sendItemsUrl =LogIn.URL+ "insertRestaurantOrderItems.php";
-    TextView orderTotal ;
-    double total ;
+    static TextView orderTotal ;
+    static double total = 0  ;
     static String orderNumber = "";
     private int Reservation = 0 ;
     private int RoomId = 0 ;
@@ -86,25 +86,25 @@ public class Cart extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cart);
         act = this;
-        FullscreenActivity.RestaurantActivities.add(act);
-        list = FullscreenActivity.order.getItems();
+        mainlayout = (ConstraintLayout) findViewById(R.id.rightSlide);
+        restaurantIcon = (ImageView) findViewById(R.id.imageView2);
+        orderTotal = (TextView) findViewById(R.id.totalOrder);
         restEmps = new ArrayList<REST_EMPS_CLASS>();
         itemsGridView = (RecyclerView) findViewById(R.id.recycler);
         GridLayoutManager manager = new GridLayoutManager(act, 1);
         manager.setOrientation(LinearLayoutManager.VERTICAL);
+        FullscreenActivity.RestaurantActivities.add(act);
+        list = FullscreenActivity.order.getItems();
         itemsGridView.setLayoutManager(manager);
         adapter = new RestaurantOrderAdapter(list, act);
         itemsGridView.stopNestedScroll();
-        restaurantIcon = (ImageView) findViewById(R.id.imageView2);
-        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(itemsGridView.getContext(),
-                manager.getOrientation());
         itemsGridView.setAdapter(adapter);
-        for (int i = 0 ; i <list.size() ; i++)
-        {
-            total = total + (list.get(i).price * list.get(i).quantity );
-        }
-        orderTotal = (TextView) findViewById(R.id.totalOrder);
-        orderTotal.setText(String.valueOf(total));
+//        total = 0 ;
+//        for (int i = 0 ; i <list.size() ; i++)
+//        {
+//            total = total + (list.get(i).price * list.get(i).quantity );
+//        }
+//        orderTotal.setText(String.valueOf(total));
         Facility = getIntent().getExtras().getInt("Facility");
         database = FirebaseDatabase.getInstance("https://hotelservices-ebe66.firebaseio.com/");
         Room = database.getReference(LogIn.room.getProjectName()+"/B"+LogIn.room.getBuilding()+"/F"+LogIn.room.getFloor()+"/R"+LogIn.room.getRoomNumber());
@@ -120,7 +120,7 @@ public class Cart extends AppCompatActivity
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot)
             {
-                if (Integer.parseInt(snapshot.getValue().toString()) > 0 )
+                if (!snapshot.getValue().toString().equals("0") )
                 {
                     FullscreenActivity.RestaurantStatus = true ;
                     restaurantOn();
@@ -145,7 +145,7 @@ public class Cart extends AppCompatActivity
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot)
             {
-                if (Integer.parseInt(snapshot.getValue().toString()) > 0 )
+                if (!snapshot.getValue().toString().equals("0"))
                 {
                     dndOn();
                 }
@@ -166,7 +166,7 @@ public class Cart extends AppCompatActivity
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot)
             {
-                if (Integer.parseInt(snapshot.getValue().toString()) > 0 )
+                if (!snapshot.getValue().toString().equals("0") )
                 {
                     sosOn();
                 }
@@ -186,7 +186,7 @@ public class Cart extends AppCompatActivity
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot)
             {
-                if (Integer.parseInt(snapshot.getValue().toString()) > 0 )
+                if (!snapshot.getValue().toString().equals("0") )
                 {
                     laundryOn();
                 }
@@ -206,7 +206,7 @@ public class Cart extends AppCompatActivity
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot)
             {
-                if (Integer.parseInt(snapshot.getValue().toString())>0)
+                if (!snapshot.getValue().toString().equals("0"))
                 {
                     cleanupOn();
                 }
@@ -225,7 +225,7 @@ public class Cart extends AppCompatActivity
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot)
             {
-                if (Integer.parseInt(snapshot.getValue().toString()) > 0 )
+                if (!snapshot.getValue().toString().equals("0") )
                 {
                     checkoutOn();
                 }
@@ -331,7 +331,6 @@ public class Cart extends AppCompatActivity
         });
         KeepScreenFull();
         blink();
-        mainlayout = (ConstraintLayout) findViewById(R.id.rightSlide);
         mainlayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -360,6 +359,7 @@ public class Cart extends AppCompatActivity
             }
         };
         backHomeThread.run();
+        setTotal();
         getRestEmps();
     }
 
@@ -798,6 +798,22 @@ public class Cart extends AppCompatActivity
 
         };
         Volley.newRequestQueue(act).add(request);
+    }
+
+    public static void setTotal() {
+        total = 0 ;
+        list = FullscreenActivity.order.getItems();
+        for (int i = 0 ; i <list.size() ; i++)
+        {
+            total = total + (list.get(i).price * list.get(i).quantity );
+        }
+        orderTotal.setText(String.valueOf(total));
+    }
+
+    public static void refreshItems() {
+        list = FullscreenActivity.order.getItems();
+        adapter = new RestaurantOrderAdapter(list, act);
+        itemsGridView.setAdapter(adapter);
     }
 
 }

@@ -80,12 +80,14 @@ public class Tuya_Login extends AppCompatActivity {
                             d.stop();
                             //Toast.makeText (act, "Login succeeded, username:" + user.getUsername(), Toast.LENGTH_SHORT).show();
                             getFamilies();
+                            Log.d("loginToya" , "done" );
                         }
 
                         @Override
                         public void onError (String code, String error) {
                             d.stop();
                             Toast.makeText (act, "code:" + code + "error:" + error, Toast.LENGTH_SHORT) .show();
+                            Log.d("loginToya" , error );
                             Calendar c = Calendar.getInstance(Locale.getDefault());
                             long time = c.getTimeInMillis();
                             ErrorRegister.rigestError( act , LogIn.room.getProjectName() , LogIn.room.getRoomNumber() , time ,9,error,"error logging in to tuya account");
