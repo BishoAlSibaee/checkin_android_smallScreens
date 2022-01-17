@@ -72,6 +72,16 @@ public class Devices_Adapter extends BaseAdapter {
             net.setImageResource(android.R.drawable.ic_delete);
         }
 
+        String STATUS = "" ;
+        List kkk = new ArrayList(list.get(position).getDps().keySet());
+        List vvv = new ArrayList(list.get(position).getDps().values());
+
+        for (int i=0;i<kkk.size();i++) {
+            STATUS = STATUS+ " ["+kkk.get(i)+" "+vvv.get(i)+"] " ;
+        }
+
+        //order.setText(STATUS);
+
         mDevice.registerDevListener(new IDevListener() {
             @Override
             public void onDpUpdate(String devId, String dpStr) {
@@ -114,7 +124,7 @@ public class Devices_Adapter extends BaseAdapter {
                 d.setContentView(R.layout.rename_device_dialog);
                 Spinner s = (Spinner) d.findViewById(R.id.devicerenamespinner);
                 Spinner rr = (Spinner) d.findViewById(R.id.roomsspinner);
-                String[] Types = new String[]{"Power", "ZGatway", "AC", "DoorSensor", "MotionSensor", "Curtain", "ServiceSwitch", "Switch1", "Switch2", "Switch3", "Switch4"};
+                String[] Types = new String[]{"Power", "ZGatway", "AC", "DoorSensor", "MotionSensor", "Curtain", "ServiceSwitch", "Switch1", "Switch2", "Switch3", "Switch4","IR"};
                 String[] therooms = new String[Rooms.list.size()];
                 for (int i = 0; i < Rooms.list.size(); i++) {
                     therooms[i] = String.valueOf(Rooms.list.get(i).RoomNumber);
@@ -192,7 +202,7 @@ public class Devices_Adapter extends BaseAdapter {
         convertView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                Log.d("IR" , list.get(position).getCategoryCode());
                 Log.d("SelectedDeviceInfo","name: "+list.get(position).getName()+" dps: "+list.get(position).getDps()+" category: "+list.get(position).getDeviceCategory());
                 if (list.get(position).getIsOnline()) {
                     Toast.makeText(finalConvertView.getContext(),"online",Toast.LENGTH_SHORT).show();
@@ -201,6 +211,9 @@ public class Devices_Adapter extends BaseAdapter {
                 else {
                     Toast.makeText(finalConvertView.getContext(),"offline",Toast.LENGTH_SHORT).show();
                     net.setImageResource(android.R.drawable.ic_delete);
+                }
+                if (list.get(position).getCategoryCode().equals("wf_wnykq")) {
+
                 }
             }
         });

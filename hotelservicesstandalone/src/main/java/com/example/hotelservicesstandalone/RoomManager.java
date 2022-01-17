@@ -720,7 +720,7 @@ public class RoomManager extends AppCompatActivity
         gateway2 = (TextView)findViewById(R.id.room_Gateway2);
         DeviceTypes = (Spinner) findViewById(R.id.deviceNames_spinner);
         DeviceTypesZ = (Spinner) findViewById(R.id.deviceNames_spinnerZbee);
-        String [] Types = new String[]{Room.RoomNumber+"Power",Room.RoomNumber+"ZGatway",Room.RoomNumber+"AC",Room.RoomNumber+"DoorSensor",Room.RoomNumber+"MotionSensor",Room.RoomNumber+"Curtain",Room.RoomNumber+"ServiceSwitch",Room.RoomNumber+"Switch1",Room.RoomNumber+"Switch2",Room.RoomNumber+"Switch3",Room.RoomNumber+"Switch4"};
+        String [] Types = new String[]{Room.RoomNumber+"Power",Room.RoomNumber+"ZGatway",Room.RoomNumber+"AC",Room.RoomNumber+"DoorSensor",Room.RoomNumber+"MotionSensor",Room.RoomNumber+"Curtain",Room.RoomNumber+"ServiceSwitch",Room.RoomNumber+"Switch1",Room.RoomNumber+"Switch2",Room.RoomNumber+"Switch3",Room.RoomNumber+"Switch4",Room.RoomNumber+"IR"};
         ArrayAdapter x =  new ArrayAdapter<String>(act ,R.layout.spinners_item ,Types);
         ArrayAdapter y =  new ArrayAdapter<String>(act ,R.layout.spinners_item ,Types);
         DeviceTypesZ.setAdapter(y);
@@ -869,6 +869,7 @@ public class RoomManager extends AppCompatActivity
                     @Override
                     public void onSuccess(String token)
                     {
+                        Log.d("scanWifiDevice" , "token "+token+" "+selectedWifi.getText().toString()+" "+wifiPass.getText().toString());
                         Token = token ;
                         ActivatorBuilder builder = new ActivatorBuilder()
                                 .setSsid(selectedWifi.getText().toString())
@@ -884,11 +885,14 @@ public class RoomManager extends AppCompatActivity
                                                  {
                                                      d.stop();
                                                      mTuyaActivator.stop();
+                                                     Log.d("scanWifiDevice" , "error "+errorMsg +" "+errorCode);
+                                                     Toast.makeText(act, errorMsg+" "+errorCode , Toast.LENGTH_LONG).show();
                                                  }
 
                                                  @Override
                                                  public void onActiveSuccess(DeviceBean devResp)
                                                  {
+                                                     Log.d("scanWifiDevice" , "success ");
                                                      d.stop();
                                                      Rooms.CHANGE_STATUS = true ;
                                                      foundWifiDevice.setText(devResp.getName());
@@ -905,6 +909,7 @@ public class RoomManager extends AppCompatActivity
                                                      Rooms.CHANGE_STATUS = true ;
                                                      Toast.makeText(act , step , Toast.LENGTH_LONG).show();
                                                      mTuyaActivator.stop();
+                                                     Log.d("scanWifiDevice" , "step "+step+" "+data.toString());
                                                  }
                                              }
                                 );
@@ -917,6 +922,7 @@ public class RoomManager extends AppCompatActivity
                     public void onFailure(String s, String s1)
                     {
                         mTuyaActivator.stop();
+                        Log.d("scanWifiDevice" , s+" "+s1);
                     }
                 });
 

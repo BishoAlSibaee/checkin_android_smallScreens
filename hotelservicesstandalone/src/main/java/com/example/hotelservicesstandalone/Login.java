@@ -65,7 +65,7 @@ public class Login extends AppCompatActivity
         ProjectName = (TextView) findViewById(R.id.Project_Name);
         ProjectName.setText(SelectedHotel.ProjectName);
         THEHOTELDB = new HotelDB(act);
-        //THEHOTELDB.Logout();
+        THEHOTELDB.Logout();
         if (Login.THEHOTELDB.isLoggedIn())
         {
             Log.d("loginorocess" , "logged");
@@ -238,7 +238,6 @@ public class Login extends AppCompatActivity
             @Override
             public void onSuccess (User user)
             {
-
                 //Toast.makeText (act, "Login succeeded, username:" + user.getUsername(), Toast.LENGTH_SHORT).show();
                 TuyaHomeSdk.getHomeManagerInstance().queryHomeList(new ITuyaGetHomeListCallback() {
                     @Override

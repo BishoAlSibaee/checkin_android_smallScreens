@@ -4984,6 +4984,10 @@ public class FullscreenActivity extends AppCompatActivity {
                                         }
                                     }
                                 }
+                                else if (zigbeeDevices.get(i).getName().equals(LogIn.room.getRoomNumber()+"IR")) {
+                                    Log.d("IR" , "IR Found ");
+
+                                }
                             }
                             if (DoorSensorStatus )
                             {
@@ -8827,37 +8831,37 @@ public class FullscreenActivity extends AppCompatActivity {
     // open room door
 
     public static void OpenTheDoor(View view) {
-        mediaPlayer.start();
-        if(myTestLockEKey == null)
-        {
-            ToastMaker.MakeToast(" you should get your key list first " , act);
-            return;
-        }
-        final Dialog d = new Dialog(act);
-        d.setContentView(R.layout.loading_layout);
-        TextView t = (TextView) d.findViewById(R.id.textViewdfsdf);
-        t.setText("Door Opening");
-        d.setCancelable(false);
-        d.show();
-        ensureBluetoothIsEnabled();
-        //showConnectLockToast();
-        TTLockClient.getDefault().controlLock(ControlAction.UNLOCK, myTestLockEKey.getLockData(), myTestLockEKey.getLockMac(),new ControlLockCallback()
-        {
-            @Override
-            public void onControlLockSuccess(ControlLockResult controlLockResult) {
-                //Toast.makeText(act,"lock is unlock  success!",Toast.LENGTH_LONG).show();
-                d.dismiss();
-                ToastMaker.MakeToast("Door Opened",act);
-            }
-
-            @Override
-            public void onFail(LockError error) {
-               // Toast.makeText(UnlockActivity.this,"unLock fail!--" + error.getDescription(),Toast.LENGTH_LONG).show();
-                d.dismiss();
-                ToastMaker.MakeToast("Open Fail!  "+error,act);
-            }
-        });
-
+//        mediaPlayer.start();
+//        if(myTestLockEKey == null)
+//        {
+//            ToastMaker.MakeToast(" you should get your key list first " , act);
+//            return;
+//        }
+//        final Dialog d = new Dialog(act);
+//        d.setContentView(R.layout.loading_layout);
+//        TextView t = (TextView) d.findViewById(R.id.textViewdfsdf);
+//        t.setText("Door Opening");
+//        d.setCancelable(false);
+//        d.show();
+//        ensureBluetoothIsEnabled();
+//        //showConnectLockToast();
+//        TTLockClient.getDefault().controlLock(ControlAction.UNLOCK, myTestLockEKey.getLockData(), myTestLockEKey.getLockMac(),new ControlLockCallback()
+//        {
+//            @Override
+//            public void onControlLockSuccess(ControlLockResult controlLockResult) {
+//                //Toast.makeText(act,"lock is unlock  success!",Toast.LENGTH_LONG).show();
+//                d.dismiss();
+//                ToastMaker.MakeToast("Door Opened",act);
+//            }
+//
+//            @Override
+//            public void onFail(LockError error) {
+//               // Toast.makeText(UnlockActivity.this,"unLock fail!--" + error.getDescription(),Toast.LENGTH_LONG).show();
+//                d.dismiss();
+//                ToastMaker.MakeToast("Open Fail!  "+error,act);
+//            }
+//        });
+        openDoorByGateway();
     }
 
     public static void OpenDoorAndSaveIt (View view){
