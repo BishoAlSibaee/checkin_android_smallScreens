@@ -45,8 +45,8 @@ public class MasterOff extends AppCompatActivity {
         CurrentMasteroff = (RecyclerView) findViewById(R.id.currentMasteroffRecycler);
         FirstButton = (CheckBox) findViewById(R.id.checkBox);
         MasterOffInfo = (TextView) findViewById(R.id.currentMasteroffInfo);
-        Switches = new ArrayList<DeviceBean>();
-        Buttons = new ArrayList<String>();
+        Switches = new ArrayList<>();
+        Buttons = new ArrayList<>();
         Smanager = new LinearLayoutManager(act,RecyclerView.VERTICAL,false);
         Bmanager = new LinearLayoutManager(act,RecyclerView.VERTICAL,false);
         CurrentManager = new LinearLayoutManager(act,RecyclerView.VERTICAL,false);

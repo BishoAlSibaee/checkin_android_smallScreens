@@ -11,6 +11,7 @@ import android.os.Build;
 import android.os.IBinder;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
@@ -25,8 +26,7 @@ public class SOSService extends Service {
     }
 
     @Override
-    public void onCreate()
-    {
+    public void onCreate() {
         String CHANNEL_ID = "my_channel_01";
         NotificationChannel channel = null;
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
@@ -34,28 +34,24 @@ public class SOSService extends Service {
                     "Channel human readable title",
                     NotificationManager.IMPORTANCE_DEFAULT);
         }
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).createNotificationChannel(channel);
         }
-
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("")
                 .setContentText("").build();
 
-        startForeground(1,notification);
+        startForeground(1, notification);
         mediaPlayer = MediaPlayer.create(getBaseContext(), R.raw.sos);
-
     }
 
     @Override
-    public void onDestroy()
-    {
+    public void onDestroy() {
     }
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId)
-    {
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.d("IncomingMessage", "service started");
         Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         mediaPlayer.start();
         // Vibrate for 500 milliseconds

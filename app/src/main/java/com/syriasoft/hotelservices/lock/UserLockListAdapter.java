@@ -1,5 +1,6 @@
 package com.syriasoft.hotelservices.lock;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -18,6 +19,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.syriasoft.hotelservices.LogIn;
+import com.syriasoft.hotelservices.MyApp;
 import com.syriasoft.hotelservices.R;
 import com.syriasoft.hotelservices.ToastMaker;
 import com.syriasoft.hotelservices.LoadingDialog;
@@ -67,7 +69,7 @@ public class UserLockListAdapter extends  RecyclerView.Adapter<UserLockListAdapt
     }
 
     @Override
-    public void onBindViewHolder(DeviceViewHolder _holder, final int position)
+    public void onBindViewHolder(DeviceViewHolder _holder, @SuppressLint("RecyclerView") final int position)
     {
 
         _holder.lock.setText(mDataList.get(position).getLockName());
@@ -88,7 +90,7 @@ public class UserLockListAdapter extends  RecyclerView.Adapter<UserLockListAdapt
             @Override
             public void onClick(View v)
             {
-                if (_holder.room.getText().toString().equals("Empty") || _holder.room.getText().toString().equals(String.valueOf(LogIn.room.getRoomNumber())))
+                if (_holder.room.getText().toString().equals("Empty") || _holder.room.getText().toString().equals(String.valueOf(MyApp.Room.RoomNumber)))
                 {
                     AlertDialog.Builder d = new AlertDialog.Builder(_holder.itemView.getContext());
                     d.setTitle("Select Lock Name "+mDataList.get(position).getLockName());
@@ -116,9 +118,9 @@ public class UserLockListAdapter extends  RecyclerView.Adapter<UserLockListAdapt
                                     if (response.equals("1"))
                                     {
                                         LogIn.myLock = mDataList.get(position);
-                                        LogIn.myLock.setLockName(LogIn.room.getRoomNumber()+"Lock");
+                                        LogIn.myLock.setLockName(MyApp.Room.RoomNumber+"Lock");
                                         mDataList.get(position).getLockId();
-                                        LogIn.room.insertLock(LogIn.myLock.getLockName());
+                                        //LogIn.room.insertLock(LogIn.myLock.getLockName());
                                         Log.d("lockData",String.valueOf(mDataList.get(position).getSpecialValue()));
                                         ToastMaker.MakeToast(mDataList.get(position).getLockName()+ " Lock Selected", _holder.itemView.getContext());
                                     }
@@ -138,7 +140,7 @@ public class UserLockListAdapter extends  RecyclerView.Adapter<UserLockListAdapt
                                 protected Map<String, String> getParams() throws AuthFailureError
                                 {
                                     Map<String,String> Params = new HashMap<String, String>();
-                                    Params.put("id" , String.valueOf( LogIn.room.getRoomDBid()));
+                                    Params.put("id" , String.valueOf(MyApp.Room.id));
                                     Params.put("Lock" , mDataList.get(position).getLockName());
                                     return Params;
                                 }

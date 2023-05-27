@@ -17,21 +17,21 @@ public class ApiRequtest<T> {
 
     private TypeToken<T> mResultType;
 
-    public ApiRequtest(Call<ResponseBody> call, TypeToken<T> resultType, final ApiResponse.Listener<ApiResult<T>> listener, final ApiResponse.ErrorListener errorListener){
+    public ApiRequtest(Call<ResponseBody> call, TypeToken<T> resultType, final ApiResponse.Listener<ApiResult<T>> listener, final ApiResponse.ErrorListener errorListener) {
         mResultType = resultType;
         call.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, retrofit2.Response<ResponseBody> response) {
                 try {
                     ResponseBody responseBody = response.body();
-                    if(responseBody != null){
+                    if (responseBody != null) {
                         String jsonString = response.body().string();
                         final ApiResult<T> result = new ApiResult<>(new JSONObject(jsonString), mResultType);
                         listener.onResponse(result);
                     }
 
-                }catch (IOException e){
-                }catch (JSONException e) {
+                } catch (IOException e) {
+                } catch (JSONException e) {
                 }
             }
 
@@ -41,7 +41,6 @@ public class ApiRequtest<T> {
             }
         });
     }
-
 
 
 }

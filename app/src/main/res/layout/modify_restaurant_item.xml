@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/colorPrimaryDark"
+    android:background="@drawable/restaurant_background"
     android:orientation="vertical"
     android:padding="20dp">
 
@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:text="Modify Item "
-        android:textColor="@color/colorAccent"
+        android:textColor="@color/light_blue_A200"
         android:textSize="30sp" />
 
     <LinearLayout
@@ -27,7 +27,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Quantity"
-            android:textColor="@color/colorAccent"
+            android:textColor="@color/light_blue_A200"
             android:textSize="24sp"
             android:textStyle="bold" />
 
@@ -37,7 +37,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Price"
-            android:textColor="@color/colorAccent"
+            android:textColor="@color/light_blue_A200"
             android:textSize="24sp"
             android:textStyle="bold" />
 
@@ -47,7 +47,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Total"
-            android:textColor="@color/colorAccent"
+            android:textColor="@color/light_blue_A200"
             android:textSize="24sp"
             android:textStyle="bold" />
     </LinearLayout>
@@ -64,16 +64,16 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:ems="10"
-            android:hint="Enter Quantity"
+            android:hint="enter new quantity"
             android:inputType="number"
-            android:textColor="@color/light_blue_A400"
-            android:textColorHint="@color/light_blue_A200"
+            android:textColor="@color/light_blue_A200"
+            android:textColorHint="@color/gray"
             android:textSize="24sp" />
 
         <TextView
             android:id="@+id/item_price"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:textColor="@color/light_blue_A200"
             android:textSize="24sp" />
@@ -81,7 +81,7 @@
         <TextView
             android:id="@+id/item_total"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:textColor="@color/light_blue_A200"
             android:textSize="24sp" />
@@ -99,9 +99,9 @@
             android:layout_height="wrap_content"
             android:layout_margin="5dp"
             android:layout_weight="1"
-            android:background="@drawable/mainbtn_main"
+            android:background="@drawable/circle"
             android:text="Cancel"
-            android:textColor="@color/colorAccent" />
+            android:textColor="@color/light_blue_A200" />
 
         <Button
             android:id="@+id/modify_item_btn"
@@ -109,8 +109,8 @@
             android:layout_height="wrap_content"
             android:layout_margin="5dp"
             android:layout_weight="1"
-            android:background="@drawable/mainbtn_main"
+            android:background="@drawable/circle"
             android:text="Modify"
-            android:textColor="@color/colorAccent" />
+            android:textColor="@color/light_blue_A200" />
     </LinearLayout>
 </LinearLayout>

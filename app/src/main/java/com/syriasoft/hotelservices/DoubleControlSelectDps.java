@@ -119,7 +119,7 @@ public class DoubleControlSelectDps extends AppCompatActivity {
             arr.put(groupdetailes1);
             JSONObject multiControlBean = new JSONObject();
             try {
-                multiControlBean.put("groupName", LogIn.room.getRoomNumber() + "Lighting" + x);
+                multiControlBean.put("groupName", MyApp.Room.RoomNumber + "Lighting" + x);
                 multiControlBean.put("groupType", 1);
                 multiControlBean.put("groupDetail", arr);
                 multiControlBean.put("id", x);

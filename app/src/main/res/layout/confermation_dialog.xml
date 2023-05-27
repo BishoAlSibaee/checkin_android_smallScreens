@@ -2,7 +2,9 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/gray"
+    android:layout_marginStart="50dp"
+    android:layout_marginEnd="50dp"
+    android:background="@color/colorPrimary"
     android:orientation="vertical"
     android:padding="50dp">
 
@@ -40,6 +42,8 @@
             android:layout_marginEnd="20dp"
             android:layout_weight="1"
             android:background="@drawable/date_bar_background"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
             android:text="Cancel"
             android:textColor="@color/light_blue_A200"
             android:textSize="24sp"
@@ -52,6 +56,8 @@
             android:layout_marginStart="20dp"
             android:layout_weight="1"
             android:background="@drawable/date_bar_background"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
             android:text="Yes"
             android:textColor="@color/light_blue_A200"
             android:textSize="24sp"

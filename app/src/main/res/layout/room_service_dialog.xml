@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/colorPrimaryDark"
+    android:layout_height="wrap_content"
+    android:background="@color/colorPrimary"
     android:orientation="vertical"
-    android:padding="10dp"
-    android:paddingTop="10dp">
+    android:padding="20dp">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -40,26 +40,28 @@
 
                     <CheckBox
                         android:id="@+id/checkBox_slippers"
-                        android:layout_width="0dp"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
                         android:layout_weight="1"
                         android:text="Slippers"
                         android:textAlignment="textStart"
                         android:textColor="@color/light_blue_A200"
-                        android:textSize="18sp"
-                        android:textStyle="bold" />
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        tools:ignore="TouchTargetSizeCheck" />
 
                     <CheckBox
                         android:id="@+id/checkBox_towels"
-                        android:layout_width="0dp"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
                         android:layout_weight="1"
                         android:text="Towels"
                         android:textColor="@color/light_blue_A200"
-                        android:textSize="18sp"
-                        android:textStyle="bold" />
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        tools:ignore="TouchTargetSizeCheck" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -71,34 +73,36 @@
 
                     <CheckBox
                         android:id="@+id/checkBox_minibar"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
+                        android:layout_width="match_parent"
+                        android:layout_height="35dp"
                         android:layout_weight="1"
                         android:text="Mini Bar"
                         android:textColor="@color/light_blue_A200"
-                        android:textSize="18sp"
-                        android:textStyle="bold" />
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        tools:ignore="TouchTargetSizeCheck" />
 
                     <CheckBox
                         android:id="@+id/checkBox_bath"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
+                        android:layout_width="match_parent"
+                        android:layout_height="35dp"
                         android:layout_weight="1"
                         android:text="Bathroom Set"
                         android:textColor="@color/light_blue_A200"
-                        android:textSize="18sp"
-                        android:textStyle="bold" />
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        tools:ignore="TouchTargetSizeCheck" />
                 </LinearLayout>
 
                 <CheckBox
                     android:id="@+id/checkBox_others"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="48dp"
                     android:layout_marginStart="30dp"
                     android:layout_marginTop="10dp"
                     android:text="Other"
                     android:textColor="@color/light_blue_A200"
-                    android:textSize="18sp"
+                    android:textSize="20sp"
                     android:textStyle="bold" />
 
             </LinearLayout>

@@ -6,7 +6,7 @@ import java.io.Serializable;
  * Created by TTLock on 2019/4/23.
  */
 
-public class LockObj implements Serializable{
+public class LockObj implements Serializable {
     /**
      * date : 1534470870000
      * specialValue : 21729

@@ -2,19 +2,18 @@ package com.syriasoft.cleanup;
 
 public class restaurant_order_unit {
 
-    int id ;
-    int hotel ;
-    int facility ;
-    int Reservation ;
-    int room ;
-    int RorS ;
-    int roomId ;
-    long dateTime ;
-    double total ;
-    int status ;
-    long responseDateTime ;
+    int id;
+    int hotel;
+    int facility;
+    int Reservation;
+    int room;
+    int RorS;
+    int roomId;
+    long dateTime;
+    double total;
+    int status;
 
-    public restaurant_order_unit(int id, int hotel, int facility, int reservation, int room, int rorS, int roomId, long dateTime, double total, int status, long responseDateTime) {
+    public restaurant_order_unit(int id, int hotel, int facility, int reservation, int room, int rorS, int roomId, long dateTime, double total, int status) {
         this.id = id;
         this.hotel = hotel;
         this.facility = facility;
@@ -25,6 +24,5 @@ public class restaurant_order_unit {
         this.dateTime = dateTime;
         this.total = total;
         this.status = status;
-        this.responseDateTime = responseDateTime;
     }
 }

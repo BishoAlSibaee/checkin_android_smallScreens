@@ -8,7 +8,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.Button;
@@ -125,9 +124,9 @@ public class Devices_Adapter extends BaseAdapter {
                 Spinner s = (Spinner) d.findViewById(R.id.devicerenamespinner);
                 Spinner rr = (Spinner) d.findViewById(R.id.roomsspinner);
                 String[] Types = new String[]{"Power", "ZGatway", "AC", "DoorSensor", "MotionSensor", "Curtain", "ServiceSwitch", "Switch1", "Switch2", "Switch3", "Switch4","IR"};
-                String[] therooms = new String[Rooms.list.size()];
-                for (int i = 0; i < Rooms.list.size(); i++) {
-                    therooms[i] = String.valueOf(Rooms.list.get(i).RoomNumber);
+                String[] therooms = new String[Rooms.ROOMS.size()];
+                for (int i = 0; i < Rooms.ROOMS.size(); i++) {
+                    therooms[i] = String.valueOf(Rooms.ROOMS.get(i).RoomNumber);
                 }
                 ArrayAdapter<String> a = new ArrayAdapter<String>(finalConvertView.getContext(), R.layout.spinners_item, Types);
                 ArrayAdapter<String> r = new ArrayAdapter<String>(finalConvertView.getContext(), R.layout.spinners_item, therooms);

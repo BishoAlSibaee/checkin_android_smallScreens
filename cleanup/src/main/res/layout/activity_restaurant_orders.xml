@@ -29,8 +29,8 @@
             android:layout_gravity="center"
             android:layout_weight="1"
             android:gravity="center"
-            android:textColor="@color/colorAccent"
-            android:textSize="24sp"
+            android:textColor="@color/white"
+            android:textSize="34sp"
             android:textStyle="bold|italic" />
     </FrameLayout>
 
@@ -40,15 +40,6 @@
         android:layout_height="wrap_content"
         android:text="Logout"
         android:visibility="gone" />
-
-    <TextView
-        android:id="@+id/mainText2"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/colorPrimaryDark"
-        android:padding="3dp"
-        android:textColor="@android:color/background_light"
-        android:textSize="24sp" />
 
     <ProgressBar
         android:id="@+id/progressBar3"

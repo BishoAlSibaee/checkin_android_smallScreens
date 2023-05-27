@@ -4,8 +4,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#242323"
+    android:background="@color/colorPrimary"
     android:orientation="vertical"
+    android:padding="10dp"
     tools:context=".LogIn">
 
     <!-- The primary full-screen view. This can be replaced with whatever view
@@ -22,7 +23,6 @@
             android:id="@+id/Login_Layout0"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
             android:orientation="vertical"
             android:visibility="visible">
 
@@ -31,35 +31,39 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_marginTop="90dp"
                 android:layout_weight="1"
                 android:gravity="center"
                 android:orientation="vertical"
+                android:padding="30dp"
                 android:visibility="visible">
 
                 <ImageView
                     android:id="@+id/imageView6"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="100dp"
-                    android:layout_marginStart="50dp"
-                    android:layout_marginEnd="50dp"
                     app:srcCompat="@drawable/logo_android" />
 
                 <com.wang.avi.AVLoadingIndicatorView
                     android:id="@+id/loadingIcon"
-                    android:layout_width="32dp"
-                    android:layout_height="wrap_content"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
                     android:layout_gravity="center"
                     android:layout_marginTop="20dp"
                     android:foregroundGravity="center"
+                    android:visibility="invisible"
                     app:indicatorName="LineSpinFadeLoaderIndicator" />
 
                 <TextView
-                    android:id="@+id/textView64"
+                    android:id="@+id/operations"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
                     android:gravity="center"
-                    android:textColor="@color/light_blue_A200" />
+                    android:text="Welcome"
+                    android:textColor="@color/gray"
+                    android:textSize="20sp" />
+
+
             </LinearLayout>
 
             <LinearLayout
@@ -84,16 +88,6 @@
                     android:textStyle="bold"
                     android:visibility="gone" />
 
-                <Spinner
-                    android:id="@+id/spinner_projects"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="20dp"
-                    android:layout_marginTop="10dp"
-                    android:layout_marginEnd="20dp"
-                    android:layout_weight="1"
-                    android:visibility="gone" />
-
                 <TextView
                     android:id="@+id/textView23"
                     android:layout_width="match_parent"
@@ -103,7 +97,7 @@
                     android:layout_weight="1"
                     android:text="Select Building"
                     android:textAlignment="center"
-                    android:textColor="@color/light_blue_A200"
+                    android:textColor="@color/light_blue_A400"
                     android:textSize="24sp"
                     android:textStyle="bold" />
 
@@ -125,7 +119,7 @@
                     android:layout_weight="1"
                     android:text="Select Floor"
                     android:textAlignment="center"
-                    android:textColor="@color/light_blue_A200"
+                    android:textColor="@color/light_blue_A400"
                     android:textSize="24sp"
                     android:textStyle="bold" />
 
@@ -146,7 +140,7 @@
                     android:layout_weight="1"
                     android:text="Select Room"
                     android:textAlignment="center"
-                    android:textColor="@color/light_blue_A200"
+                    android:textColor="@color/light_blue_A400"
                     android:textSize="24sp"
                     android:textStyle="bold" />
 
@@ -167,7 +161,7 @@
                     android:layout_weight="1"
                     android:text="Select Room Type"
                     android:textAlignment="center"
-                    android:textColor="@color/light_blue_A200"
+                    android:textColor="@color/light_blue_A400"
                     android:textSize="24sp"
                     android:textStyle="bold" />
 
@@ -178,6 +172,34 @@
                     android:layout_marginStart="20dp"
                     android:layout_marginEnd="20dp"
                     android:layout_weight="1" />
+
+                <Button
+                    android:id="@+id/registButton0"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:onClick="Continue"
+                    android:text="Continue" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/projectsLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="40dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="40dp"
+                android:orientation="vertical">
+
+                <Spinner
+                    android:id="@+id/spinner_projects"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="20dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginEnd="20dp"
+                    android:visibility="visible" />
 
                 <EditText
                     android:id="@+id/passwordEntry"
@@ -198,16 +220,22 @@
                 <Button
                     android:id="@+id/registButton"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_marginStart="20dp"
-                    android:layout_marginEnd="20dp"
-                    android:layout_marginBottom="50dp"
-                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
                     android:onClick="goRegist"
                     android:text="LogIn" />
+
             </LinearLayout>
         </LinearLayout>
 
     </ScrollView>
+
+    <TextView
+        android:id="@+id/textView64"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="bottom|center_horizontal"
+        android:textColor="@color/light_blue_A200"
+        android:textSize="20sp" />
 
 </LinearLayout>

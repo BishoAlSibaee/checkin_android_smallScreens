@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorPrimaryDark"
+    android:background="@color/colorPrimary"
     android:orientation="vertical"
     android:padding="10dp"
     tools:context=".LightingControl">
@@ -15,19 +14,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:background="@drawable/main_buttons"
+        android:background="@drawable/mainbtn_main"
         android:onClick="goToDoubleControl"
         android:text="Double Control"
-        android:textColor="@color/light_blue_A200" />
-
-    <Button
-        android:id="@+id/button25"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:background="@drawable/main_buttons"
-        android:onClick="goToMasterOff"
-        android:text="Master Off "
         android:textColor="@color/light_blue_A200" />
 
     <Button
@@ -35,8 +24,18 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:background="@drawable/main_buttons"
+        android:background="@drawable/mainbtn_main"
         android:onClick="goToScreenButtons"
         android:text="Screen Buttons "
+        android:textColor="@color/light_blue_A200" />
+
+    <Button
+        android:id="@+id/button2634"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/mainbtn_main"
+        android:onClick="goToMoods"
+        android:text="Moods"
         android:textColor="@color/light_blue_A200" />
 </LinearLayout>

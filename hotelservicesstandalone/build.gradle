@@ -4,13 +4,13 @@ plugins {
 }
 
 android {
-    compileSdkVersion 30
+    compileSdkVersion 33
     buildToolsVersion "30.0.2"
 
     defaultConfig {
         applicationId "com.example.hotelservicesstandalone"
         minSdkVersion 23
-        targetSdkVersion 30
+        targetSdkVersion 33
         versionCode 1
         versionName "1.0"
 
@@ -34,6 +34,21 @@ android {
     packagingOptions {
         pickFirst 'lib/*/libc++_shared.so' // multi aar has such so, should pick first.
     }
+
+    signingConfigs {
+        debug {
+            storeFile file('MyKey.jks')
+            storePassword 'Bisho777'
+            keyAlias 'Bisho'
+            keyPassword 'Bisho777'
+        }
+        release {
+            storeFile file('MyKey.jks')
+            storePassword 'Bisho777'
+            keyAlias 'Bisho'
+            keyPassword 'Bisho777'
+        }
+    }
 }
 
 dependencies {
@@ -47,24 +62,35 @@ dependencies {
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
-    implementation 'com.android.volley:volley:1.1.1'
+    implementation 'com.android.volley:volley:1.2.1'
     implementation 'androidx.gridlayout:gridlayout:1.0.0'
     implementation 'no.nordicsemi.android:dfu:1.8.1'
-    implementation 'com.google.firebase:firebase-database:19.4.0'
+    implementation 'com.google.firebase:firebase-database:20.1.0'
     implementation 'androidx.recyclerview:recyclerview:1.1.0'
     implementation 'com.alibaba:fastjson:1.1.67.android'
     implementation 'com.squareup.okhttp3:okhttp-urlconnection:3.14.9'
-    implementation 'com.tuya.smart:tuyasmart:3.22.0'
+    implementation 'com.facebook.soloader:soloader:0.10.4+'
+    //implementation 'com.tuya.smart:tuyasmart:4.0.3'
+    implementation 'com.tuya.smart:tuyasmart:3.25.0'
     implementation 'com.tongtonglock:ttlock:3.1.0'
     implementation 'com.squareup.retrofit2:retrofit:2.4.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.4.0'
     implementation 'com.google.code.gson:gson:2.8.5'
     implementation 'com.wang.avi:library:2.1.3'
-    implementation 'com.google.firebase:firebase-messaging:21.0.1'
+    implementation 'com.google.firebase:firebase-messaging:23.1.2'
+    implementation 'com.google.code.gson:gson:2.8.5'
 }
 
 repositories {
     mavenLocal()
     jcenter()
+    maven { url 'https://maven-other.tuya.com/repository/maven-releases/' }
+    maven { url "https://maven-other.tuya.com/repository/maven-commercial-releases/" }
+    maven { url 'https://jitpack.io' }
     google()
+    mavenCentral()
+    maven { url 'https://maven.aliyun.com/repository/public' }
+    maven { url 'https://central.maven.org/maven2/' }
+    maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
+    maven { url 'https://developer.huawei.com/repo/' }
 }

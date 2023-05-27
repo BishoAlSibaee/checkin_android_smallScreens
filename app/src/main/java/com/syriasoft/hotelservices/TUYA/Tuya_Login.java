@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.syriasoft.hotelservices.ErrorRegister;
 import com.syriasoft.hotelservices.LoadingDialog;
 import com.syriasoft.hotelservices.LogIn;
+import com.syriasoft.hotelservices.MyApp;
 import com.syriasoft.hotelservices.R;
 import com.tuya.smart.android.user.api.ILoginCallback;
 import com.tuya.smart.android.user.bean.User;
@@ -90,7 +91,7 @@ public class Tuya_Login extends AppCompatActivity {
                             Log.d("loginToya" , error );
                             Calendar c = Calendar.getInstance(Locale.getDefault());
                             long time = c.getTimeInMillis();
-                            ErrorRegister.rigestError( act , LogIn.room.getProjectName() , LogIn.room.getRoomNumber() , time ,9,error,"error logging in to tuya account");
+                            ErrorRegister.rigestError( act , MyApp.THE_PROJECT.projectName,MyApp.Room.RoomNumber, time ,9,error,"error logging in to tuya account");
                         }
                     });
 
@@ -137,7 +138,7 @@ public class Tuya_Login extends AppCompatActivity {
             {
                 Calendar c  = Calendar.getInstance(Locale.getDefault());
                 long time = c.getTimeInMillis();
-                ErrorRegister.rigestError(act , LogIn.room.getProjectName(),LogIn.room.getRoomNumber() , time ,8 ,error,"getting families from tuya");
+                ErrorRegister.rigestError(act ,MyApp.THE_PROJECT.projectName,MyApp.Room.RoomNumber, time ,8 ,error,"getting families from tuya");
             }
             @Override
             public void onSuccess(List<HomeBean> homeBeans)
@@ -157,31 +158,24 @@ public class Tuya_Login extends AppCompatActivity {
         startActivity(i);
     }
 
-    void checkIfProjectRecorded()
-    {
-        if (LogIn.room.getTuyaProject().equals("0"))
-        {
-            Toast.makeText(this,"No Projects Recorded", Toast.LENGTH_SHORT).show();
-        }
-        else
-        {
-            for (int i=0; i<Homs.size(); i++)
-            {
-                if (LogIn.room.getTuyaProject().equals(Homs.get(i).getName()))
-                {
-                    selectedHome = Homs.get(i);
-                    Toast.makeText(this,selectedHome.getName()+" Project Selected", Toast.LENGTH_SHORT).show();
-                    Intent j = new Intent(act , Tuya_Devices.class);
-                    startActivity(j);
-                }
-            }
-        }
+    void checkIfProjectRecorded() {
+//        if (LogIn.room.getTuyaProject().equals("0")) {
+//            Toast.makeText(this,"No Projects Recorded", Toast.LENGTH_SHORT).show();
+//        }
+//        else {
+//            for (int i=0; i<Homs.size(); i++) {
+//                if (LogIn.room.getTuyaProject().equals(Homs.get(i).getName())) {
+//                    selectedHome = Homs.get(i);
+//                    Toast.makeText(this,selectedHome.getName()+" Project Selected", Toast.LENGTH_SHORT).show();
+//                    Intent j = new Intent(act , Tuya_Devices.class);
+//                    startActivity(j);
+//                }
+//            }
+//        }
     }
 
-    public void addHotel(View view)
-    {
-        if (newProjectName.getText().toString() != null)
-        {
+    public void addHotel(View view) {
+        if (newProjectName.getText().toString() != null) {
             AlertDialog.Builder d = new AlertDialog.Builder(act);
             d.setTitle("Add New Hotel ..?");
             d.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {

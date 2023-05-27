@@ -44,18 +44,18 @@ public class REST_EMPS_CLASS {
 
         if (Order.equals("DND")) {
             if (addOrRemove) {
-                NOTIFICATION_MESSAGE = LogIn.room.getRoomNumber() + " is on DND mode";
+                NOTIFICATION_MESSAGE = MyApp.Room.RoomNumber + " is on DND mode";
             }
             else {
-                NOTIFICATION_MESSAGE = "DND mode for "+LogIn.room.getRoomNumber()+ " is off";
+                NOTIFICATION_MESSAGE = "DND mode for "+MyApp.Room.RoomNumber+ " is off";
             }
         }
         else {
             if (addOrRemove) {
-                NOTIFICATION_MESSAGE = "New " + Order + " Order From Room "+LogIn.room.getRoomNumber();
+                NOTIFICATION_MESSAGE = "New " + Order + " Order From Room "+MyApp.Room.RoomNumber;
             }
             else {
-                NOTIFICATION_MESSAGE = "Cancelled " + Order + " Order From Room "+LogIn.room.getRoomNumber();
+                NOTIFICATION_MESSAGE = "Cancelled " + Order + " Order From Room "+MyApp.Room.RoomNumber;
             }
         }
 
@@ -66,7 +66,7 @@ public class REST_EMPS_CLASS {
         try {
             notifcationBody.put("title", NOTIFICATION_TITLE);
             notifcationBody.put("message", NOTIFICATION_MESSAGE);
-            notifcationBody.put("RoomNumber", LogIn.room.getRoomNumber());
+            notifcationBody.put("RoomNumber", MyApp.Room.RoomNumber);
             notification.put("to", t);
             notification.put("data", notifcationBody);
         } catch (JSONException e) {

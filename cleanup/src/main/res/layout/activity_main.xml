@@ -29,7 +29,7 @@
         android:id="@+id/mainText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/gray"
+        android:background="@color/transparentGray"
         android:fontFamily="serif"
         android:paddingStart="7dp"
         android:paddingTop="5dp"
@@ -43,7 +43,9 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:divider="@android:color/darker_gray"
-        android:dividerHeight="1dp" />
+        android:dividerHeight="1dp" >
+
+    </ListView>
 
     <LinearLayout
         android:layout_width="match_parent"

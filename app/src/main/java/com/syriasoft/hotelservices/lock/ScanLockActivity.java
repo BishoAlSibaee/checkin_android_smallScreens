@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.gson.reflect.TypeToken;
 import com.syriasoft.hotelservices.LogIn;
+import com.syriasoft.hotelservices.MyApp;
 import com.syriasoft.hotelservices.R;
 import com.syriasoft.hotelservices.ToastMaker;
 import com.ttlock.bl.sdk.api.ExtendedBluetoothDevice;
@@ -146,7 +147,7 @@ public class ScanLockActivity extends AppCompatActivity implements LockListAdapt
                 mListApapter = new LockListAdapter(act , mDataList);
                 bb.setAdapter(mListApapter);
                 TTLockClient.getDefault().stopScanLock();
-                device.setName(LogIn.room.getRoomNumber()+"Lock");
+                device.setName(MyApp.Room.RoomNumber+"Lock");
             }
 
             @Override
@@ -216,7 +217,7 @@ public class ScanLockActivity extends AppCompatActivity implements LockListAdapt
          * lockData: the server api lockData param need
          * isNBLock: is a NB-IoT lock.
          */
-        device.setName(LogIn.room.getRoomNumber()+"Lock");
+        device.setName(MyApp.Room.RoomNumber+"Lock");
         TTLockClient.getDefault().initLock(device, new InitLockCallback()
         {
             @Override

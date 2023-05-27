@@ -2,11 +2,27 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Checkin_android_P0001.iml" filepath="$PROJECT_DIR$/.idea/modules/Checkin_android_P0001.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/Checkin_android_P0001.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/Checkin_android_P0001.app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/cleanup/Checkin_android_P0001.cleanup.iml" filepath="$PROJECT_DIR$/.idea/modules/cleanup/Checkin_android_P0001.cleanup.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/hotelservicesstandalone/Checkin_android_P0001.hotelservicesstandalone.iml" filepath="$PROJECT_DIR$/.idea/modules/hotelservicesstandalone/Checkin_android_P0001.hotelservicesstandalone.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/laundryscreen/Checkin_android_P0001.laundryscreen.iml" filepath="$PROJECT_DIR$/.idea/modules/laundryscreen/Checkin_android_P0001.laundryscreen.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Checkin_V2_Small_Screen.iml" filepath="$PROJECT_DIR$/.idea/modules/Checkin_V2_Small_Screen.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/Checkin_V2_Small_Screen.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/Checkin_V2_Small_Screen.app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/Checkin_V2_Small_Screen.app.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/Checkin_V2_Small_Screen.app.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/Checkin_V2_Small_Screen.app.main.iml" filepath="$PROJECT_DIR$/.idea/modules/app/Checkin_V2_Small_Screen.app.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/Checkin_V2_Small_Screen.app.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/Checkin_V2_Small_Screen.app.unitTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/cleanup/Checkin_V2_Small_Screen.cleanup.iml" filepath="$PROJECT_DIR$/.idea/modules/cleanup/Checkin_V2_Small_Screen.cleanup.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/cleanup/Checkin_V2_Small_Screen.cleanup.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/cleanup/Checkin_V2_Small_Screen.cleanup.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/cleanup/Checkin_V2_Small_Screen.cleanup.main.iml" filepath="$PROJECT_DIR$/.idea/modules/cleanup/Checkin_V2_Small_Screen.cleanup.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/cleanup/Checkin_V2_Small_Screen.cleanup.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/cleanup/Checkin_V2_Small_Screen.cleanup.unitTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/hotelservicesstandalone/Checkin_V2_Small_Screen.hotelservicesstandalone.iml" filepath="$PROJECT_DIR$/.idea/modules/hotelservicesstandalone/Checkin_V2_Small_Screen.hotelservicesstandalone.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/hotelservicesstandalone/Checkin_V2_Small_Screen.hotelservicesstandalone.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/hotelservicesstandalone/Checkin_V2_Small_Screen.hotelservicesstandalone.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/hotelservicesstandalone/Checkin_V2_Small_Screen.hotelservicesstandalone.main.iml" filepath="$PROJECT_DIR$/.idea/modules/hotelservicesstandalone/Checkin_V2_Small_Screen.hotelservicesstandalone.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/hotelservicesstandalone/Checkin_V2_Small_Screen.hotelservicesstandalone.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/hotelservicesstandalone/Checkin_V2_Small_Screen.hotelservicesstandalone.unitTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/laundryscreen/Checkin_V2_Small_Screen.laundryscreen.iml" filepath="$PROJECT_DIR$/.idea/modules/laundryscreen/Checkin_V2_Small_Screen.laundryscreen.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/laundryscreen/Checkin_V2_Small_Screen.laundryscreen.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/laundryscreen/Checkin_V2_Small_Screen.laundryscreen.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/laundryscreen/Checkin_V2_Small_Screen.laundryscreen.main.iml" filepath="$PROJECT_DIR$/.idea/modules/laundryscreen/Checkin_V2_Small_Screen.laundryscreen.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/laundryscreen/Checkin_V2_Small_Screen.laundryscreen.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/laundryscreen/Checkin_V2_Small_Screen.laundryscreen.unitTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/mobilecheckdevice/Checkin_V2_Small_Screen.mobilecheckdevice.iml" filepath="$PROJECT_DIR$/.idea/modules/mobilecheckdevice/Checkin_V2_Small_Screen.mobilecheckdevice.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/mobilecheckdevice/Checkin_V2_Small_Screen.mobilecheckdevice.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/mobilecheckdevice/Checkin_V2_Small_Screen.mobilecheckdevice.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/mobilecheckdevice/Checkin_V2_Small_Screen.mobilecheckdevice.main.iml" filepath="$PROJECT_DIR$/.idea/modules/mobilecheckdevice/Checkin_V2_Small_Screen.mobilecheckdevice.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/mobilecheckdevice/Checkin_V2_Small_Screen.mobilecheckdevice.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/mobilecheckdevice/Checkin_V2_Small_Screen.mobilecheckdevice.unitTest.iml" />
     </modules>
   </component>
 </project>

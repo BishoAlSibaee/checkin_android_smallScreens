@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.gson.reflect.TypeToken;
 import com.syriasoft.hotelservices.ErrorRegister;
 import com.syriasoft.hotelservices.LogIn;
+import com.syriasoft.hotelservices.MyApp;
 import com.syriasoft.hotelservices.R;
 import com.syriasoft.hotelservices.TUYA.Tuya_Login;
 import com.syriasoft.hotelservices.ToastMaker;
@@ -99,7 +100,7 @@ public class UserGatewayActivity extends AppCompatActivity {
                         e.printStackTrace();
                         Calendar c = Calendar.getInstance(Locale.getDefault());
                         long time = c.getTimeInMillis();
-                        ErrorRegister.rigestError(act , LogIn.room.getProjectName(),LogIn.room.getRoomNumber(),time , 006 , e.getMessage() , "error getting lock Gateways list");
+                        ErrorRegister.rigestError(act , MyApp.THE_PROJECT.projectName,MyApp.Room.RoomNumber,time , 006 , e.getMessage() , "error getting lock Gateways list");
                     }
                 } else
                 {
@@ -113,7 +114,7 @@ public class UserGatewayActivity extends AppCompatActivity {
                 loading.stop();
                 Calendar c = Calendar.getInstance(Locale.getDefault());
                 long time = c.getTimeInMillis();
-                ErrorRegister.rigestError(act , LogIn.room.getProjectName(),LogIn.room.getRoomNumber(),time , 006 , t.getMessage() , "error getting lock Gateways list");
+                ErrorRegister.rigestError(act , MyApp.THE_PROJECT.projectName, MyApp.Room.RoomNumber,time , 006 , t.getMessage() , "error getting lock Gateways list");
                 ToastMaker.MakeToast(t.getMessage(),act);
             }
         });
@@ -121,40 +122,37 @@ public class UserGatewayActivity extends AppCompatActivity {
 
     public void keepGoing(View view)
     {
-        if (LogIn.room.getLockName().equals("0"))
-        {
-            Intent in = new Intent(act , UserLockActivity.class );
-            startActivity(in);
-        }
-        else if (LogIn.room.getLockGateway().equals("0"))
-        {
-            AlertDialog.Builder builder = new AlertDialog.Builder(act);
-            builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    dialog.dismiss();
-                    Intent in = new Intent(act , Tuya_Login.class );
-                    startActivity(in);
-                }
-            });
-            builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    dialog.dismiss();
-                    com.syriasoft.hotelservices.messageDialog m = new messageDialog("Install Gatway","Please Select Gatway Or Intialize One",act);
-                }
-            });
-            builder.setTitle("Gateway .. ?");
-            builder.setMessage("Do you want to install Lock Gateway");
-            builder.create();
-            builder.show();
-            //ToastMaker.MakeToast("Please Select Gatway Or Intialize One",act);
-        }
-        else
-        {
-            Intent in = new Intent(act , Tuya_Login.class );
-            startActivity(in);
-        }
+//        if (LogIn.room.getLockName().equals("0")) {
+//            Intent in = new Intent(act , UserLockActivity.class );
+//            startActivity(in);
+//        }
+//        else if (LogIn.room.getLockGateway().equals("0")) {
+//            AlertDialog.Builder builder = new AlertDialog.Builder(act);
+//            builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+//                @Override
+//                public void onClick(DialogInterface dialog, int which) {
+//                    dialog.dismiss();
+//                    Intent in = new Intent(act , Tuya_Login.class );
+//                    startActivity(in);
+//                }
+//            });
+//            builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+//                @Override
+//                public void onClick(DialogInterface dialog, int which) {
+//                    dialog.dismiss();
+//                    com.syriasoft.hotelservices.messageDialog m = new messageDialog("Install Gatway","Please Select Gatway Or Intialize One",act);
+//                }
+//            });
+//            builder.setTitle("Gateway .. ?");
+//            builder.setMessage("Do you want to install Lock Gateway");
+//            builder.create();
+//            builder.show();
+//            //ToastMaker.MakeToast("Please Select Gatway Or Intialize One",act);
+//        }
+//        else {
+//            Intent in = new Intent(act , Tuya_Login.class );
+//            startActivity(in);
+//        }
 
     }
 }

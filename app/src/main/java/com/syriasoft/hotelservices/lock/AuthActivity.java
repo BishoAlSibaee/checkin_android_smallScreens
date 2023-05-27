@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.syriasoft.hotelservices.ErrorRegister;
 import com.syriasoft.hotelservices.LogIn;
+import com.syriasoft.hotelservices.MyApp;
 import com.syriasoft.hotelservices.R;
 import com.ttlock.bl.sdk.util.DigitUtil;
 import com.ttlock.bl.sdk.util.GsonUtil;
@@ -87,7 +88,7 @@ public class AuthActivity extends AppCompatActivity {
                         //ToastMaker.MakeToast(accountInfo.errmsg,act);
                         Calendar x = Calendar.getInstance(Locale.getDefault());
                         long time =  x.getTimeInMillis();
-                        ErrorRegister.rigestError(activ ,LogIn.room.getProjectName(),LogIn.room.getRoomNumber() , time ,004 ,accountInfo.errmsg , "LogIn To TTlock Account" );
+                        ErrorRegister.rigestError(activ ,MyApp.THE_PROJECT.projectName, MyApp.Room.RoomNumber , time ,004 ,accountInfo.errmsg , "LogIn To TTlock Account" );
                     }
                 } else
                 {
@@ -102,7 +103,7 @@ public class AuthActivity extends AppCompatActivity {
                 //ToastMaker.MakeToast(t.getMessage() , act);
                 Calendar x = Calendar.getInstance(Locale.getDefault());
                 long time =  x.getTimeInMillis();
-                ErrorRegister.rigestError(activ , LogIn.room.getProjectName() , LogIn.room.getRoomNumber() , time ,004 ,accountInfo.errmsg , "LogIn To TTlock Account" );
+                ErrorRegister.rigestError(activ , MyApp.THE_PROJECT.projectName , MyApp.Room.RoomNumber , time ,004 ,accountInfo.errmsg , "LogIn To TTlock Account" );
             }
         });
     }

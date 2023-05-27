@@ -1,5 +1,6 @@
 package com.syriasoft.hotelservices.TUYA;
 
+import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
@@ -41,7 +42,7 @@ public class Family_List_Adapter extends RecyclerView.Adapter<Family_List_Adapte
     }
 
     @Override
-    public void onBindViewHolder(@NonNull Family_List_Adapter.Holder holder, int position)
+    public void onBindViewHolder(@NonNull Family_List_Adapter.Holder holder, @SuppressLint("RecyclerView") int position)
     {
         holder.Name.setText(list.get(position).getName());
         holder.itemView.setOnClickListener(new View.OnClickListener() {
@@ -70,7 +71,7 @@ public class Family_List_Adapter extends RecyclerView.Adapter<Family_List_Adapte
                         LogIn.selectedHome = list.get(position) ;
                         ToastMaker.MakeToast( "Hotel Selected" , holder.itemView.getContext());
                         holder.itemView.setBackgroundColor(Color.BLUE);
-                        LogIn.room.insertTuyaProject(list.get(position).getName());
+                        //LogIn.room.insertTuyaProject(list.get(position).getName());
                         d.dismiss();
                     }
                 });

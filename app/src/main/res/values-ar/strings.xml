@@ -8,6 +8,8 @@
     <string name="sos">طوارئ</string>
     <string name="gym">النادي</string>
     <string name="roomService">خدمة الغرف</string>
+    <string name="checkout">Checkout</string>
+    <string name="dnd">DND</string>
     <string name="openDoor">افتح الباب</string>
     <string name="title_activity_restaurant">المطعم</string>
     <string name="title_activity_log_in">تسجيل الغرف</string>
@@ -17,5 +19,31 @@
     <string name="Floor">أدخل رقم الطابق</string>
     <string name="confermationDialog_Caption">تأكيد</string>
     <string name="confermationDialog_text">هل أنت متأكد</string>
+
+    <string name="roomVacant">الغرفة شاغرة</string>
+    <string name="welcomeRoom">مرحبا </string>
+    <string name="roomIsUnready">الغرفة غير جاهزة</string>
+    <string name="roomIsOutOfService">الغرفة خارج الخدمة</string>
+    <string name="livingMood">Living Mood</string>
+    <string name="sleepingMood">Sleeping Mood</string>
+    <string name="workMood">Work Mood</string>
+    <string name="romanceMood">Romance Mood</string>
+    <string name="readingMood">Reading Mood</string>
+    <string name="masterOffMood">MasterOff</string>
+    <string name="low">Low</string>
+    <string name="auto">Auto</string>
+    <string name="high">High</string>
+    <string name="med">Med</string>
+    <string name="ac">AC</string>
+    <string name="backToService">عودة الى الخدمات</string>
+    <string name="laundryPriceList">أسعار المغسلة</string>
+
+    <string name="lights">الاضاءة</string>
+    <string name="lightsAndMoods">Lights &amp; Moods</string>
+    <string name="services">الخدمات</string>
+    <string name="backHome">Home</string>
+    <string name="back">Back</string>
+
+    <string name="gettingProjectVariables">جلب اعدادات النظام</string>
 
 </resources>

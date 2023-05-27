@@ -16,6 +16,9 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -29,7 +32,13 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
+import com.ttlock.bl.sdk.api.TTLockClient;
+import com.ttlock.bl.sdk.callback.ControlLockCallback;
+import com.ttlock.bl.sdk.constant.ControlAction;
+import com.ttlock.bl.sdk.entity.ControlLockResult;
+import com.ttlock.bl.sdk.entity.LockError;
 import com.tuya.smart.sdk.api.IResultCallback;
+import com.wang.avi.AVLoadingIndicatorView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -45,7 +54,6 @@ import java.util.Map;
 public class RestaurantMenues extends AppCompatActivity {
 
     RecyclerView menues ;
-    String menuesUrl ;
     Activity act = this ;
     List<Menu> list =new  ArrayList<Menu>();
     RestaurantMenuesAdapter adapter ;
@@ -55,31 +63,33 @@ public class RestaurantMenues extends AppCompatActivity {
     private RESTAURANT_MENUS_ADAPTER Adapter ;
     private GridLayoutManager Manager ;
     private TextView time , date;
-    private static String insertServiceOrderUrl = LogIn.URL+"insertServiceOrder.php";
-    private static String removeServiceOrderUrl = LogIn.URL+"removeServiceOrder.php";
     private DatabaseReference myRefDND , myRefSos , myRefLaundry , myRefCleanup , myRefCheckout , myRefRoomService ,myRefdep , myRefRestaurant ;
     private static ImageView restaurantIcon ;
     static Runnable backHomeThread ;
     static long x = 0 ;
     static Handler H ;
-    private ConstraintLayout mainlayout ;
+    private LinearLayout mainlayout ;
+    RESTAURANT_UNIT THE_RESTAURANT ;
+    WindowInsetsControllerCompat windowInsetsController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_restaurant_menues);
-        date = (TextView) findViewById(R.id.mainDate);
-        time = (TextView) findViewById(R.id.mainTime);
+        date = findViewById(R.id.mainDate);
+        time = findViewById(R.id.mainTime);
         blink();
         Bundle b = getIntent().getExtras();
-        TextView RestaurantName = (TextView)findViewById(R.id.RestaurantName);
-        Type = b.getString("TypeName") ;
-        CAPTION = (TextView) findViewById(R.id.CAPTION3);
+        THE_RESTAURANT = new RESTAURANT_UNIT(b.getInt("id"),b.getInt("Hotel"),b.getInt("TypeId"),b.getString("TypeName"),b.getString("Name"),b.getInt("Control"),b.getString("photo"));
+        TextView RestaurantName = findViewById(R.id.RestaurantName);
+        Type = getIntent().getExtras().getString("TypeName");
+        Log.d("restaurantIs",Type);
+        CAPTION = findViewById(R.id.CAPTION3);
         CAPTION.setText("RESTAURANT");
         FullscreenActivity.RestaurantActivities.add(act);
         RestaurantName.setText(b.getString("Name"));
-        restaurantIcon = (ImageView) findViewById(R.id.imageView2);
-        menues = (RecyclerView) findViewById(R.id.recycler_menus);
+        restaurantIcon = findViewById(R.id.imageView2);
+        menues = findViewById(R.id.recycler_menus);
         Manager = new GridLayoutManager(act,3,RecyclerView.HORIZONTAL,false);
         menues.setLayoutManager(Manager);
         myRefRestaurant = FullscreenActivity.myRefRestaurant ;
@@ -110,14 +120,11 @@ public class RestaurantMenues extends AppCompatActivity {
         myRefDND.addValueEventListener(new ValueEventListener() {
             @SuppressLint("ResourceAsColor")
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot)
-            {
-                if (!snapshot.getValue().toString().equals("0"))
-                {
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (!snapshot.getValue().toString().equals("0")) {
                     dndOn();
                 }
-                else
-                {
+                else {
                     dndOff();
                 }
             }
@@ -210,14 +217,11 @@ public class RestaurantMenues extends AppCompatActivity {
         myRefRoomService = FullscreenActivity.myRefRoomService;
         myRefRoomService.addValueEventListener(new ValueEventListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot)
-            {
-                if ( !snapshot.getValue().toString().equals("0") )
-                {
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if ( !snapshot.getValue().toString().equals("0") ) {
                     roomServiceOn();
                 }
-                else
-                {
+                else {
                     roomServiceOff();
                 }
             }
@@ -227,107 +231,121 @@ public class RestaurantMenues extends AppCompatActivity {
             }
         });
         myRefdep = FullscreenActivity.myRefdep ;
-        final LoadingDialog l = new LoadingDialog(act);
-        if (b.getString("TypeName").equals("Restaurant"))
-        {
-            menuesUrl = LogIn.URL+"getRestaurantMenues.php?Hotel="+LogIn.room.getHotel()+"&FacilityId="+b.getInt("id");
-            request = new StringRequest(Request.Method.GET, menuesUrl, new Response.Listener<String>() {
+        if (Type.equals("Restaurant")) {
+            String menuesUrl = MyApp.ProjectURL + "facilitys/getRestaurantMenuesForRoom" ;
+            request = new StringRequest(Request.Method.POST, menuesUrl, new Response.Listener<String>() {
                 @Override
                 public void onResponse(String response) {
-                    l.stop();
-                    if ( ! response.equals("0"))
-                    {
-                        try {
-                            JSONArray arr = new JSONArray(response);
-                            for (int i =0;i<arr.length();i++)
-                            {
+                    Log.d("gettingMenues" , response);
+                    try {
+                        JSONObject result = new JSONObject(response);
+                        if (result.getString("result").equals("success")) {
+                            JSONArray arr = result.getJSONArray("menues");
+                            for (int i =0;i<arr.length();i++) {
                                 JSONObject row = arr.getJSONObject(i);
                                 Menu m = new Menu(row.getInt("id") , row.getString("photo"),row.getString("name"),row.getString("arabicName"),row.getInt("Hotel"),row.getInt("FacilityId"));
                                 list.add(m);
                             }
-                        } catch (JSONException e) {
-                            l.stop();
-                            Log.e("ttt" , e.getMessage());
-                            e.printStackTrace();
-                        }
-                        //adapter=new RestaurantMenuesAdapter(list , act );
-                        Adapter = new RESTAURANT_MENUS_ADAPTER(list);
-                        menues.setAdapter(Adapter);
-                        if (list.size()<7){
-                            ImageView previous , next ;
-                            previous = (ImageView) findViewById(R.id.leftSlide3);
-                            next = (ImageView) findViewById(R.id.imageView22);
-                            previous.setVisibility(View.GONE);
-                            next.setVisibility(View.GONE);
+                            Adapter = new RESTAURANT_MENUS_ADAPTER(list);
+                            menues.setAdapter(Adapter);
+                            if (list.size() < 7) {
+                                ImageView previous , next ;
+                                previous = findViewById(R.id.leftSlide3);
+                                next = findViewById(R.id.imageView22);
+                                previous.setVisibility(View.GONE);
+                                next.setVisibility(View.GONE);
+                            }
+                            else {
+                                ImageView previous , next ;
+                                previous = findViewById(R.id.leftSlide3);
+                                next = findViewById(R.id.imageView22);
+                                previous.setVisibility(View.VISIBLE);
+                                next.setVisibility(View.VISIBLE);
+                            }
                         }
                         else {
-                            ImageView previous , next ;
-                            previous = (ImageView) findViewById(R.id.leftSlide3);
-                            next = (ImageView) findViewById(R.id.imageView22);
-                            previous.setVisibility(View.VISIBLE);
-                            next.setVisibility(View.VISIBLE);
+                            new messageDialog(result.getString("error"),"getting menues failed ",act);
                         }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        new messageDialog(e.getMessage(),"getting menues failed ",act);
                     }
-
                 }
             }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
-                    l.stop();
+                    Log.d("gettingMenues" , error.toString());
+                    new messageDialog(error.toString(),"getting menues failed ",act);
                 }
-            });
+            }){
+                @Override
+                protected Map<String, String> getParams() throws AuthFailureError {
+                    Map<String, String> params = new HashMap<>();
+                    params.put("facility_id", String.valueOf(THE_RESTAURANT.id));
+                    return params;
+                }
+            };
         }
-        else if (b.getString("TypeName").equals("CoffeeShop"))
-        {
-            menuesUrl = LogIn.URL+"getCoffeeShopMenues.php?Hotel="+LogIn.room.getHotel()+"&FacilityId="+b.getInt("id");
-            request = new StringRequest(Request.Method.GET, menuesUrl, new Response.Listener<String>() {
+        else if (b.getString("TypeName").equals("CoffeeShop")) {
+            String menuesUrl = MyApp.ProjectURL + "facilitys/getCoffeeShopMenuesForRoom";
+            request = new StringRequest(Request.Method.POST, menuesUrl, new Response.Listener<String>() {
                 @Override
                 public void onResponse(String response) {
-                    l.stop();
-                    if ( ! response.equals("0"))
-                    {
-                        try {
-                            JSONArray arr = new JSONArray(response);
-                            for (int i =0;i<arr.length();i++)
-                            {
+                    Log.d("gettingMenues" , response);
+                    try {
+                        JSONObject result = new JSONObject(response);
+                        if (result.getString("result").equals("success")) {
+                            JSONArray arr = result.getJSONArray("menues");
+                            for (int i =0;i<arr.length();i++) {
                                 JSONObject row = arr.getJSONObject(i);
-                                Menu m = new Menu(row.getInt("id") , row.getString("photo"),row.getString("Name"),row.getString("arabicName"),row.getInt("Hotel"),row.getInt("Facility"));
+                                Menu m = new Menu(row.getInt("id") , row.getString("photo"),row.getString("Name"),row.getString("arabicName"),row.getInt("Hotel"),row.getInt("facility_id"));
                                 list.add(m);
                             }
-                        } catch (JSONException e) {
-                            l.stop();
-                            Log.e("ttt" , e.getMessage());
-                            e.printStackTrace();
-                        }
-                        Adapter = new RESTAURANT_MENUS_ADAPTER(list);
-                        menues.setAdapter(Adapter);
-                        if (list.size()<7){
-                            ImageView previous , next ;
-                            previous = (ImageView) findViewById(R.id.leftSlide3);
-                            next = (ImageView) findViewById(R.id.imageView22);
-                            previous.setVisibility(View.GONE);
-                            next.setVisibility(View.GONE);
+                            Adapter = new RESTAURANT_MENUS_ADAPTER(list);
+                            menues.setAdapter(Adapter);
+                            if (list.size() < 7) {
+                                ImageView previous , next ;
+                                previous = findViewById(R.id.leftSlide3);
+                                next = findViewById(R.id.imageView22);
+                                previous.setVisibility(View.GONE);
+                                next.setVisibility(View.GONE);
+                            }
+                            else {
+                                ImageView previous , next ;
+                                previous = findViewById(R.id.leftSlide3);
+                                next = findViewById(R.id.imageView22);
+                                previous.setVisibility(View.VISIBLE);
+                                next.setVisibility(View.VISIBLE);
+                            }
                         }
                         else {
-                            ImageView previous , next ;
-                            previous = (ImageView) findViewById(R.id.leftSlide3);
-                            next = (ImageView) findViewById(R.id.imageView22);
-                            previous.setVisibility(View.VISIBLE);
-                            next.setVisibility(View.VISIBLE);
+                            new messageDialog(result.getString("error"),"getting menues failed ",act);
                         }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        new messageDialog(e.getMessage(),"getting menues failed ",act);
                     }
-
                 }
             }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
-                    l.stop();
+                    Log.d("gettingMenues" , error.toString());
+                    new messageDialog(error.toString(),"getting menues failed ",act);
                 }
-            });
+            }){
+                @Override
+                protected Map<String, String> getParams() throws AuthFailureError {
+                    Map<String, String> params = new HashMap<>();
+                    params.put("facility_id",String.valueOf(THE_RESTAURANT.id));
+                    return params;
+                }
+            };
         }
         getMenues();
-        KeepScreenFull();
-        mainlayout = (ConstraintLayout) findViewById(R.id.main_layout);
+        windowInsetsController = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+        windowInsetsController.hide(WindowInsetsCompat.Type.systemBars());
+        windowInsetsController.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_BARS_BY_SWIPE);
+        mainlayout = findViewById(R.id.main_layout);
         mainlayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -356,6 +374,7 @@ public class RestaurantMenues extends AppCompatActivity {
             }
         };
         backHomeThread.run();
+        KeepScreenFull();
     }
 
     @Override
@@ -367,9 +386,7 @@ public class RestaurantMenues extends AppCompatActivity {
 
     }
 
-    void getMenues()
-    {
-
+    void getMenues() {
         Volley.newRequestQueue(act).add(request);
     }
 
@@ -394,47 +411,21 @@ public class RestaurantMenues extends AppCompatActivity {
     }
 
     private void hideSystemUI() {
-        // Enables regular immersive mode.
-        // For "lean back" mode, remove SYSTEM_UI_FLAG_IMMERSIVE.
-        // Or for "sticky immersive," replace it with SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-        View decorView = getWindow().getDecorView();
-        decorView.setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_IMMERSIVE
-                        // Set the content to appear under the system bars so that the
-                        // content doesn't resize when the system bars hide and show.
-                        | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                        // Hide the nav bar and status bar
-                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                        | View.SYSTEM_UI_FLAG_FULLSCREEN);
+        windowInsetsController.hide(WindowInsetsCompat.Type.systemBars());
     }
 
-    private void KeepScreenFull()
-    {
-        final Calendar x = Calendar.getInstance(Locale.getDefault());
+    private void KeepScreenFull() {
         final Handler hander = new Handler();
         new Thread(new Runnable() {
             @Override
             public void run() {
-                try {
-                    Thread.sleep(1);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                hander.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        hideSystemUI();
-                        KeepScreenFull();
-                    }
-                });
+                hander.postDelayed(this,300);
+                hideSystemUI();
             }
         }).start();
     }
 
-    private void blink()
-    {
+    private void blink() {
         final Calendar x = Calendar.getInstance(Locale.getDefault());
         final Handler hander = new Handler();
         new Thread(new Runnable() {
@@ -555,34 +546,26 @@ public class RestaurantMenues extends AppCompatActivity {
     }
 
     public void setDND(View view) {
-        if (!FullscreenActivity.DNDStatus ) {
-            if (FullscreenActivity.THEROOM.getSERVICE_B() != null) {
-                if (FullscreenActivity.THEROOM.getSERVICE_B().dps.get("1") != null) {
-                    if (FullscreenActivity.THEROOM.getSERVICE_B().dps.get("1").toString().equals("false")) {
-                        FullscreenActivity.THEROOM.getSERVICE().publishDps("{\"1\": true}", new IResultCallback() {
-                            @Override
-                            public void onError(String code, String error) {
-                                Log.d("serviceSwitch", error);
-                            }
-
-                            @Override
-                            public void onSuccess() {
-                                Log.d("serviceSwitch", "success");
-                            }
-                        });
-                    }
-                }
-            }
-        }
-        else {
-            if(FullscreenActivity.THEROOM.getSERVICE_B() != null ){
-                if (FullscreenActivity.THEROOM.getSERVICE_B().dps.get("1").toString().equals("true")){
-                    FullscreenActivity.THEROOM.getSERVICE().publishDps("{\"1\":false}", new IResultCallback() {
+        if (MyApp.Room.getSERVICE1_B() != null) {
+            if (MyApp.Room.getSERVICE1_B().dps.get(String.valueOf(MyApp.ProjectVariables.dndButton)) != null) {
+                if (Boolean.parseBoolean(MyApp.Room.getSERVICE1_B().dps.get(String.valueOf(MyApp.ProjectVariables.dndButton)).toString())) {
+                    MyApp.Room.getSERVICE1().publishDps("{\" "+MyApp.ProjectVariables.dndButton+"\":false}", new IResultCallback() {
                         @Override
                         public void onError(String code, String error) {
+                            new messageDialog(error+" "+code,"failed",act);
+                        }
+                        @Override
+                        public void onSuccess() {
 
                         }
-
+                    });
+                }
+                else {
+                    MyApp.Room.getSERVICE1().publishDps("{\" "+MyApp.ProjectVariables.dndButton+"\":true}", new IResultCallback() {
+                        @Override
+                        public void onError(String code, String error) {
+                            new messageDialog(error+" "+code,"failed",act);
+                        }
                         @Override
                         public void onSuccess() {
 
@@ -594,18 +577,155 @@ public class RestaurantMenues extends AppCompatActivity {
     }
 
     public void OpenTheDoor(View view) {
-        FullscreenActivity.OpenDoorAndSaveIt(view);
+        AVLoadingIndicatorView doorLoading = act.findViewById(R.id.loadingIcon);
+        ImageView doorImage = act.findViewById(R.id.imageView17);
+        if (MyApp.BluetoothLock != null) {
+            doorImage.setVisibility(View.GONE);
+            doorLoading.setVisibility(View.VISIBLE);
+            String url = MyApp.ProjectURL + "roomsManagement/addClientDoorOpen";
+            StringRequest req = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
+                @Override
+                public void onResponse(String response) {
+                    try {
+                        JSONObject result = new JSONObject(response);
+                        if (result.getString("result") != null) {
+                            if (result.getString("result").equals("success")) {
+                                TTLockClient.getDefault().controlLock(ControlAction.UNLOCK, MyApp.BluetoothLock.getLockData(), MyApp.BluetoothLock.getLockMac(),new ControlLockCallback() {
+                                    @Override
+                                    public void onControlLockSuccess(ControlLockResult controlLockResult) {
+                                        ToastMaker.MakeToast("door opened",act);
+                                        doorImage.setVisibility(View.VISIBLE);
+                                        doorLoading.setVisibility(View.GONE);
+                                    }
+                                    @Override
+                                    public void onFail(LockError error) {
+                                        ToastMaker.MakeToast(error.getErrorMsg(),act);
+                                        doorImage.setVisibility(View.VISIBLE);
+                                        doorLoading.setVisibility(View.GONE);
+                                    }
+                                });
+                            }
+                        }
+                    } catch (JSONException e) {
+                        ToastMaker.MakeToast(e.getMessage(),act);
+                        doorImage.setVisibility(View.VISIBLE);
+                        doorLoading.setVisibility(View.GONE);
+                    }
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    ToastMaker.MakeToast(error.toString(),act);
+                    doorImage.setVisibility(View.VISIBLE);
+                    doorLoading.setVisibility(View.GONE);
+                }
+            });
+            Volley.newRequestQueue(act).add(req);
+        }
+        else {
+            if (MyApp.Room.getLOCK_B() != null) {
+                doorImage.setVisibility(View.GONE);
+                doorLoading.setVisibility(View.VISIBLE);
+                String url = MyApp.ProjectURL + "roomsManagement/addClientDoorOpen";
+                StringRequest req = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        Log.d("doorOpenResp" , response);
+                        try {
+                            JSONObject result = new JSONObject(response);
+                            if (result.getString("result") != null) {
+                                if (result.getString("result").equals("success")) {
+                                    ZigbeeLock.getTokenFromApi(MyApp.cloudClientId, MyApp.cloudSecret, act, new RequestOrder() {
+                                        @Override
+                                        public void onSuccess(String token) {
+                                            Log.d("doorOpenResp" , "token "+token);
+                                            ZigbeeLock.getTicketId(token, MyApp.cloudClientId, MyApp.cloudSecret, MyApp.Room.getLOCK_B().devId, act, new RequestOrder() {
+                                                @Override
+                                                public void onSuccess(String ticket) {
+                                                    Log.d("doorOpenResp" , "ticket "+ticket);
+                                                    ZigbeeLock.unlockWithoutPassword(token, ticket, MyApp.cloudClientId, MyApp.cloudSecret, MyApp.Room.getLOCK_B().devId, act, new RequestOrder() {
+                                                        @Override
+                                                        public void onSuccess(String res) {
+                                                            Log.d("doorOpenResp" , "res "+res);
+                                                            ToastMaker.MakeToast("door opened",act);
+                                                            doorImage.setVisibility(View.VISIBLE);
+                                                            doorLoading.setVisibility(View.GONE);
+                                                        }
+
+                                                        @Override
+                                                        public void onFailed(String error) {
+                                                            Log.d("openDoorResp" , "res "+error);
+                                                            ToastMaker.MakeToast(error,act);
+                                                            doorImage.setVisibility(View.VISIBLE);
+                                                            doorLoading.setVisibility(View.GONE);
+                                                        }
+                                                    });
+                                                }
+
+                                                @Override
+                                                public void onFailed(String error) {
+                                                    Log.d("doorOpenResp" , "ticket "+error);
+                                                    ToastMaker.MakeToast(error,act);
+                                                    doorImage.setVisibility(View.VISIBLE);
+                                                    doorLoading.setVisibility(View.GONE);
+                                                }
+                                            });
+                                        }
+
+                                        @Override
+                                        public void onFailed(String error) {
+                                            Log.d("doorOpenResp" , "token "+error);
+                                            ToastMaker.MakeToast(error,act);
+                                            doorImage.setVisibility(View.VISIBLE);
+                                            doorLoading.setVisibility(View.GONE);
+                                        }
+                                    });
+                                }
+                                else {
+                                    ToastMaker.MakeToast(result.getString("error"),act);
+                                    doorImage.setVisibility(View.VISIBLE);
+                                    doorLoading.setVisibility(View.GONE);
+                                }
+                            }
+
+                        } catch (JSONException e) {
+                            Log.d("doorOpenResp" , e.getMessage());
+                            ToastMaker.MakeToast(e.getMessage(),act);
+                            doorImage.setVisibility(View.VISIBLE);
+                            doorLoading.setVisibility(View.GONE);
+                        }
+                    }
+                }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.d("doorOpenResp" , error.toString());
+                        ToastMaker.MakeToast(error.toString(),act);
+                        doorImage.setVisibility(View.VISIBLE);
+                        doorLoading.setVisibility(View.GONE);
+                    }
+                }){
+                    @Override
+                    protected Map<String, String> getParams() throws AuthFailureError {
+                        Map<String,String> params = new HashMap<>();
+                        params.put("room_id", String.valueOf(MyApp.Room.id));
+                        return params;
+                    }
+                };
+                Volley.newRequestQueue(act).add(req);
+            }
+            else {
+                new messageDialog("no lock detected in this room ","failed",act);
+            }
+        }
     }
 
     public void SOS(View view) {
-        if (FullscreenActivity.CURRENT_ROOM_STATUS == 2)
-        {
-            if (FullscreenActivity.SosStatus == false)
-            {
+        if (FullscreenActivity.CURRENT_ROOM_STATUS == 2) {
+            if (!FullscreenActivity.SosStatus) {
                 final Dialog d = new Dialog(act);
                 d.setContentView(R.layout.confermation_dialog);
                 TextView message = (TextView) d.findViewById(R.id.confermationDialog_Text);
-                message.setText("Send Emergency Order .. ?                   ");
+                message.setText("Send Emergency Order .. ?");
                 Button cancel = (Button)d.findViewById(R.id.confermationDialog_cancel);
                 cancel.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -617,133 +737,67 @@ public class RestaurantMenues extends AppCompatActivity {
                 Button ok = (Button)d.findViewById(R.id.messageDialog_ok);
                 ok.setOnClickListener(new View.OnClickListener() {
                     @Override
-                    public void onClick(View v)
-                    {
-                        d.dismiss();
-                        final String depo = "SOS";
-                        Calendar x = Calendar.getInstance(Locale.getDefault());
-                        long timee =  x.getTimeInMillis();
-                        myRefSos.setValue(timee);
-                        myRefdep.setValue(depo);
-                        myRefDND.setValue(0);
+                    public void onClick(View v) {
                         FullscreenActivity.SosStatus = true ;
                         sosOn();
-                        for(ServiceEmps emp : FullscreenActivity.Emps) {
-                            if (emp.department.equals("Service") || emp.department.equals("RoomService") || emp.department.equals("Cleanup")) {
-                                emp.makemessage(emp.token,"SOS",true,act);
-                            }
-                        }
-                        LoadingDialog dd = new LoadingDialog(act);
-                        StringRequest addOrder = new StringRequest(Request.Method.POST, insertServiceOrderUrl , new Response.Listener<String>() {
+                        Calendar c = Calendar.getInstance(Locale.getDefault());
+                        myRefSos.setValue(c.getTimeInMillis());
+                        d.dismiss();
+                        String url = MyApp.ProjectURL + "reservations/addSOSOrder";
+                        StringRequest addOrder = new StringRequest(Request.Method.POST, url , new Response.Listener<String>() {
                             @Override
-                            public void onResponse(String response)
-                            {
-                                dd.stop();
-                                if (Integer.parseInt(response) > 0 )
-                                {
-                                    FullscreenActivity.sosId = Integer.parseInt(response);
-                                    ToastMaker.MakeToast("تم ارسال طلب " +"SOS" , act);
-                                    Calendar x = Calendar.getInstance(Locale.getDefault());
-                                }
-                                else
-                                {
-                                    Toast.makeText(act , response,Toast.LENGTH_LONG).show();
-                                }
-
+                            public void onResponse(String response) {
+                                Log.d("sosResp" , response);
                             }
                         }, new Response.ErrorListener() {
                             @Override
-                            public void onErrorResponse(VolleyError error)
-                            {
-                                dd.stop();
-                                //Toast.makeText(act , error.getMessage(),Toast.LENGTH_LONG).show();
+                            public void onErrorResponse(VolleyError error) {
+                                Log.d("sosResp" , error.toString());
                             }
-                        })
-                        {
+                        }) {
                             @Override
-                            protected Map<String, String> getParams() throws AuthFailureError
-                            {
-                                Map<String,String> params = new HashMap<String, String>();
-                                params.put("roomNumber" ,String.valueOf(LogIn.room.getRoomNumber()));
-                                params.put("time" ,String.valueOf(timee));
-                                params.put("dep" ,depo);
-                                params.put("Hotel" , String.valueOf(LogIn.room.getHotel()));
-                                params.put("RorS" ,String.valueOf( FullscreenActivity.RoomOrSuite));
-                                params.put("Reservation" ,String.valueOf( FullscreenActivity.RESERVATION));
+                            protected Map<String, String> getParams() throws AuthFailureError {
+                                Map<String,String> params = new HashMap<>();
+                                params.put("room_id" ,String.valueOf(MyApp.Room.id));
                                 return params;
                             }
-
                         };
                         Volley.newRequestQueue(act).add(addOrder);
                     }
                 });
                 d.show();
             }
-            else
-            {
-                myRefSos.setValue(0);
+            else {
                 FullscreenActivity.SosStatus = false ;
                 sosOff();
-                for(ServiceEmps emp : FullscreenActivity.Emps) {
-                    if (emp.department.equals("Service") || emp.department.equals("RoomService") || emp.department.equals("Cleanup")) {
-                        emp.makemessage(emp.token,"SOS",false,act);
-                    }
-                }
-                LoadingDialog ddd = new LoadingDialog(act);
-                myRefSos.addListenerForSingleValueEvent(new ValueEventListener() {
+                myRefSos.setValue(0);
+                String url = MyApp.ProjectURL + "reservations/cancelServiceOrderControlDevice"+FullscreenActivity.sosCounter;
+                StringRequest removOrder = new StringRequest(Request.Method.POST, url , new Response.Listener<String>() {
                     @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot)
-                    {
-                        if (Long.parseLong(snapshot.getValue().toString()) > 0 )
-                        {
-                            FullscreenActivity.sosId = Long.parseLong(snapshot.getValue().toString()) ;
-                        }
-                    }
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-
-                    }
-                });
-                final String depo = "SOS";
-                StringRequest removOrder = new StringRequest(Request.Method.POST, removeServiceOrderUrl , new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response)
-                    {
-                        ddd.stop();
-                        if (response.equals("1")  )
-                        {
-                            ToastMaker.MakeToast("تم الغاء طلب " + "SOS" , act);
-                            Calendar x = Calendar.getInstance(Locale.getDefault());
-                        }
-                        else
-                        {
-                        }
-
+                    public void onResponse(String response) {
+                        Log.d("sosResp" , response);
                     }
                 }, new Response.ErrorListener() {
                     @Override
-                    public void onErrorResponse(VolleyError error)
-                    {
-                        ddd.stop();
+                    public void onErrorResponse(VolleyError error) {
                     }
-                })
-                {
+                }) {
                     @Override
-                    protected Map<String, String> getParams() throws AuthFailureError
-                    {
+                    protected Map<String, String> getParams() throws AuthFailureError {
                         Map<String,String> params = new HashMap<String, String>();
-                        params.put("id" , String.valueOf( FullscreenActivity.sosId));
-                        params.put("room" , String.valueOf( LogIn.room.getRoomNumber()));
-                        params.put("dep" , "SOS");
-                        params.put("Hotel" , String.valueOf( LogIn.room.getHotel()));
+                        params.put("room_id" , String.valueOf(MyApp.Room.id));
+                        params.put("order_type" , "SOS");
                         return params;
                     }
                 };
                 Volley.newRequestQueue(act).add(removOrder);
+                FullscreenActivity.sosCounter++ ;
+                if (FullscreenActivity.sosCounter == 5) {
+                    FullscreenActivity.sosCounter = 1 ;
+                }
             }
         }
-        else
-        {
+        else {
             ToastMaker.MakeToast("This Room Is Vacant" , act);
         }
     }

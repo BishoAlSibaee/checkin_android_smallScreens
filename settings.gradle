@@ -1,2 +1,1 @@
-include ':hotelservicesstandalone'
-include ':app', ':laundryscreen', ':cleanup'
+include ':hotelservicesstandalone',':app', ':laundryscreen', ':cleanup','mobilecheckdevice'

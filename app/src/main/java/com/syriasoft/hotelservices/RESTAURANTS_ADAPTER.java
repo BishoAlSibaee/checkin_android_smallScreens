@@ -1,7 +1,9 @@
 package com.syriasoft.hotelservices;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,8 +21,7 @@ public class RESTAURANTS_ADAPTER extends RecyclerView.Adapter<RESTAURANTS_ADAPTE
 {
     List<RESTAURANT_UNIT> list ;
 
-    public RESTAURANTS_ADAPTER(List<RESTAURANT_UNIT> list , Context c )
-    {
+    public RESTAURANTS_ADAPTER(List<RESTAURANT_UNIT> list) {
         this.list = list ;
     }
 
@@ -34,15 +35,12 @@ public class RESTAURANTS_ADAPTER extends RecyclerView.Adapter<RESTAURANTS_ADAPTE
     }
 
     @Override
-    public void onBindViewHolder(@NonNull RESTAURANTS_ADAPTER.HOLDER holder, int position) {
+    public void onBindViewHolder(@NonNull RESTAURANTS_ADAPTER.HOLDER holder, @SuppressLint("RecyclerView") int position) {
 
-        if (list.get(position).photo == null || list.get(position).photo == "" || list.get(position).photo == "0")
-        {
-            //Log.e("imaaa" , list.get(position).photo );
-            //image.setVisibility(View.INVISIBLE);
+        if (list.get(position).photo == null || list.get(position).photo == "" || list.get(position).photo == "0") {
+
         }
-        else
-        {
+        else {
             Picasso.get().load(list.get(position).photo).into(holder.image);
         }
         holder.text.setText(list.get(position).Name);
@@ -50,6 +48,7 @@ public class RESTAURANTS_ADAPTER extends RecyclerView.Adapter<RESTAURANTS_ADAPTE
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.d("restaurantsAre", list.get(position).Name+" " );
                 RESTAURANTS.H.removeCallbacks(RESTAURANTS.backHomeThread);
                 RESTAURANTS.x=0;
                 Intent i = new Intent(holder.itemView.getContext() , RestaurantMenues.class ) ;
@@ -65,6 +64,11 @@ public class RESTAURANTS_ADAPTER extends RecyclerView.Adapter<RESTAURANTS_ADAPTE
         });
     }
 
+    @Override
+    public void onViewAttachedToWindow(@NonNull HOLDER holder) {
+        super.onViewAttachedToWindow(holder);
+        RESTAURANTS.Current = holder.getPosition();
+    }
 
     @Override
     public int getItemCount() {

@@ -26,6 +26,7 @@ public class LightingDB extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("CREATE TABLE IF NOT EXISTS masterOff ( 'switch' INTEGER , 'button' INTEGER) ;");
         db.execSQL("CREATE TABLE IF NOT EXISTS screenBtn ('switch' INTEGER , 'button' INTEGER , 'name' VARCHAR(15)) ;");
+        db.execSQL("CREATE TABLE IF NOT EXISTS moodBtn ('switch' INTEGER , 'button' INTEGER , 'name' VARCHAR(15)) ;");
     }
 
     @Override
@@ -38,13 +39,35 @@ public class LightingDB extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
         values.put("switch",Switch);
         values.put("button",Btn);
-        try
-        {
+        try {
             res =  DB.insert("masterOff", null, values);
 
         }
-        catch (Exception e )
-        {
+        catch (Exception e ) {
+            res = -1 ;
+        }
+
+        boolean x = false ;
+
+        if (res == -1) {
+            x= false ;
+        }
+        else if (res >0){
+            x=  true ;
+        }
+        return x ;
+    }
+
+    public boolean insertMoodToScreen(int Switch , int Btn , String name) {
+        long res = 0 ;
+        ContentValues values = new ContentValues();
+        values.put("switch",Switch);
+        values.put("button",Btn);
+        values.put("name",name);
+        try {
+            res =  DB.insert("moodBtn", null, values);
+        }
+        catch (Exception e ) {
             res = -1 ;
         }
 
@@ -65,13 +88,11 @@ public class LightingDB extends SQLiteOpenHelper {
         values.put("switch",Switch);
         values.put("button",Btn);
         values.put("name",name);
-        try
-        {
+        try {
             res =  DB.insert("screenBtn", null, values);
 
         }
-        catch (Exception e )
-        {
+        catch (Exception e ) {
             res = -1 ;
         }
 
@@ -93,13 +114,12 @@ public class LightingDB extends SQLiteOpenHelper {
 
         c.moveToFirst();
 
-        for (int i=0 ; i<c.getCount(); i++)
-        {
+        for (int i=0 ; i<c.getCount(); i++) {
             MasterOffButton item = new MasterOffButton(c.getInt(0),c.getInt(1));
             list.add(item);
             c.moveToNext();
         }
-
+        c.close();
         return list ;
     }
 
@@ -110,13 +130,28 @@ public class LightingDB extends SQLiteOpenHelper {
 
         c.moveToFirst();
 
-        for (int i=0 ; i<c.getCount(); i++)
-        {
+        for (int i=0 ; i<c.getCount(); i++) {
             ScreenButton item = new ScreenButton(c.getInt(0),c.getInt(1),c.getString(2));
             list.add(item);
             c.moveToNext();
         }
+        c.close();
+        return list ;
+    }
 
+    public List<ScreenButton> getMoodButtons () {
+        List<ScreenButton> list = new ArrayList<>();
+
+        Cursor c = DB.query("moodBtn", new String[]{"switch","button","name"}, "", null, null, null, null);
+
+        c.moveToFirst();
+
+        for (int i=0 ; i<c.getCount(); i++) {
+            ScreenButton item = new ScreenButton(c.getInt(0),c.getInt(1),c.getString(2));
+            list.add(item);
+            c.moveToNext();
+        }
+        c.close();
         return list ;
     }
 

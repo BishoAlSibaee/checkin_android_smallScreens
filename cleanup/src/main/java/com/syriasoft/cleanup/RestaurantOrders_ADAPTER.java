@@ -11,8 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
-public class RestaurantOrders_ADAPTER extends RecyclerView.Adapter<RestaurantOrders_ADAPTER.HOLDER>
-{
+public class RestaurantOrders_ADAPTER extends RecyclerView.Adapter<RestaurantOrders_ADAPTER.HOLDER> {
 
     List<restaurant_order_unit> list;
 
@@ -22,33 +21,29 @@ public class RestaurantOrders_ADAPTER extends RecyclerView.Adapter<RestaurantOrd
 
     @NonNull
     @Override
-    public RestaurantOrders_ADAPTER.HOLDER onCreateViewHolder(@NonNull ViewGroup parent, int viewType)
-    {
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.restaurant_order_unit,null);
+    public RestaurantOrders_ADAPTER.HOLDER onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.restaurant_order_unit, null);
         HOLDER holder = new HOLDER(v);
         return holder;
     }
 
     @Override
-    public void onBindViewHolder(@NonNull RestaurantOrders_ADAPTER.HOLDER holder, int position)
-    {
+    public void onBindViewHolder(@NonNull RestaurantOrders_ADAPTER.HOLDER holder, int position) {
         holder.room.setText(list.get(position).room);
         holder.order.setText(list.get(position).id);
         holder.img.setImageResource(R.drawable.restaurant_btn);
     }
 
     @Override
-    public int getItemCount()
-    {
+    public int getItemCount() {
         return list.size();
     }
 
-    public class HOLDER extends RecyclerView.ViewHolder
-    {
-        TextView order , room ;
-        ImageView img ;
-        public HOLDER(@NonNull View itemView)
-        {
+    public class HOLDER extends RecyclerView.ViewHolder {
+        TextView order, room;
+        ImageView img;
+
+        public HOLDER(@NonNull View itemView) {
             super(itemView);
             order = itemView.findViewById(R.id.orderNumber);
             room = itemView.findViewById(R.id.roomNumber_restOrder);

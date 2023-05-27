@@ -42,7 +42,7 @@ public class BTN_ADAPTER extends RecyclerView.Adapter<BTN_ADAPTER.HOLDER>
             {
                 if (list.get(position).text.equals("CLEANUP"))
                 {
-                    FullscreenActivity.requestCleanUp(v);
+                    //FullscreenActivity.requestCleanUp(v);
                 }
             }
         });

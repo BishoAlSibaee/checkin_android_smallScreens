@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 apply plugin: 'com.google.gms.google-services'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 33
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -12,15 +12,19 @@ android {
     defaultConfig {
         applicationId "com.syriasoft.cleanup"
         minSdkVersion 23
-        targetSdkVersion 30
-        versionCode 1
-        versionName "1.0"
+        targetSdkVersion 33
+        versionCode 2
+        versionName "2.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         ndk {
             abiFilters "armeabi-v7a", "arm64-v8a"
         }
-
+        packagingOptions {
+            pickFirst 'lib/*/libc++_shared.so' // multi aar has such so, should pick first.
+            exclude("META-INF/NOTICE.md")
+            exclude("META-INF/LICENSE.md")
+        }
     }
 
     buildTypes {
@@ -37,27 +41,64 @@ android {
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+//    implementation fileTree(dir: 'libs', include: ['*.jar'])
+//    implementation 'androidx.appcompat:appcompat:1.3.1'
+//    implementation 'androidx.constraintlayout:constraintlayout:2.0.1'
+//    implementation 'com.google.firebase:firebase-messaging:17.3.4'
+//    implementation 'com.android.volley:volley:1.1.1'
+//    implementation 'com.google.firebase:firebase-database:16.0.4'
+//    testImplementation 'junit:junit:4.12'
+//    androidTestImplementation 'androidx.test:runner:1.2.0'
+//    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+//    implementation 'com.google.android.material:material:1.2.1'
+//    implementation 'com.squareup.picasso:picasso:2.71828'
+//    implementation 'com.squareup.retrofit2:retrofit:2.4.0'
+//    implementation 'com.squareup.retrofit2:converter-gson:2.4.0'
+//    implementation 'com.tongtonglock:ttlock:3.1.0'
+//    implementation 'com.tuya.smart:tuyasmart:3.25.0'
+//    implementation 'com.alibaba:fastjson:1.1.67.android'
+//    implementation 'com.squareup.okhttp3:okhttp-urlconnection:3.14.9'
+//    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
+//    implementation 'org.apache.commons:commons-collections4:4.4'
+//    implementation 'org.apache.commons:commons-lang3:3.9'
+//    implementation 'jakarta.xml.bind:jakarta.xml.bind-api:3.0.1'
 
-    implementation 'androidx.appcompat:appcompat:1.3.1'
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.1'
-    implementation 'com.google.firebase:firebase-messaging:17.3.4'
-    implementation 'com.android.volley:volley:1.1.1'
-    implementation 'com.google.firebase:firebase-database:16.0.4'
-    testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'androidx.test:runner:1.2.0'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
-    implementation 'com.google.android.material:material:1.2.1'
+    implementation 'androidx.appcompat:appcompat:1.2.0'
+    implementation 'com.google.android.material:material:1.1.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
     implementation 'com.squareup.picasso:picasso:2.71828'
-    implementation 'com.squareup.retrofit2:retrofit:2.4.0'
-    implementation 'com.squareup.retrofit2:converter-gson:2.4.0'
-    implementation 'com.tongtonglock:ttlock:3.1.0'
-    implementation 'com.tuya.smart:tuyasmart:3.22.0'
+    implementation 'com.google.firebase:firebase-messaging:17.3.4'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    testImplementation 'junit:junit:4.+'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+    implementation 'com.android.volley:volley:1.2.1'
+    implementation 'androidx.gridlayout:gridlayout:1.0.0'
+    implementation 'no.nordicsemi.android:dfu:1.8.1'
+    implementation 'com.google.firebase:firebase-database:20.1.0'
+    implementation 'androidx.recyclerview:recyclerview:1.1.0'
     implementation 'com.alibaba:fastjson:1.1.67.android'
     implementation 'com.squareup.okhttp3:okhttp-urlconnection:3.14.9'
+    implementation 'com.facebook.soloader:soloader:0.10.4+'
+//    implementation 'com.tuya.smart:tuyasmart:4.0.3'
+    implementation 'com.tuya.smart:tuyasmart:3.25.0'
+    implementation 'com.tongtonglock:ttlock:3.1.0'
+    implementation 'com.squareup.retrofit2:retrofit:2.4.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.4.0'
+    implementation 'com.google.code.gson:gson:2.8.5'
+    implementation 'com.wang.avi:library:2.1.3'
+//    implementation 'com.google.firebase:firebase-messaging:23.1.2'
 }
 repositories {
     mavenLocal()
     jcenter()
+    maven { url 'https://maven-other.tuya.com/repository/maven-releases/' }
+    maven { url "https://maven-other.tuya.com/repository/maven-commercial-releases/" }
+    maven { url 'https://jitpack.io' }
     google()
+    mavenCentral()
+    maven { url 'https://maven.aliyun.com/repository/public' }
+    maven { url 'https://central.maven.org/maven2/' }
+    maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
+    maven { url 'https://developer.huawei.com/repo/' }
 }

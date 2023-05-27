@@ -34,6 +34,7 @@ import com.android.volley.toolbox.Volley;
 import com.syriasoft.hotelservices.ErrorRegister;
 import com.syriasoft.hotelservices.FullscreenActivity;
 import com.syriasoft.hotelservices.LogIn;
+import com.syriasoft.hotelservices.MyApp;
 import com.syriasoft.hotelservices.R;
 import com.syriasoft.hotelservices.ROOM;
 import com.syriasoft.hotelservices.ToastMaker;
@@ -101,7 +102,7 @@ public class Tuya_Devices extends AppCompatActivity {
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.tuya__devices);
-        THEROOM = new ROOM(LogIn.THEROOM.id,LogIn.THEROOM.RoomNumber,LogIn.THEROOM.Hotel,LogIn.THEROOM.Building,LogIn.THEROOM.BuildingId,LogIn.THEROOM.Floor,LogIn.THEROOM.FloorId,LogIn.THEROOM.RoomType,LogIn.THEROOM.SuiteStatus,LogIn.THEROOM.SuiteNumber,LogIn.THEROOM.SuiteId,LogIn.THEROOM.ReservationNumber,LogIn.THEROOM.roomStatus,LogIn.THEROOM.Tablet,LogIn.THEROOM.dep,LogIn.THEROOM.Cleanup,LogIn.THEROOM.Laundry,LogIn.THEROOM.RoomService,LogIn.THEROOM.Checkout,LogIn.THEROOM.Restaurant,LogIn.THEROOM.SOS,LogIn.THEROOM.DND,LogIn.THEROOM.PowerSwitch,LogIn.THEROOM.DoorSensor,LogIn.THEROOM.MotionSensor,LogIn.THEROOM.Thermostat,LogIn.THEROOM.ZBGateway,LogIn.THEROOM.CurtainSwitch,LogIn.THEROOM.ServiceSwitch,LogIn.THEROOM.lock,LogIn.THEROOM.Switch1,LogIn.THEROOM.Switch2,LogIn.THEROOM.Switch3,LogIn.THEROOM.Switch4,LogIn.room.getLockGateway(),LogIn.THEROOM.LockName,LogIn.THEROOM.powerStatus,LogIn.THEROOM.curtainStatus,LogIn.THEROOM.doorStatus,LogIn.THEROOM.temp,LogIn.THEROOM.token);
+        //THEROOM = new ROOM(LogIn.THEROOM.id,LogIn.THEROOM.RoomNumber,"1",LogIn.THEROOM.Building, MyApp.Room.building_id,LogIn.THEROOM.Floor,MyApp.Room.floor_id,LogIn.THEROOM.RoomType,LogIn.THEROOM.SuiteStatus,LogIn.THEROOM.SuiteNumber,LogIn.THEROOM.SuiteId,LogIn.THEROOM.ReservationNumber,LogIn.THEROOM.roomStatus,LogIn.THEROOM.Tablet,LogIn.THEROOM.dep,LogIn.THEROOM.Cleanup,LogIn.THEROOM.Laundry,LogIn.THEROOM.RoomService,LogIn.THEROOM.Checkout,LogIn.THEROOM.Restaurant,LogIn.THEROOM.SOS,LogIn.THEROOM.DND,LogIn.THEROOM.PowerSwitch,LogIn.THEROOM.DoorSensor,LogIn.THEROOM.MotionSensor,LogIn.THEROOM.Thermostat,LogIn.THEROOM.ZBGateway,LogIn.THEROOM.CurtainSwitch,LogIn.THEROOM.ServiceSwitch,LogIn.THEROOM.lock,LogIn.THEROOM.Switch1,LogIn.THEROOM.Switch2,LogIn.THEROOM.Switch3,LogIn.THEROOM.Switch4,,LogIn.THEROOM.LockName,LogIn.THEROOM.powerStatus,LogIn.THEROOM.curtainStatus,LogIn.THEROOM.doorStatus,LogIn.THEROOM.temp,LogIn.THEROOM.token);
         setActivity();
         mainWifi = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         receiverWifi = new WifiReceiver();
@@ -120,7 +121,7 @@ public class Tuya_Devices extends AppCompatActivity {
                     {
                         Calendar ca = Calendar.getInstance(Locale.getDefault());
                         long time = ca.getTimeInMillis();
-                        ErrorRegister.rigestError(act , LogIn.room.getProjectName(),LogIn.room.getRoomNumber(),time,11,s+s1,"error Getting Token From Tuya");
+                        ErrorRegister.rigestError(act ,MyApp.THE_PROJECT.projectName,MyApp.Room.RoomNumber,time,11,s+s1,"error Getting Token From Tuya");
                     }
                 });
         Button b = (Button) findViewById(R.id.button12);
@@ -145,7 +146,7 @@ public class Tuya_Devices extends AppCompatActivity {
                                      d.stop();
                                      Toast.makeText(act , errorMsg , Toast.LENGTH_LONG).show();
                                      long time = ca.getTimeInMillis() ;
-                                     ErrorRegister.rigestError(act,LogIn.room.getProjectName(),LogIn.room.getRoomNumber(),time,12,errorMsg,"error Searching Wifi Device ");
+                                     ErrorRegister.rigestError(act,MyApp.THE_PROJECT.projectName,MyApp.Room.RoomNumber,time,12,errorMsg,"error Searching Wifi Device ");
                                  }
 
                                  @Override
@@ -195,7 +196,7 @@ public class Tuya_Devices extends AppCompatActivity {
                         d.stop();
                         ToastMaker.MakeToast(error , act);
                         long time = ca.getTimeInMillis();
-                        ErrorRegister.rigestError(act,LogIn.room.getProjectName(),LogIn.room.getRoomNumber(),time,13,error,"error changing Device Name ");
+                        ErrorRegister.rigestError(act,MyApp.THE_PROJECT.projectName,MyApp.Room.RoomNumber,time,13,error,"error changing Device Name ");
                     }
                     @Override
                     public void onSuccess()
@@ -240,7 +241,7 @@ public class Tuya_Devices extends AppCompatActivity {
                                                  {
                                                      d.stop();
                                                      long time = ca.getTimeInMillis();
-                                                     ErrorRegister.rigestError(act,LogIn.room.getProjectName(),LogIn.room.getRoomNumber(),time,14,errorMsg,"error Searching Wire Zigbee Gateway");
+                                                     ErrorRegister.rigestError(act,MyApp.THE_PROJECT.projectName,MyApp.Room.RoomNumber,time,14,errorMsg,"error Searching Wire Zigbee Gateway");
                                                  }
 
                                                  @Override
@@ -296,7 +297,7 @@ public class Tuya_Devices extends AppCompatActivity {
                     //ToastMaker.MakeToast(TheDevicesList.get(0).name,act);
                     for (int i=0;i<TheDevicesList.size();i++)
                     {
-                        if (TheDevicesList.get(i).getName().equals(LogIn.room.getRoomNumber()+"Power"))
+                        if (TheDevicesList.get(i).getName().equals(MyApp.Room.RoomNumber+"Power"))
                         {
                             powerBean = TheDevicesList.get(i);
                             mDevice = TuyaHomeSdk.newDeviceInstance(powerBean.devId);
@@ -305,7 +306,7 @@ public class Tuya_Devices extends AppCompatActivity {
                             POWER.setText("YES");
                             POWER.setTextColor(Color.GREEN);
                         }
-                        else if (TheDevicesList.get(i).getName().equals(LogIn.room.getRoomNumber()+"ZGatway"))
+                        else if (TheDevicesList.get(i).getName().equals(MyApp.Room.RoomNumber+"ZGatway"))
                         {
                             zgatwayBean = TheDevicesList.get(i);
                             mgate = TuyaHomeSdk.newGatewayInstance(Tuya_Devices.zgatwayBean.devId);
@@ -318,7 +319,7 @@ public class Tuya_Devices extends AppCompatActivity {
                                 {
                                     for (int i=0;i<result.size();i++)
                                     {
-                                        if (result.get(i).getName().equals(LogIn.room.getRoomNumber()+"DoorSensor"))
+                                        if (result.get(i).getName().equals(MyApp.Room.RoomNumber+"DoorSensor"))
                                         {
 
                                             THEROOM.setDOORSENSOR_B(result.get(i));
@@ -326,42 +327,42 @@ public class Tuya_Devices extends AppCompatActivity {
                                             DOORSENSOR.setText("YES");
                                             DOORSENSOR.setTextColor(Color.GREEN);
                                         }
-                                        else if (result.get(i).getName().equals(LogIn.room.getRoomNumber()+"MotionSensor"))
+                                        else if (result.get(i).getName().equals(MyApp.Room.RoomNumber+"MotionSensor"))
                                         {
                                             THEROOM.setMOTIONSENSOR_B(result.get(i));
                                             THEROOM.setMOTIONSENSOR(TuyaHomeSdk.newDeviceInstance(THEROOM.getMOTIONSENSOR_B().getDevId()));
                                             MOTIONSENSOR.setText("YES");
                                             MOTIONSENSOR.setTextColor(Color.GREEN);
                                         }
-                                        else if (result.get(i).getName().equals(LogIn.room.getRoomNumber()+"Curtain"))
+                                        else if (result.get(i).getName().equals(MyApp.Room.RoomNumber+"Curtain"))
                                         {
                                             THEROOM.setCURTAIN_B(result.get(i));
                                             THEROOM.setCURTAIN(TuyaHomeSdk.newDeviceInstance(THEROOM.getCURTAIN_B().getDevId()));
                                             CURTAIN.setText("YES");
                                             CURTAIN.setTextColor(Color.GREEN);
                                         }
-                                        else if (result.get(i).getName().equals(LogIn.room.getRoomNumber()+"ServiceSwitch"))
+                                        else if (result.get(i).getName().equals(MyApp.Room.RoomNumber+"ServiceSwitch"))
                                         {
-                                            THEROOM.setSERVICE_B(result.get(i));
-                                            THEROOM.setSERVICE(TuyaHomeSdk.newDeviceInstance(THEROOM.getSERVICE_B().getDevId()));
+                                            THEROOM.setSERVICE1_B(result.get(i));
+                                            THEROOM.setSERVICE1(TuyaHomeSdk.newDeviceInstance(THEROOM.getSERVICE1_B().getDevId()));
                                             SERVICE.setText("YES");
                                             SERVICE.setTextColor(Color.GREEN);
                                         }
-                                        else if (result.get(i).getName().equals(LogIn.room.getRoomNumber()+"Switch1"))
+                                        else if (result.get(i).getName().equals(MyApp.Room.RoomNumber+"Switch1"))
                                         {
                                             THEROOM.setSWITCH1_B(result.get(i));
                                             THEROOM.setSWITCH1(TuyaHomeSdk.newDeviceInstance(THEROOM.getSWITCH1_B().getDevId()));
                                             SWITCH1.setText("YES");
                                             SWITCH1.setTextColor(Color.GREEN);
                                         }
-                                        else if (result.get(i).getName().equals(LogIn.room.getRoomNumber()+"Switch2"))
+                                        else if (result.get(i).getName().equals(MyApp.Room.RoomNumber+"Switch2"))
                                         {
                                             THEROOM.setSWITCH2_B(result.get(i));
                                             THEROOM.setSWITCH2(TuyaHomeSdk.newDeviceInstance(THEROOM.getSWITCH2_B().getDevId()));
                                             SWITCH2.setText("YES");
                                             SWITCH2.setTextColor(Color.GREEN);
                                         }
-                                        else if (result.get(i).getName().equals(LogIn.room.getRoomNumber()+"Switch3"))
+                                        else if (result.get(i).getName().equals(MyApp.Room.RoomNumber+"Switch3"))
                                         {
 
                                             THEROOM.setSWITCH3_B(result.get(i));
@@ -369,7 +370,7 @@ public class Tuya_Devices extends AppCompatActivity {
                                             SWITCH3.setText("YES");
                                             SWITCH3.setTextColor(Color.GREEN);
                                         }
-                                        else if (result.get(i).getName().equals(LogIn.room.getRoomNumber()+"Switch4"))
+                                        else if (result.get(i).getName().equals(MyApp.Room.RoomNumber+"Switch4"))
                                         {
 
                                             THEROOM.setSWITCH4_B(result.get(i));
@@ -386,7 +387,7 @@ public class Tuya_Devices extends AppCompatActivity {
                                 }
                             });
                         }
-                        else if(TheDevicesList.get(i).getName().equals(LogIn.room.getRoomNumber()+"AC"))
+                        else if(TheDevicesList.get(i).getName().equals(MyApp.Room.RoomNumber+"AC"))
                         {
                             ACbean = TheDevicesList.get(i);
                             AC = TuyaHomeSdk.newDeviceInstance(Tuya_Devices.ACbean.devId);
@@ -414,7 +415,7 @@ public class Tuya_Devices extends AppCompatActivity {
             {
                 loading.stop();
                 long time = ca.getTimeInMillis();
-                ErrorRegister.rigestError(act,LogIn.room.getProjectName(),LogIn.room.getRoomNumber(),time,16,errorMsg,"error Getting Project Registered Devices");
+                ErrorRegister.rigestError(act,MyApp.THE_PROJECT.projectName,MyApp.Room.RoomNumber,time,16,errorMsg,"error Getting Project Registered Devices");
             }
         });
     }
@@ -434,7 +435,7 @@ public class Tuya_Devices extends AppCompatActivity {
                                     d.stop();
                                     ToastMaker.MakeToast(errorMsg , act);
                                      long time = ca.getTimeInMillis();
-                                     ErrorRegister.rigestError(act,LogIn.room.getProjectName(),LogIn.room.getRoomNumber(),time,17,errorMsg,"error Register Zigbee Device");
+                                     ErrorRegister.rigestError(act,MyApp.THE_PROJECT.projectName,MyApp.Room.RoomNumber,time,17,errorMsg,"error Register Zigbee Device");
                                  }
 
                                  @Override
@@ -547,18 +548,18 @@ public class Tuya_Devices extends AppCompatActivity {
                         @Override
                         public void onClick(DialogInterface dialog, int which)
                         {
-                            THEROOM.getGATEWAY().removeDevice(new IResultCallback() {
-                                @Override
-                                public void onError(String code, String error) {
-
-                                }
-
-                                @Override
-                                public void onSuccess()
-                                {
-                                    setZBGatewayStatus("0");
-                                }
-                            });
+//                            THEROOM.getGATEWAY().removeDevice(new IResultCallback() {
+//                                @Override
+//                                public void onError(String code, String error) {
+//
+//                                }
+//
+//                                @Override
+//                                public void onSuccess()
+//                                {
+//                                    setZBGatewayStatus("0");
+//                                }
+//                            });
                         }
                     });
                 }
@@ -615,7 +616,7 @@ public class Tuya_Devices extends AppCompatActivity {
             @Override
             public boolean onLongClick(View v)
             {
-                if (THEROOM.getSERVICE() == null )
+                if (THEROOM.getSERVICE1() == null )
                 {
                     AlertDialog.Builder d = new AlertDialog.Builder(act);
                     d.setTitle("No Service Switch");
@@ -630,7 +631,7 @@ public class Tuya_Devices extends AppCompatActivity {
                         public void onClick(DialogInterface dialog, int which)
                         {
 
-                            THEROOM.getSERVICE().removeDevice(new IResultCallback() {
+                            THEROOM.getSERVICE1().removeDevice(new IResultCallback() {
                                 @Override
                                 public void onError(String code, String error) {
 
@@ -999,7 +1000,7 @@ public class Tuya_Devices extends AppCompatActivity {
         zDevice = new ITuyaDevice[2] ;
         zigbeeDevices = new ArrayList<DeviceBean>();
         DeviceType = (Spinner) findViewById(R.id.spinner_devicetype);
-        String [] Types = new String[]{LogIn.room.getRoomNumber()+"Power",LogIn.room.getRoomNumber()+"ZGatway",LogIn.room.getRoomNumber()+"AC",LogIn.room.getRoomNumber()+"DoorSensor",LogIn.room.getRoomNumber()+"MotionSensor",LogIn.room.getRoomNumber()+"Curtain",LogIn.room.getRoomNumber()+"ServiceSwitch",LogIn.room.getRoomNumber()+"Switch1",LogIn.room.getRoomNumber()+"Switch2",LogIn.room.getRoomNumber()+"Switch3",LogIn.room.getRoomNumber()+"Switch3",LogIn.room.getRoomNumber()+"Switch4"};
+        String [] Types = new String[]{MyApp.Room.RoomNumber+"Power",MyApp.Room.RoomNumber+"ZGatway",MyApp.Room.RoomNumber+"AC",MyApp.Room.RoomNumber+"DoorSensor",MyApp.Room.RoomNumber+"MotionSensor",MyApp.Room.RoomNumber+"Curtain",MyApp.Room.RoomNumber+"ServiceSwitch",MyApp.Room.RoomNumber+"Switch1",MyApp.Room.RoomNumber+"Switch2",MyApp.Room.RoomNumber+"Switch3",MyApp.Room.RoomNumber+"Switch3",MyApp.Room.RoomNumber+"Switch4"};
         ArrayAdapter x =  new ArrayAdapter<String>(act ,R.layout.spinner_item ,Types);
         DeviceType.setAdapter(x);
     }
@@ -1533,8 +1534,8 @@ public class Tuya_Devices extends AppCompatActivity {
                         }
                         else if (status.equals("0"))
                         {
-                            THEROOM.setSERVICE_B(null);
-                            THEROOM.setSERVICE(null);
+                            THEROOM.setSERVICE1_B(null);
+                            THEROOM.setSERVICE1(null);
                             SERVICE.setText("NO");
                             SERVICE.setTextColor(Color.RED);
                         }

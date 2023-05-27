@@ -4,10 +4,10 @@
     <color name="colorPrimaryDark">#0E223B</color>
     <color name="colorAccent">#01D5FF</color>
     <color name="white">#FFFFFF</color>
-    <color name="gray">#737373</color>
-    <color name="transparentGray">#41737373</color>
+    <color name="gray">#B1B1B1</color>
+    <color name="transparentGray">#56D6D6D6</color>
     <color name="red">#DD2323</color>
-    <color name="redRoom">#AE0A0A</color>
-    <color name="blueRoom">#023B6C</color>
-    <color name="greenRoom">#014E09</color>
+    <color name="redRoom">#C30000</color>
+    <color name="blueRoom">#005AA8</color>
+    <color name="greenRoom">#038511</color>
 </resources>

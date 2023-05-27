@@ -56,8 +56,8 @@ public class RetrofitAPIManager {
         return httpClient;
     }
 
-    public static <T> ApiRequtest enqueue(Call<ResponseBody> call, TypeToken<T> resultType, ApiResponse.Listener<ApiResult<T>> listener, ApiResponse.ErrorListener errorListener ){
-        ApiRequtest<T> request = new ApiRequtest<>(call,resultType,listener,errorListener);
+    public static <T> ApiRequtest enqueue(Call<ResponseBody> call, TypeToken<T> resultType, ApiResponse.Listener<ApiResult<T>> listener, ApiResponse.ErrorListener errorListener) {
+        ApiRequtest<T> request = new ApiRequtest<>(call, resultType, listener, errorListener);
         return request;
     }
 }

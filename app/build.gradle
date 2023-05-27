@@ -2,24 +2,32 @@ apply plugin: 'com.android.application'
 apply plugin: 'com.google.gms.google-services'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 33
     defaultConfig {
         applicationId "com.syriasoft.hotelservices"
         minSdkVersion 22
-        targetSdkVersion 28
-        versionCode 1
-        versionName "1.0"
+        targetSdkVersion 33
+        versionCode 2
+        versionName "2.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         ndk {
             abiFilters "armeabi-v7a", "arm64-v8a"
         }
+
+        buildFeatures {
+            viewBinding = true ;
+        }
         packagingOptions {
             pickFirst 'lib/*/libc++_shared.so' // multi aar has such so, should pick first.
+            exclude("META-INF/NOTICE.md")
+            exclude("META-INF/LICENSE.md")
         }
         compileOptions {
             sourceCompatibility JavaVersion.VERSION_1_8
             targetCompatibility JavaVersion.VERSION_1_8
         }
+
+        ndkVersion "21.0.6113669" // e.g.,  ndkVersion "21.3.6528147"
     }
     buildTypes {
         release {
@@ -31,13 +39,14 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'androidx.appcompat:appcompat:1.0.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'com.google.firebase:firebase-messaging:21.0.1'
     implementation 'com.squareup.picasso:picasso:2.71828'
     implementation 'androidx.constraintlayout:constraintlayout:2.0.1'
     implementation 'androidx.viewpager:viewpager:1.0.0'
     implementation 'androidx.cardview:cardview:1.0.0'
+    implementation 'com.google.android.material:material:1.4.0'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.1.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0'
@@ -52,14 +61,25 @@ dependencies {
     implementation 'com.alibaba:fastjson:1.1.67.android'
     implementation 'com.squareup.okhttp3:okhttp-urlconnection:3.14.9'
     implementation 'com.google.code.gson:gson:2.8.5'
-    implementation 'com.tuya.smart:tuyasmart:3.20.0'
+    implementation 'com.tuya.smart:tuyasmart:3.25.0'
     implementation 'com.wang.avi:library:2.1.3'
     implementation 'com.mikhaellopez:circularimageview:4.2.0'
     implementation 'com.github.marcinmoskala:ArcSeekBar:0.31'
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
+    implementation 'org.apache.commons:commons-collections4:4.4'
+    implementation 'org.apache.commons:commons-lang3:3.9'
+    implementation 'jakarta.xml.bind:jakarta.xml.bind-api:3.0.1'
 }
 repositories {
     mavenLocal()
     jcenter()
-    google()
+    maven { url 'https://maven-other.tuya.com/repository/maven-releases/' }
+    maven { url "https://maven-other.tuya.com/repository/maven-commercial-releases/" }
     maven { url 'https://jitpack.io' }
+    google()
+    mavenCentral()
+    maven { url 'https://maven.aliyun.com/repository/public' }
+    maven { url 'https://central.maven.org/maven2/' }
+    maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
+    maven { url 'https://developer.huawei.com/repo/' }
 }

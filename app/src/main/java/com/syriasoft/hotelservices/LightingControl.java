@@ -27,13 +27,13 @@ public class LightingControl extends AppCompatActivity {
         startActivity(i);
     }
 
-    public void goToMasterOff(View view) {
-        Intent i = new Intent(act,MasterOff.class);
+    public void goToScreenButtons(View view) {
+        Intent i = new Intent(act,ScreenButtons.class);
         startActivity(i);
     }
 
-    public void goToScreenButtons(View view) {
-        Intent i = new Intent(act,ScreenButtons.class);
+    public void goToMoods(View view) {
+        Intent i = new Intent(act,Moods.class);
         startActivity(i);
     }
 }

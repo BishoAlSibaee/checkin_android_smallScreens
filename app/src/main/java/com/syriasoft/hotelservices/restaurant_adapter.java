@@ -1,5 +1,6 @@
 package com.syriasoft.hotelservices;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -42,16 +43,14 @@ public class restaurant_adapter extends RecyclerView.Adapter<restaurant_adapter.
 
 
     @Override
-    public void onBindViewHolder(final restaurant_adapter.restaurantholder holder,final int position)
+    public void onBindViewHolder(final restaurant_adapter.restaurantholder holder, @SuppressLint("RecyclerView") final int position)
     {
         holder.quantity.setText("0");
         holder.total.setText("0.0");
         holder.name.setText(list.get(position).Name);
-        //ToastMaker.MakeToast(holder.name.getLineCount()+"",holder.itemView.getContext());
         holder.price.setText(String.valueOf(list.get(position).Price));
-        Picasso.get().load(list.get(position).photo).resize(100,70).centerCrop().into(holder.photo);
+        Picasso.get().load(list.get(position).photo).into(holder.photo);
         Log.e("image" , list.get(position).photo);
-        //holder.photo.setImageBitmap(convertBase64ToBitmap(list.get(position).photo));
         holder.increase.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -85,38 +84,30 @@ public class restaurant_adapter extends RecyclerView.Adapter<restaurant_adapter.
                 RestaurantActivity.x=0;
             }
         });
-        holder.addToCart.setOnClickListener(new View.OnClickListener()
-        {
+        holder.addToCart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (Integer.parseInt(holder.quantity.getText().toString()) == 0 )
-                {
+                if (Integer.parseInt(holder.quantity.getText().toString()) == 0 ) {
                     ToastMaker.MakeToast("حدد الكمية" , holder.itemView.getContext());
                 }
-                else
-                    {
+                else {
                         List<RestaurantOrderItem> listo = FullscreenActivity.order.getItems();
                         int Facility = 0 ;
-                        if (listo.size()>0)
-                        {
+                        if (listo.size()>0) {
                             Facility = listo.get(0).fac;
                         }
-                        if (Facility != list.get(position).Facility)
-                        {
+                        if (Facility != list.get(position).Facility) {
                             FullscreenActivity.order.removeOrder();
                         }
-                        if (FullscreenActivity.order.insertOrder(list.get(position).id,list.get(position).Facility,list.get(position).Menu,list.get(position).Name,list.get(position).Desc,Integer.parseInt(holder.quantity.getText().toString()),list.get(position).Price ,list.get(position).Discount , Double.parseDouble(holder.total.getText().toString()),list.get(position).photo) )
-                        {
-                            //ToastMaker.MakeToast(list.get(position).photo , holder.itemView.getContext());
+                        if (FullscreenActivity.order.insertOrder(list.get(position).id,list.get(position).Facility,list.get(position).Menu,list.get(position).Name,list.get(position).Desc,Integer.parseInt(holder.quantity.getText().toString()),list.get(position).Price ,list.get(position).Discount , Double.parseDouble(holder.total.getText().toString()),list.get(position).photo) ) {
                             holder.quantity.setText("0");
                             holder.total.setText("0.0");
                             ToastMaker.MakeToast("تمت الاضافة", holder.itemView.getContext());
                             RestaurantActivity.items.setText(String.valueOf(FullscreenActivity.order.getItems().size()));
                         }
-                        else
-                            {
-                                ToastMaker.MakeToast("لم تتم الاضافة", holder.itemView.getContext());
-                            }
+                        else {
+                            ToastMaker.MakeToast("لم تتم الاضافة", holder.itemView.getContext());
+                        }
                     }
                 RestaurantActivity.x=0;
             }

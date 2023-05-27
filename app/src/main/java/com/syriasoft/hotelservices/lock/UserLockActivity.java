@@ -23,6 +23,7 @@ import com.android.volley.toolbox.Volley;
 import com.google.gson.reflect.TypeToken;
 import com.syriasoft.hotelservices.ErrorRegister;
 import com.syriasoft.hotelservices.LogIn;
+import com.syriasoft.hotelservices.MyApp;
 import com.syriasoft.hotelservices.R;
 import com.syriasoft.hotelservices.ROOM;
 import com.syriasoft.hotelservices.TUYA.Tuya_Login;
@@ -120,7 +121,7 @@ public class UserLockActivity extends AppCompatActivity {
                         e.printStackTrace();
                         Calendar c = Calendar.getInstance(Locale.getDefault());
                         long time = c.getTimeInMillis();
-                        ErrorRegister.rigestError(act ,LogIn.room.getProjectName(),LogIn.room.getRoomNumber(),time,007,e.getMessage(),"error Getting Locks List");
+                        ErrorRegister.rigestError(act,MyApp.THE_PROJECT.projectName,MyApp.Room.RoomNumber,time,007,e.getMessage(),"error Getting Locks List");
                     }
                 }
                 else
@@ -137,7 +138,7 @@ public class UserLockActivity extends AppCompatActivity {
                //ToastMaker.MakeToast(t.getMessage(),act);
                 Calendar c = Calendar.getInstance(Locale.getDefault());
                 long time = c.getTimeInMillis();
-                ErrorRegister.rigestError(act ,LogIn.room.getProjectName(),LogIn.room.getRoomNumber(),time,007,t.getMessage(),"error Getting Locks List");
+                ErrorRegister.rigestError(act ,MyApp.THE_PROJECT.projectName,MyApp.Room.RoomNumber,time,007,t.getMessage(),"error Getting Locks List");
             }
         });
     }
@@ -148,82 +149,77 @@ public class UserLockActivity extends AppCompatActivity {
         act.startActivity(i);
     }
 
-    static void checkIfLockRegestired()
-    {
-        if (LogIn.room.getLockName().equals("0"))
-        {
-            Toast.makeText(act,LogIn.room.getLockName(), Toast.LENGTH_SHORT).show();
-        }
-        else
-        {
-                //Toast.makeText(this , String.valueOf(lockObjs.size()) , Toast.LENGTH_SHORT).show();
-                for (int i=0; i<lockObjs.size(); i++)
-                {
-                    if (LogIn.room.getLockName().equals(lockObjs.get(i).getLockName()))
-                    {
-                        myLock = lockObjs.get(i);
-                        Toast.makeText(act,"here "+ myLock.getLockName(), Toast.LENGTH_SHORT).show();
-                        go();
-                    }
-                }
-        }
+    static void checkIfLockRegestired() {
+//        if (LogIn.room.getLockName().equals("0"))
+//        {
+//            Toast.makeText(act,LogIn.room.getLockName(), Toast.LENGTH_SHORT).show();
+//        }
+//        else
+//        {
+//                //Toast.makeText(this , String.valueOf(lockObjs.size()) , Toast.LENGTH_SHORT).show();
+//                for (int i=0; i<lockObjs.size(); i++)
+//                {
+//                    if (LogIn.room.getLockName().equals(lockObjs.get(i).getLockName()))
+//                    {
+//                        myLock = lockObjs.get(i);
+//                        Toast.makeText(act,"here "+ myLock.getLockName(), Toast.LENGTH_SHORT).show();
+//                        go();
+//                    }
+//                }
+//        }
     }
 
-    public void keepGoing(View view)
-    {
-        if (LogIn.room.getLockName().equals("0"))
-        {
-            AlertDialog.Builder builder = new AlertDialog.Builder(act);
-            builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    dialog.dismiss();
-                    Intent in = new Intent(act , Tuya_Login.class );
-                    startActivity(in);
-                }
-            });
-            builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    dialog.dismiss();
-                    com.syriasoft.hotelservices.messageDialog m = new messageDialog("Please Select Lock Or Initialize One","add Lock",act);
-                }
-            });
-            builder.setTitle("Lock .. ?");
-            builder.setMessage("Do you want to install Lock ..?");
-            builder.create();
-            builder.show();
-            //ToastMaker.MakeToast("Please Select Lock Or Intialize One",act);
-        }
-        else if (LogIn.room.getLockGateway().equals("0"))
-        {
-            AlertDialog.Builder builder = new AlertDialog.Builder(act);
-            builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    dialog.dismiss();
-                    Intent in = new Intent(act , Tuya_Login.class );
-                    startActivity(in);
-                }
-            });
-            builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    dialog.dismiss();
-                    Intent in = new Intent(act , UserGatewayActivity.class );
-                    startActivity(in);
-                }
-            });
-            builder.setTitle("GatWay .. ?");
-            builder.setMessage("Do you want to install Lock Gateway ..?");
-            builder.create();
-            builder.show();
-        }
-        else
-        {
-            Intent in = new Intent(act , Tuya_Login.class );
-            startActivity(in);
-        }
+    public void keepGoing(View view) {
+//        if (LogIn.room.getLockName().equals("0")) {
+//            AlertDialog.Builder builder = new AlertDialog.Builder(act);
+//            builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+//                @Override
+//                public void onClick(DialogInterface dialog, int which) {
+//                    dialog.dismiss();
+//                    Intent in = new Intent(act , Tuya_Login.class );
+//                    startActivity(in);
+//                }
+//            });
+//            builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+//                @Override
+//                public void onClick(DialogInterface dialog, int which) {
+//                    dialog.dismiss();
+//                    com.syriasoft.hotelservices.messageDialog m = new messageDialog("Please Select Lock Or Initialize One","add Lock",act);
+//                }
+//            });
+//            builder.setTitle("Lock .. ?");
+//            builder.setMessage("Do you want to install Lock ..?");
+//            builder.create();
+//            builder.show();
+//            //ToastMaker.MakeToast("Please Select Lock Or Intialize One",act);
+//        }
+//        else if (LogIn.room.getLockGateway().equals("0")) {
+//            AlertDialog.Builder builder = new AlertDialog.Builder(act);
+//            builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+//                @Override
+//                public void onClick(DialogInterface dialog, int which) {
+//                    dialog.dismiss();
+//                    Intent in = new Intent(act , Tuya_Login.class );
+//                    startActivity(in);
+//                }
+//            });
+//            builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+//                @Override
+//                public void onClick(DialogInterface dialog, int which) {
+//                    dialog.dismiss();
+//                    Intent in = new Intent(act , UserGatewayActivity.class );
+//                    startActivity(in);
+//                }
+//            });
+//            builder.setTitle("GatWay .. ?");
+//            builder.setMessage("Do you want to install Lock Gateway ..?");
+//            builder.create();
+//            builder.show();
+//        }
+//        else {
+//            Intent in = new Intent(act , Tuya_Login.class );
+//            startActivity(in);
+//        }
     }
 
     public void getRooms()
@@ -245,10 +241,9 @@ public class UserLockActivity extends AppCompatActivity {
                     try
                     {
                         JSONArray arr = new JSONArray(response);
-                        for (int i = 0;i<arr.length();i++)
-                        {
+                        for (int i = 0;i<arr.length();i++) {
                             JSONObject row = arr.getJSONObject(i);
-                            ROOMS.add(new ROOM(row.getInt("id"),row.getInt("RoomNumber"),row.getInt("hotel"),row.getInt("Building"),row.getInt("BuildingId"),row.getInt("Floor"),row.getInt("FloorId"),row.getString("RoomType"),row.getInt("SuiteStatus"),row.getInt("SuiteNumber"),row.getInt("SuiteId"),row.getInt("ReservationNumber"),row.getInt("roomStatus"),row.getInt("Tablet"),row.getString("dep"),row.getInt("Cleanup"),row.getInt("Laundry"),row.getInt("RoomService"),row.getInt("Checkout"),row.getInt("Restaurant"),row.getInt("SOS"),row.getInt("DND"),row.getInt("PowerSwitch"),row.getInt("DoorSensor"),row.getInt("MotionSensor"),row.getInt("Thermostat"),row.getInt("ZBGateway"),row.getInt("CurtainSwitch"),row.getInt("ServiceSwitch"),row.getInt("lock"),row.getInt("Switch1"),row.getInt("Switch2"),row.getInt("Switch3"),row.getInt("Switch4"),row.getString("LockGateway"),row.getString("LockName"),row.getInt("powerStatus"),row.getInt("curtainStatus"),row.getInt("doorStatus"),row.getInt("temp"),row.getString("token")));
+                            //ROOMS.add(new ROOM(row.getInt("id"),row.getInt("RoomNumber"),row.getInt("hotel"),row.getInt("Building"),row.getInt("BuildingId"),row.getInt("Floor"),row.getInt("FloorId"),row.getString("RoomType"),row.getInt("SuiteStatus"),row.getInt("SuiteNumber"),row.getInt("SuiteId"),row.getInt("ReservationNumber"),row.getInt("roomStatus"),row.getInt("Tablet"),row.getString("dep"),row.getInt("Cleanup"),row.getInt("Laundry"),row.getInt("RoomService"),row.getInt("Checkout"),row.getInt("Restaurant"),row.getInt("SOS"),row.getInt("DND"),row.getInt("PowerSwitch"),row.getInt("DoorSensor"),row.getInt("MotionSensor"),row.getInt("Thermostat"),row.getInt("ZBGateway"),row.getInt("CurtainSwitch"),row.getInt("ServiceSwitch"),row.getInt("lock"),row.getInt("Switch1"),row.getInt("Switch2"),row.getInt("Switch3"),row.getInt("Switch4"),row.getString("LockGateway"),row.getString("LockName"),row.getInt("powerStatus"),row.getInt("curtainStatus"),row.getInt("doorStatus"),row.getInt("temp"),row.getString("token")));
 
                         }
                     }
@@ -273,7 +268,7 @@ public class UserLockActivity extends AppCompatActivity {
             protected Map<String, String> getParams() throws AuthFailureError
             {
                 Map<String,String> Params = new HashMap<String, String>();
-                Params.put("Hotel" , String.valueOf( LogIn.room.getHotel()));
+                Params.put("Hotel" ,"1");
                 return Params;
             }
         };

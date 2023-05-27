@@ -1,5 +1,6 @@
 package com.syriasoft.hotelservices;
 
+import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
 import android.text.Editable;
@@ -8,12 +9,15 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.squareup.picasso.Picasso;
@@ -23,18 +27,13 @@ import java.util.List;
 
 public class RestaurantOrderAdapter extends RecyclerView.Adapter<RestaurantOrderAdapter.Holder> {
 
-    List<RestaurantOrderItem> list = new ArrayList<RestaurantOrderItem>();
+    List<RestaurantOrderItem> list ;
     Context c ;
-    //LayoutInflater inflter;
 
-    RestaurantOrderAdapter(List<RestaurantOrderItem> list , Context c)
-    {
+    RestaurantOrderAdapter(List<RestaurantOrderItem> list , Context c) {
         this.list = list ;
         this.c = c ;
-        //inflter = (LayoutInflater.from(c));
     }
-
-
 
     @NonNull
     @Override
@@ -45,19 +44,16 @@ public class RestaurantOrderAdapter extends RecyclerView.Adapter<RestaurantOrder
     }
 
     @Override
-    public void onBindViewHolder(@NonNull final RestaurantOrderAdapter.Holder holder, final int position) {
-
+    public void onBindViewHolder(@NonNull final RestaurantOrderAdapter.Holder holder, @SuppressLint("RecyclerView") final int position) {
         holder.name.setText(list.get(position).name);
         holder.quantity.setText(String.valueOf(list.get(position).quantity));
         holder.price.setText(String.valueOf(list.get(position).price));
         holder.total.setText(String.valueOf(list.get(position).price * list.get(position).quantity));
         Picasso.get().load(list.get(position).photo).fit().into(holder.photo);
-        holder.delete.setOnClickListener(new View.OnClickListener()
-        {
+        holder.delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (FullscreenActivity.order.removeItem(list.get(position).id , list.get(position).quantity))
-                {
+                if (FullscreenActivity.order.removeItem(list.get(position).id , list.get(position).quantity)) {
                     Cart.x=0;
                     list = FullscreenActivity.order.getItems();
                     Cart.adapter = new RestaurantOrderAdapter(list , c);
@@ -65,31 +61,28 @@ public class RestaurantOrderAdapter extends RecyclerView.Adapter<RestaurantOrder
                     ToastMaker.MakeToast("Deleted", c);
                     Cart.setTotal();
                     Cart.refreshItems();
-                    if (FullscreenActivity.order.getItems().size() == 0 )
-                    {
+                    if (FullscreenActivity.order.getItems().size() == 0 ) {
                         RestaurantActivity.items.setText("");
                     }
-                    else
-                    {
+                    else {
                         RestaurantActivity.items.setText(String.valueOf(FullscreenActivity.order.getItems().size()));
                     }
 
                 }
-                else
-                {
+                else {
                     ToastMaker.MakeToast("Not Deleted", c);
                 }
 
             }
         });
-        holder.update.setOnClickListener(new View.OnClickListener()
-        {
+        holder.update.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v)
-            {
+            public void onClick(View v) {
                 Cart.x=0;
                 Dialog d = new Dialog(holder.itemView.getContext());
                 d.setContentView(R.layout.modify_restaurant_item);
+                Window w = d.getWindow();
+                w.setLayout(ViewGroup.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.WRAP_CONTENT);
                 TextView PRICE = d.findViewById(R.id.item_price);
                 TextView TOTAL = d.findViewById(R.id.item_total);
                 EditText NEWQ = d.findViewById(R.id.new_item_quantity);
@@ -98,7 +91,6 @@ public class RestaurantOrderAdapter extends RecyclerView.Adapter<RestaurantOrder
                     public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
                     }
-
                     @Override
                     public void onTextChanged(CharSequence s, int start, int before, int count) {
 
@@ -117,7 +109,6 @@ public class RestaurantOrderAdapter extends RecyclerView.Adapter<RestaurantOrder
                 Button CANCEL = d.findViewById(R.id.cancel_modify_item);
                 Button MODIFY = d.findViewById(R.id.modify_item_btn);
                 PRICE.setText(String.valueOf(list.get(position).price));
-                //TOTAL.setText(String.valueOf(list.get(position).total));
                 NEWQ.addTextChangedListener(new TextWatcher() {
                     @Override
                     public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -185,8 +176,7 @@ public class RestaurantOrderAdapter extends RecyclerView.Adapter<RestaurantOrder
         return list.size();
     }
 
-    public class Holder extends RecyclerView.ViewHolder
-    {
+    public class Holder extends RecyclerView.ViewHolder {
         TextView name;
         TextView quantity;
         TextView price ;
@@ -204,49 +194,6 @@ public class RestaurantOrderAdapter extends RecyclerView.Adapter<RestaurantOrder
              photo= (ImageView) itemView.findViewById(R.id.restaurantOrderUnit_photo);
              delete = (Button) itemView.findViewById(R.id.button4);
              update = (Button) itemView.findViewById(R.id.button2);
-
         }
     }
-
-   /* @Override
-    public View getView(final int position, View convertView, final ViewGroup parent) {
-
-        convertView = inflter.inflate(R.layout.restaurant_order_unit, null);
-        TextView name = (TextView) convertView.findViewById(R.id.restaurantOrderUnit_name);
-        TextView quantity = (TextView) convertView.findViewById(R.id.restaurantOrderUnit_quantity);
-        TextView price = (TextView) convertView.findViewById(R.id.restaurantOrderUnit_price);
-        TextView total = (TextView) convertView.findViewById(R.id.restaurantOrderUnit_total);
-        ImageView photo = (ImageView) convertView.findViewById(R.id.restaurantOrderUnit_photo);
-        Button delete = (Button) convertView.findViewById(R.id.button4);
-        Button update = (Button) convertView.findViewById(R.id.button2);
-
-        name.setText(list.get(position).name);
-        quantity.setText(String.valueOf(list.get(position).quantity));
-        price.setText(String.valueOf(list.get(position).price));
-        total.setText(String.valueOf(list.get(position).price * list.get(position).quantity));
-        photo.setImageResource(R.drawable.www);
-        delete.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (RestaurantActivity.order.removeItem(list.get(position).id , list.get(position).quantity))
-                {
-                    //RestaurantActivity.adapter = new RestaurantOrderAdapter(RestaurantActivity.order.getItems(), holder.itemView.getContext());
-                    list = RestaurantActivity.order.getItems();
-                    Cart.adapter = new RestaurantOrderAdapter(list , parent.getContext());
-                    Cart.itemsGridView.setAdapter(Cart.adapter);
-                    ToastMaker.MakeToast("تم الحذف", parent.getContext());
-                    //Cart.refreshGrid();
-
-                }
-                else
-                {
-                    ToastMaker.MakeToast("لم يتم الحذف", parent.getContext());
-                }
-
-            }
-        });
-        return convertView;
-    }*/
-
-
 }

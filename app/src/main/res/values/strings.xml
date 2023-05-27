@@ -8,6 +8,8 @@
     <string name="sos">SOS</string>
     <string name="gym">Gym</string>
     <string name="roomService">Room Service</string>
+    <string name="checkout">Checkout</string>
+    <string name="dnd">DND</string>
     <string name="openDoor">Open Door</string>
     <string name="title_activity_restaurant">Restaurant</string>
     <string name="title_activity_log_in">Register</string>
@@ -20,6 +22,31 @@
     <string name="title_activity_minibar__menu">FullscreenActivity</string>
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENT</string>
+
+    <string name="roomVacant">Room vacant</string>
+    <string name="welcomeRoom">Welcome </string>
+    <string name="roomIsUnready">Room is unready</string>
+    <string name="roomIsOutOfService">Room is out of service</string>
+    <string name="livingMood">Living Mood</string>
+    <string name="sleepingMood">Sleeping Mood</string>
+    <string name="workMood">Work Mood</string>
+    <string name="romanceMood">Romance Mood</string>
+    <string name="readingMood">Reading Mood</string>
+    <string name="masterOffMood">MasterOff</string>
+    <string name="low">Low</string>
+    <string name="auto">Auto</string>
+    <string name="high">High</string>
+    <string name="med">Med</string>
+    <string name="ac">AC</string>
+    <string name="backToService">Back to services</string>
+    <string name="laundryPriceList">Laundry PriceList</string>
+
+    <string name="lights">Lights</string>
+    <string name="lightsAndMoods">Lights &amp; Moods</string>
+    <string name="services">Services</string>
+    <string name="backHome">Home</string>
+    <string name="back">Back</string>
+    <string name="gettingProjectVariables">getting project variables</string>
 
 
 </resources>

@@ -11,6 +11,7 @@ public class ApiResponse<T> {
 
     /**
      * network request success response result
+     *
      * @param <T> data result
      */
     public interface Listener<T> {

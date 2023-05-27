@@ -1,5 +1,4 @@
 <resources>
-
     <string name="app_name">Checkin serviceapp</string>
     <string name="confermationDialog_Caption">Confermation Dialog</string>
     <string name="confermationDialog_text">are you sure</string>

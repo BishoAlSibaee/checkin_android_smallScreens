@@ -36,9 +36,9 @@ public class ScreenButtons extends AppCompatActivity {
 
     void setActivity() {
         act = this ;
-        CurrentButtons = new ArrayList<ScreenButton>();
-        Buttons = new ArrayList<String>();
-        Switches = new ArrayList<DeviceBean>();
+        CurrentButtons = new ArrayList<>();
+        Buttons = new ArrayList<>();
+        Switches = new ArrayList<>();
         CurrentButtonsRecycler = (RecyclerView) findViewById(R.id.currentButtonsRecycler);
         SwitchesButtons = (RecyclerView) findViewById(R.id.buttonsRecycler);
         SwitchesRecycler = (RecyclerView) findViewById(R.id.switchesRecycler);

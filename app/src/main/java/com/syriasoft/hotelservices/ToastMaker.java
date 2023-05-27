@@ -18,10 +18,7 @@ public class ToastMaker
         View view = inflater.inflate(R.layout.big_toast, null);
         TextView m = (TextView) view.findViewById(R.id.toast_Text);
         ImageView i = (ImageView) view.findViewById(R.id.imageView);
-        i.setImageResource(R.drawable.logo);
-        if (FullscreenActivity.LOGO != null && !FullscreenActivity.LOGO.isEmpty() ){
-            Picasso.get().load(FullscreenActivity.LOGO).into(i);
-        }
+        i.setImageResource(R.drawable.logo_android);
         m.setText(message);
         t.setView(view);
         t.show();

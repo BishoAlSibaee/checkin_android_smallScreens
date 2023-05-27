@@ -12,11 +12,10 @@ import java.util.List;
 
 public class Order_Items_Adapter extends BaseAdapter {
     List<OrderItem> list = new ArrayList<OrderItem>();
-    LayoutInflater inflater ;
+    LayoutInflater inflater;
 
-    Order_Items_Adapter(List<OrderItem> list , Context c)
-    {
-        this.list = list ;
+    Order_Items_Adapter(List<OrderItem> list, Context c) {
+        this.list = list;
         inflater = (LayoutInflater.from(c));
     }
 
@@ -38,7 +37,7 @@ public class Order_Items_Adapter extends BaseAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
 
-        convertView = inflater.inflate(R.layout.item_unit,null);
+        convertView = inflater.inflate(R.layout.item_unit, null);
 
         TextView name = convertView.findViewById(R.id.restaurantOrderItem_name);
         TextView quantity = convertView.findViewById(R.id.restaurantOrderItem_quantity);

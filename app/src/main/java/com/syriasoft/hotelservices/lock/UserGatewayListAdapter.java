@@ -1,6 +1,7 @@
 package com.syriasoft.hotelservices.lock;
 
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 
@@ -20,6 +21,7 @@ import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.syriasoft.hotelservices.ErrorRegister;
 import com.syriasoft.hotelservices.LogIn;
+import com.syriasoft.hotelservices.MyApp;
 import com.syriasoft.hotelservices.ToastMaker;
 import com.syriasoft.hotelservices.LoadingDialog;
 
@@ -64,7 +66,7 @@ public class UserGatewayListAdapter extends  RecyclerView.Adapter<UserGatewayLis
     }
 
     @Override
-    public void onBindViewHolder(DeviceViewHolder _holder, int position)
+    public void onBindViewHolder(DeviceViewHolder _holder, @SuppressLint("RecyclerView") int position)
     {
         final GatewayObj item = mDataList.get(position);
         _holder.name.setText(item.getGatewayName());
@@ -97,7 +99,7 @@ public class UserGatewayListAdapter extends  RecyclerView.Adapter<UserGatewayLis
                                     d.stop();
                                     if (response.equals("1"))
                                     {
-                                        LogIn.room.insertLockGateway(mDataList.get(position).getGatewayName());
+                                        //LogIn.room.insertLockGateway(mDataList.get(position).getGatewayName());
                                         ToastMaker.MakeToast("Lock Gateway Saved " , _holder.itemView.getContext());
                                     }
                                     else
@@ -117,7 +119,7 @@ public class UserGatewayListAdapter extends  RecyclerView.Adapter<UserGatewayLis
                                 protected Map<String, String> getParams() throws AuthFailureError
                                 {
                                     Map<String,String> Params = new HashMap<String, String>();
-                                    Params.put("id" , String.valueOf( LogIn.room.getRoomDBid()));
+                                    Params.put("id" , String.valueOf( MyApp.Room.id));
                                     Params.put("gateway" , mDataList.get(position).getGatewayName());
                                     return Params;
                                 }
@@ -132,7 +134,7 @@ public class UserGatewayListAdapter extends  RecyclerView.Adapter<UserGatewayLis
                 {
                     Calendar x = Calendar.getInstance(Locale.getDefault());
                     long time =  x.getTimeInMillis();
-                    ErrorRegister.rigestError(_holder.itemView.getContext() , LogIn.room.getProjectName() , LogIn.room.getRoomNumber(),time ,005 ,e.getMessage() , "error setting lock gateway in roomDB");
+                    ErrorRegister.rigestError(_holder.itemView.getContext() , MyApp.THE_PROJECT.projectName , MyApp.Room.RoomNumber,time ,005 ,e.getMessage() , "error setting lock gateway in roomDB");
                 }
             }
         });

@@ -31,7 +31,8 @@ public interface ApiService {
     @POST("/room/registerNb")
     @FormUrlEncoded
     Call<Error> registerNb(@Field("lockId") int lockId, @Field("nbNodeId") String nbNodeId, @Field("nbCardNumber") String nbCardNumber, @Field("nbRssi") int nbRssi, @Field("nbOperator") String nbOperator);
-//
+
+    //
 //    @POST("/plug/uploadDetail")
 //    @FormUrlEncoded
 //    Call<Error> plugUploadDetail(@Field("plugId") int plugId, @Field("modelNum") String modelNum, @Field("hardwareRevision") String hardwareRevision, @Field("firmwareRevision") String firmwareRevision, @Field("networkName") String networkName);

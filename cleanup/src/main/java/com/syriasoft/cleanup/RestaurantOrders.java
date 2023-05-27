@@ -2,6 +2,7 @@ package com.syriasoft.cleanup;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -37,6 +38,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.InstanceIdResult;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
@@ -47,450 +49,310 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class RestaurantOrders extends AppCompatActivity {
 
-    static String ordersUrl = LogIn.URL+"getRestaurantOrders.php";
-    static RestaurantOrdersAdapter adapter ;
+    static String ordersUrl = LogIn.URL + "getRestaurantOrders.php";
+    static RestaurantOrdersAdapter adapter;
     static List<restaurant_order_unit> list = new ArrayList<restaurant_order_unit>();
-    static Activity act  ;
-    static ListView orders ;
-    static ProgressBar p ;
-    static List<ROOM> Rooms ;
-    private String getRoomsUrl = LogIn.URL+"getAllRooms.php" ;
-    private String getFacilityUrl = LogIn.URL+"getFacility.php";
-    static public List<DatabaseReference> FireRooms ;
-    private FirebaseDatabase database ;
-    private ValueEventListener[] RESTAURANTListiner ;
-    private int FACILITY_ID ;
-    static FACILITY THEFACILITY ;
-    //private RecyclerView ORDERS ;
-    private GridView ORDERS ;
-    static int RoomId ;
-    private TextView mainText ,FacilityName ;
-    private ImageView FacilityImage ;
+    static Activity act;
+    static ListView orders;
+    static ProgressBar p;
+    static List<ROOM> Rooms;
+    private String getFacilityUrl = LogIn.URL + "getFacility.php";
+    public final String SHARED_PREF_NAME = "MyPref";
+    private FirebaseDatabase database;
+    private ValueEventListener[] RESTAURANTListiner;
+    private int FACILITY_ID,TypeId;
+    String TYPE,NAME,PHOTO;
+    static FACILITY THEFACILITY;
+    private GridView ORDERS;
+    static int RoomId;
+    private TextView FacilityName;
+    private ImageView FacilityImage;
+    Button logout;
+    static public DatabaseReference MyFireUser;
+    SharedPreferences sharedPreferences;
+    SharedPreferences.Editor editor ;
+    public static restaurant_order_unit SELECTED_ORDER ;
+    public static ROOM SELECTED_ROOM ;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState)
-    {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_restaurant_orders);
-        act = this ;
-        ORDERS = (GridView) findViewById(R.id.gridView);
-        FireRooms = new ArrayList<DatabaseReference>();
-        Rooms = new ArrayList<ROOM>();
-        FACILITY_ID = LogIn.db.getFacility();
-        //Log.d("facility" , LogIn.db.getFacility()+"");
-        getFacility();
-        p = (ProgressBar) findViewById(R.id.progressBar3);
-        mainText = (TextView) findViewById(R.id.mainText2);
-        FacilityName = (TextView) findViewById(R.id.facility_Name);
-        FacilityImage = (ImageView) findViewById(R.id.facility_image);
-        Button logout = (Button) findViewById(R.id.button5);
+        setActivity();
+        setActivityActions();
+        getRooms();
+        FirebaseInstanceId.getInstance().getInstanceId().addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<InstanceIdResult> task) {
+                        if (!task.isSuccessful()) {
+                            return;
+                        }
+                        String token = task.getResult().getToken();
+                        sendRegistrationToServer(token);
+                    }
+                });
+        Timer t = new Timer() ;
+        t.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {FirebaseInstanceId.getInstance().getInstanceId().addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<InstanceIdResult> task) {
+                        if (!task.isSuccessful()) {
+                            return;
+                        }
+                        String token = task.getResult().getToken();
+                        sendRegistrationToServer(token);
+                    }
+                });
+            }},1000*60*15,1000*60*15);
+        getRestaurantOrders();
+    }
+
+    void setActivity() {
+        act = this;
+        ORDERS = findViewById(R.id.gridView);
+        Rooms = new ArrayList<>();
+        p = findViewById(R.id.progressBar3);
+        FacilityName = findViewById(R.id.facility_Name);
+        FacilityImage = findViewById(R.id.facility_image);
+        orders = findViewById(R.id.restaurant_orders);
+        logout = findViewById(R.id.button5);
+        database = FirebaseDatabase.getInstance("https://hotelservices-ebe66.firebaseio.com/");
+        sharedPreferences = getSharedPreferences(SHARED_PREF_NAME, MODE_PRIVATE);
+        editor = sharedPreferences.edit();
+        FACILITY_ID = Integer.parseInt(sharedPreferences.getString("FacilityId", null));
+        TypeId = Integer.parseInt(sharedPreferences.getString("FacilityTypeId", null));
+        TYPE = sharedPreferences.getString("FacilityType", null);
+        NAME = sharedPreferences.getString("FacilityName", null);
+        PHOTO = sharedPreferences.getString("FacilityPhoto", null);
+        THEFACILITY = new FACILITY(FACILITY_ID,1,TypeId,TYPE,NAME,0,PHOTO);
+        FacilityName.setText(THEFACILITY.Name);
+        Picasso.get().load(THEFACILITY.photo).into(FacilityImage);
+    }
+
+    void setActivityActions() {
         logout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 sgnOut(v);
             }
         });
-        mainText.setText(LogIn.db.getUser().department + " Orders");
-        orders = (ListView) findViewById(R.id.restaurant_orders);
-        FirebaseInstanceId.getInstance().getInstanceId()
-                .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>()
-                {
-                    @Override
-                    public void onComplete(@NonNull Task<InstanceIdResult> task)
-                    {
-                        if (!task.isSuccessful())
-                        {
-
-                            return;
-                        }
-                        String token = task.getResult().getToken();
-                        //Toast.makeText(act,token , Toast.LENGTH_LONG).show();
-                        sendRegistrationToServer(token);
-                    }
-                });
-        getRestaurantOrders();
-
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu)
-    {
+    public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main_menu, menu);
         return super.onCreateOptionsMenu(menu);
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item)
-    {
-        switch (item.getItemId())
-        {
-
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
             case R.id.button2:
-                Button x =(Button)findViewById(R.id.button5);
+                Button x = findViewById(R.id.button5);
                 sgnOut(x);
-                //return super.onOptionsItemSelected(item);
         }
         return super.onOptionsItemSelected(item);
     }
 
-    public void getRestaurantOrders()
-    {
-        //Toast.makeText(act , FACILITY_ID+"", Toast.LENGTH_LONG).show();
-        new Handler(Looper.getMainLooper()).post(new Runnable() {
+    public void getRestaurantOrders() {
+        p.setVisibility(View.VISIBLE);
+        String url = MyApp.URL + "facilitys/getRestOrders";
+        StringRequest re = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
             @Override
-            public void run()
-            {
-                p.setVisibility(View.VISIBLE);
-            }
-        });
-
-        StringRequest re = new StringRequest(Request.Method.POST, ordersUrl, new Response.Listener<String>()
-        {
-            @Override
-            public void onResponse(String response)
-            {
-                //Toast.makeText(act , response , Toast.LENGTH_LONG).show();
-                if (response.equals("0"))
-                {
-                    list.clear();
-                    new Handler(Looper.getMainLooper()).post(new Runnable() {
-                        @Override
-                        public void run()
-                        {
-                            p.setVisibility(View.GONE);
-                        }
-                    });
-                    Toast.makeText(act , "No Orders" , Toast.LENGTH_LONG).show();
-                }
-                else
-                {
-                    try
-                    {
+            public void onResponse(String response) {
+                Log.d("ordersResp" ,response);
+                p.setVisibility(View.GONE);
+                try {
+                    JSONObject result = new JSONObject(response);
+                    if (result.getString("result").equals("success")) {
                         list.clear();
-                        JSONArray arr = new JSONArray(response);
-                        if (arr.length()>0)
-                        {
-                            for (int i=0;i<arr.length();i++)
-                            {
+                        JSONArray arr = new JSONArray(result.getString("orders"));
+                        if (arr.length() > 0) {
+                            for (int i = 0; i < arr.length(); i++) {
                                 JSONObject row = arr.getJSONObject(i);
-                                int id = row.getInt("id");
-                                int hotel = row.getInt("Hotel");
-                                int facility = row.getInt("Facility");
-                                int reservation = row.getInt("Reservation");
-                                int room =row.getInt("room");
-                                int rors =row.getInt("RorS");
-                                int roomid =row.getInt("roomId");
-                                long dateTime = row.getLong("dateTime") ;
-                                double total = row.getDouble("total") ;
-                                int status = row.getInt("status");
-                                long responseDateTime = row.getLong("responseDateTime");
-                                restaurant_order_unit order = new restaurant_order_unit(id,hotel,facility,reservation,room,rors,roomid,dateTime,total,status,responseDateTime);
+                                restaurant_order_unit order = new restaurant_order_unit(row.getInt("id"), row.getInt("Hotel"), row.getInt("Facility"), row.getInt("Reservation"), row.getInt("room"), row.getInt("RorS"), row.getInt("roomId"), row.getLong("dateTime"), row.getDouble("total"), row.getInt("status"));
                                 list.add(order);
                             }
                         }
-
+                        adapter = new RestaurantOrdersAdapter(list, act);
+                        ORDERS.setAdapter(adapter);
                     }
-                    catch (JSONException e)
-                    {
-                        Toast.makeText(act , e.getMessage() , Toast.LENGTH_LONG).show();
-                        e.printStackTrace();
+                    else {
+                        new messageDialog(result.getString("error"),"failed",act);
                     }
-                    new Handler(Looper.getMainLooper()).post(new Runnable() {
-                        @Override
-                        public void run()
-                        {
-                            p.setVisibility(View.GONE);
-                        }
-                    });
-
-                    adapter = new RestaurantOrdersAdapter(list,act );
-                    ORDERS.setAdapter(adapter);
-                    //orders.setAdapter(adapter);
+                } catch (JSONException e) {
+                    Log.d("ordersResp" ,e.getMessage());
+                    p.setVisibility(View.GONE);
+                    new messageDialog(e.getMessage(),"failed",act);
                 }
+//                if (response.equals("0")) {
+//                    list.clear();
+//                    new Handler(Looper.getMainLooper()).post(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            p.setVisibility(View.GONE);
+//                        }
+//                    });
+//                    Toast.makeText(act, "No Orders", Toast.LENGTH_LONG).show();
+//                } else {
+//                    try {
+//                        list.clear();
+//                        JSONArray arr = new JSONArray(response);
+//                        if (arr.length() > 0) {
+//                            for (int i = 0; i < arr.length(); i++) {
+//                                JSONObject row = arr.getJSONObject(i);
+//                                restaurant_order_unit order = new restaurant_order_unit(row.getInt("id"), row.getInt("Hotel"), row.getInt("Facility"), row.getInt("Reservation"), row.getInt("room"), row.getInt("RorS"), row.getInt("roomId"), row.getLong("dateTime"), row.getDouble("total"), row.getInt("status"), row.getLong("responseDateTime"));
+//                                list.add(order);
+//                            }
+//                        }
+//                    } catch (JSONException e) {
+//                        Toast.makeText(act, e.getMessage(), Toast.LENGTH_LONG).show();
+//                        e.printStackTrace();
+//                    }
+//                    new Handler(Looper.getMainLooper()).post(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            p.setVisibility(View.GONE);
+//                        }
+//                    });
+//
+//                    adapter = new RestaurantOrdersAdapter(list, act);
+//                    ORDERS.setAdapter(adapter);
+//                }
             }
-        }, new Response.ErrorListener()
-        {
+        }, new Response.ErrorListener() {
             @Override
-            public void onErrorResponse(VolleyError error)
-            {
-                new Handler(Looper.getMainLooper()).post(new Runnable() {
-                    @Override
-                    public void run()
-                    {
-                        p.setVisibility(View.GONE);
-                    }
-                });
+            public void onErrorResponse(VolleyError error) {
+                Log.d("ordersResp" ,error.toString());
+                p.setVisibility(View.GONE);
+                new messageDialog(error.toString(),"failed",act);
             }
-        })
-        {
+        }) {
             @Override
-            protected Map<String, String> getParams() throws AuthFailureError
-            {
-                Map<String,String> par = new HashMap<String, String>();
-                par.put("Facility" , String.valueOf(FACILITY_ID) );
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> par = new HashMap<>();
+                par.put("facility_id", String.valueOf(THEFACILITY.id));
                 return par;
             }
         };
         Volley.newRequestQueue(act).add(re);
     }
 
-    private void getRooms()
-    {
-
-        final LoadingDialog loading = new LoadingDialog(act);
-        StringRequest re = new StringRequest(Request.Method.POST, getRoomsUrl, new Response.Listener<String>()
-        {
+    private void getRooms() {
+        String url = MyApp.URL + "roomsManagement/getRooms" ;
+        LoadingDialog loading = new LoadingDialog(act);
+        StringRequest re = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
             @Override
-            public void onResponse(String response)
-            {
-                Log.d("rooms" , response);
+            public void onResponse(String response) {
+                Log.d("rooms", response);
                 loading.close();
-                try
-                {
-
+                try {
                     JSONArray arr = new JSONArray(response);
                     Rooms.clear();
-                    FireRooms.clear();
-                    for (int i=0;i<arr.length();i++)
-                    {
+                    for (int i = 0; i < arr.length(); i++) {
                         JSONObject row = arr.getJSONObject(i);
-                        int id = row.getInt("id");
-                        int rNum = row.getInt("RoomNumber");
-                        int Hotel = row.getInt("hotel");
-                        int b = row.getInt("Building");
-                        int bId = row.getInt("BuildingId");
-                        int f = row.getInt("Floor");
-                        int fId = row.getInt("FloorId");
-                        String rType = row.getString("RoomType");
-                        int ss = row.getInt("SuiteStatus");
-                        int sn = row.getInt("SuiteNumber");
-                        int si = row.getInt("SuiteId");
-                        int rn = row.getInt("ReservationNumber");
-                        int rs = row.getInt("roomStatus");
-                        int t = row.getInt("Tablet");
-                        String dep = row.getString("dep");
-                        int c = row.getInt("Cleanup");
-                        int l = row.getInt("Laundry");
-                        int roomS = row.getInt("RoomService");
-                        int ch = row.getInt("Checkout");
-                        int res = row.getInt("Restaurant");
-                        int sos = row.getInt("SOS");
-                        int dnd = row.getInt("DND");
-                        int PowerSwitch = row.getInt("PowerSwitch");
-                        int DoorSensor = row.getInt("DoorSensor");
-                        int MotionSensor = row.getInt("MotionSensor");
-                        int Thermostat = row.getInt("Thermostat");
-                        int zbgateway = row.getInt("ZBGateway");
-                        int CurtainSwitch = row.getInt("CurtainSwitch");
-                        int ServiceSwitch = row.getInt("ServiceSwitch");
-                        int lock = row.getInt("lock");
-                        int Switch1 = row.getInt("Switch1");
-                        int Switch2 = row.getInt("Switch2");
-                        int Switch3 = row.getInt("Switch3");
-                        int Switch4 = row.getInt("Switch4");
-                        String LockGateway = row.getString("LockGateway");
-                        String LockName = row.getString("LockName");
-                        int po = row.getInt("powerStatus");
-                        int cu = row.getInt("curtainStatus");
-                        int doo = row.getInt("doorStatus");
-                        int temp = row.getInt("temp");
-                        String token =row.getString("token");
-                        ROOM room = new ROOM(id,rNum,Hotel,b,bId,f,fId,rType,ss,sn,si,rn,rs,t,dep,c,l,roomS,ch,res,sos,dnd,PowerSwitch,DoorSensor,MotionSensor,Thermostat,zbgateway,CurtainSwitch,ServiceSwitch,lock,Switch1,Switch2,Switch3,Switch4,LockGateway,LockName,po,cu,doo,temp,token);
-                        room.printRoomOnLog();
+                        ROOM room = new ROOM(row.getInt("id"), row.getInt("RoomNumber"), row.getInt("hotel"), row.getInt("Building"), row.getInt("building_id"), row.getInt("Floor"), row.getInt("floor_id"), row.getString("RoomType"), row.getInt("SuiteStatus"), row.getInt("SuiteNumber"), row.getInt("SuiteId"), row.getInt("ReservationNumber"), row.getInt("roomStatus"), row.getInt("Tablet"), row.getString("dep"), row.getInt("Cleanup"), row.getInt("Laundry"), row.getInt("RoomService"), row.getInt("Checkout"), row.getInt("Restaurant"), row.getInt("SOS"), row.getInt("DND"), row.getInt("PowerSwitch"), row.getInt("DoorSensor"), row.getInt("MotionSensor"), row.getInt("Thermostat"), row.getInt("ZBGateway"), row.getInt("CurtainSwitch"), row.getInt("ServiceSwitch"), row.getInt("lock"), row.getInt("Switch1"), row.getInt("Switch2"), row.getInt("Switch3"), row.getInt("Switch4"), row.getString("LockGateway"), row.getString("LockName"), row.getInt("powerStatus"), row.getInt("curtainStatus"), row.getInt("doorStatus"), row.getInt("temp"), row.getString("token"));
+                        room.setFireRoom(database.getReference(MyApp.Project + "/B" + room.Building + "/F" + room.Floor + "/R" + room.RoomNumber));
                         Rooms.add(room);
-                        database = FirebaseDatabase.getInstance("https://hotelservices-ebe66.firebaseio.com/");
-                        FireRooms.add(database.getReference(LogIn.Project+"/B"+room.Building+"/F"+room.Floor+"/R"+room.RoomNumber));
                     }
-                    Log.d("roomCount" , "room "+Rooms.size()+" fires "+FireRooms.size());
-                }
-                catch (JSONException e)
-                {
+                } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                if (Rooms.size()>0)
-                {
+                if (Rooms.size() > 0) {
                     RESTAURANTListiner = new ValueEventListener[Rooms.size()];
-                    Intent NotificationsService = new Intent(act,ReceivingService.class);
+                    Intent NotificationsService = new Intent(act, ReceivingService.class);
                     startService(NotificationsService);
                     setListiner();
                 }
             }
-        }, new Response.ErrorListener()
-        {
+        }, new Response.ErrorListener() {
             @Override
-            public void onErrorResponse(VolleyError error)
-            {
+            public void onErrorResponse(VolleyError error) {
                 loading.close();
             }
-        })
-        {
-            @Override
-            protected Map<String, String> getParams() throws AuthFailureError
-            {
-                Map<String,String> par = new HashMap<String, String>();
-                par.put("Hotel" , String.valueOf(1));
-                return par;
-            }
-        };
+        });
         Volley.newRequestQueue(act).add(re);
     }
 
-    public void sgnOut(View view)
-    {
-
-        //FirebaseMessaging.getInstance().unsubscribeFromTopic(LogIn.db.getUser().department);
-        for (int i=0;i<FireRooms.size();i++)
-        {
-            FireRooms.get(i).child("Restaurant").removeEventListener(RESTAURANTListiner[i]);
-            FireRooms.get(i).child("Restaurant").removeEventListener(ReceivingService.RESTAURANTListiner[i]);
+    public void sgnOut(View view) {
+        for (int i = 0; i < Rooms.size(); i++) {
+            Rooms.get(i).getFireRoom().child("Restaurant").removeEventListener(RESTAURANTListiner[i]);
+            Rooms.get(i).getFireRoom().child("Restaurant").removeEventListener(ReceivingService.RESTAURANTListiner[i]);
         }
-        LogIn.db.logout();
-        Intent i = new Intent(act , LogIn.class);
+        editor.putString("Id", null);
+        editor.putString("Name", null);
+        editor.putString("Control", null);
+        editor.putString("JobNumber", null);
+        editor.putString("Department", null);
+        editor.apply();
+        Intent i = new Intent(act, LogIn.class);
         startActivity(i);
         act.finish();
     }
 
     @Override
-    public void onResume()
-    {
+    public void onResume() {
         super.onResume();
-        // put your code here...
         getRestaurantOrders();
     }
 
-    private void setListiner()
-    {
-         if (LogIn.db.getUser().department.equals("Restaurant"))
-        {
-            for (int i=0;i<FireRooms.size();i++)
-            {
+    private void setListiner() {
+        if (MyApp.My_USER.department.equals("Restaurant") || MyApp.My_USER.department.equals("CoffeeShop")) {
+            for (int i = 0; i < Rooms.size(); i++) {
                 final int finalI = i;
-                RESTAURANTListiner[i] = FireRooms.get(i).child("Restaurant").addValueEventListener(new ValueEventListener()
-                {
+                RESTAURANTListiner[i] = Rooms.get(i).getFireRoom().child("Restaurant").addValueEventListener(new ValueEventListener() {
                     @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot)
-                    {
-                        FireRooms.get(finalI).child("Facility").addListenerForSingleValueEvent(new ValueEventListener() {
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        Rooms.get(finalI).getFireRoom().child("Facility").addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
-                            public void onDataChange(@NonNull DataSnapshot dataSnapshot)
-                            {
-                                if (Integer.parseInt(dataSnapshot.getValue().toString()) == LogIn.db.getFacility())
-                                {
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                //if (Integer.parseInt(dataSnapshot.getValue().toString()) == THEFACILITY.id) {
                                     getRestaurantOrders();
-                                }
                             }
 
                             @Override
                             public void onCancelled(@NonNull DatabaseError databaseError) {
-
                             }
                         });
-
                     }
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError)
-                    {
 
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
                     }
                 });
             }
-
         }
     }
 
-    private void getFacility()
-    {
-        final FACILITY[] f = new FACILITY[1];
-        StringRequest request = new StringRequest(Request.Method.POST, getFacilityUrl , new Response.Listener<String>() {
+    void sendRegistrationToServer(final String token) {
+        String url = MyApp.URL + "facilitys/setFacilityUserToken";
+        StringRequest r = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
             @Override
-            public void onResponse(String response)
-            {
-                Log.d("facilityResponse" , response+" "+FACILITY_ID );
-                if (response.equals("0"))
-                {
-
-                }
-                else
-                {
-                    try
-                    {
-                        JSONArray arr = new JSONArray(response);
-                        JSONObject row = arr.getJSONObject(0);
-                        f[0] = new FACILITY(row.getInt("id"),row.getInt("Hotel"),row.getInt("TypeId"),row.getString("TypeName"),row.getString("Name"),row.getInt("Control"),row.getString("photo"));
-                        THEFACILITY = f[0];
-                        getRooms();
-                        FacilityName.setText(THEFACILITY.Name);
-                        Picasso.get().load(THEFACILITY.photo).into(FacilityImage);
-                    }
-                    catch (JSONException e)
-                    {
-                        e.printStackTrace();
-                    }
-                }
-
-
+            public void onResponse(String response) {
+                Log.d("TokenResp", response);
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-
             }
-        })
-        {
+        }) {
             @Override
-            protected Map<String, String> getParams() throws AuthFailureError
-            {
-                Map<String,String> par = new HashMap<String, String>();
-                par.put("Hotel" , "1");
-                par.put("id" , String.valueOf( FACILITY_ID));
-                return par;
-            }
-        };
-        Volley.newRequestQueue(act).add(request);
-    }
-
-    void sendRegistrationToServer(final String token)
-    {
-        String url = LogIn.URL+"registerRestaurantToken.php";
-        StringRequest r = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response)
-            {
-                Log.d("TokenResp" , response) ;
-                if (response.equals("1"))
-                {
-
-                }
-                else
-                {
-
-                }
-
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error)
-            {
-
-            }
-        })
-        {
-            @Override
-            protected Map<String, String> getParams() throws AuthFailureError
-            {
-                Map<String,String> params = new HashMap<String,String>();
-                params.put("token",token);
-                params.put("id", String.valueOf(LogIn.db.getUser().id));
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<String, String>();
+                params.put("token", token);
+                params.put("user", String.valueOf(MyApp.My_USER.name));
+                params.put("facility_id", String.valueOf(THEFACILITY.id));
                 return params;
             }
         };
-
-        Volley.newRequestQueue(this ).add(r);
-
+        Volley.newRequestQueue(this).add(r);
     }
 
     @Override

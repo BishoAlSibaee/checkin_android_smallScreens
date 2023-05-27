@@ -1,5 +1,6 @@
 package com.syriasoft.hotelservices;
 
+import android.annotation.SuppressLint;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,7 +31,7 @@ public class MasterOffSwitch_Adapter extends RecyclerView.Adapter<MasterOffSwitc
     }
 
     @Override
-    public void onBindViewHolder(@NonNull MasterOffSwitch_Adapter.HOLDER holder, int position) {
+    public void onBindViewHolder(@NonNull MasterOffSwitch_Adapter.HOLDER holder, @SuppressLint("RecyclerView") int position) {
         holder.name.setText(list.get(position).getName());
         if (list.get(position).getDps().keySet().contains("1") && list.get(position).getDps().keySet().contains("2") && list.get(position).getDps().keySet().contains("3") && list.get(position).getDps().keySet().contains("4")) {
             holder.dps.setText("4 Buttons");

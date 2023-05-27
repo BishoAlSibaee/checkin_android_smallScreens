@@ -1,5 +1,6 @@
 package com.syriasoft.hotelservices.TUYA;
 
+import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -13,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.syriasoft.hotelservices.ErrorRegister;
 import com.syriasoft.hotelservices.LogIn;
+import com.syriasoft.hotelservices.MyApp;
 import com.syriasoft.hotelservices.R;
 import com.syriasoft.hotelservices.ToastMaker;
 import com.tuya.smart.home.sdk.TuyaHomeSdk;
@@ -42,7 +44,7 @@ public class Device_List_Adapter  extends RecyclerView.Adapter<Device_List_Adapt
     }
 
     @Override
-    public void onBindViewHolder(@NonNull Device_List_Adapter.Holder holder, int position)
+    public void onBindViewHolder(@NonNull Device_List_Adapter.Holder holder, @SuppressLint("RecyclerView") int position)
     {
         holder.Name.setText(list.get(position).name);
         holder.itemView.setOnClickListener(new View.OnClickListener()
@@ -52,20 +54,20 @@ public class Device_List_Adapter  extends RecyclerView.Adapter<Device_List_Adapt
             {
                 Tuya_Devices.selectedDevics.setText(list.get(position).name);
 
-                if (list.get(position).name.equals(LogIn.room.getRoomNumber()+"Power") )
+                if (list.get(position).name.equals(MyApp.Room.RoomNumber+"Power") )
                 {
                     Tuya_Devices.powerBean = list.get(position) ;
                     Tuya_Devices.mDevice = TuyaHomeSdk.newDeviceInstance(Tuya_Devices.powerBean.devId);
                     ToastMaker.MakeToast("Power selected" , holder.itemView.getContext());
                 }
-                else if (list.get(position).name.equals(LogIn.room.getRoomNumber()+"ZGatway"))
+                else if (list.get(position).name.equals(MyApp.Room.RoomNumber+"ZGatway"))
                 {
                     Tuya_Devices.zgatwayBean = list.get(position) ;
                     Tuya_Devices.mgate = TuyaHomeSdk.newGatewayInstance(Tuya_Devices.zgatwayBean.devId);
-                    LogIn.room.insertGateway(list.get(position).name);
+                    //LogIn.room.insertGateway(list.get(position).name);
                     ToastMaker.MakeToast("Gate Selected" , holder.itemView.getContext());
                 }
-                else if (list.get(position).name.equals(LogIn.room.getRoomNumber()+"AC"))
+                else if (list.get(position).name.equals(MyApp.Room.RoomNumber+"AC"))
                 {
                     Tuya_Devices.ACbean = list.get(position) ;
                     Tuya_Devices.AC = TuyaHomeSdk.newDeviceInstance(Tuya_Devices.ACbean.devId);
@@ -110,7 +112,7 @@ public class Device_List_Adapter  extends RecyclerView.Adapter<Device_List_Adapt
                                 //ToastMaker.MakeToast(errorMsg , holder.itemView.getContext());
                                 Calendar c = Calendar.getInstance(Locale.getDefault());
                                 long time =c.getTimeInMillis() ;
-                                ErrorRegister.rigestError(holder.itemView.getContext(),LogIn.room.getProjectName(),LogIn.room.getRoomNumber(),time,18,errorMsg,"Error Deleting Tuya Device");
+                                ErrorRegister.rigestError(holder.itemView.getContext(),MyApp.THE_PROJECT.projectName,MyApp.Room.RoomNumber,time,18,errorMsg,"Error Deleting Tuya Device");
                             }
                             @Override
                             public void onSuccess()
