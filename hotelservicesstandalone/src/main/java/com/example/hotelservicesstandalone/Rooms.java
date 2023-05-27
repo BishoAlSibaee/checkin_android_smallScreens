@@ -5782,283 +5782,280 @@ public class Rooms extends AppCompatActivity
 
     void setSCENES(List<SceneBean> SCENES) {
         for (int i = 0; i< ROOMS.size(); i++) {
-            //TODO for all rooms
-            if (ROOMS.get(i).RoomNumber == 104) {
-                if (!searchScene(SCENES, ROOMS.get(i).RoomNumber + "ServiceSwitchDNDScene2")) {
-                    PreCondition pr = new PreCondition();
-                    List<PreCondition> lpr = new ArrayList<>();
-                    List<SceneCondition> conds = new ArrayList<>();
-                    List<SceneTask> tasks = new ArrayList<>();
-                    lpr.add(pr);
-                    if (ROOMS.get(i).getSERVICE1_B() != null) {
-                        BoolRule rule = BoolRule.newInstance("dp1", true);
-                        SceneCondition cond = SceneCondition.createDevCondition(ROOMS.get(i).getSERVICE1_B(), "1", rule);
-                        conds.add(cond);
-                        HashMap<String, Object> taskMap = new HashMap<>();
-                        taskMap.put("2", false); // Starts a device.
-                        SceneTask task = TuyaHomeSdk.getSceneManagerInstance().createDpTask(ROOMS.get(i).getSERVICE1_B().devId, taskMap);
-                        tasks.add(task);
-                        TuyaHomeSdk.getSceneManagerInstance().createScene(
-                                Login.THEHOME.getHomeId(),
-                                ROOMS.get(i).RoomNumber + "ServiceSwitchDNDScene2", // The name of the scene.
-                                false,
-                                IMAGES.get(0),  // Indicates whether the scene is displayed on the homepage.
-                                conds, // The effective period. This parameter is optional.
-                                tasks, // The conditions.
-                                null,     // The tasks.
-                                SceneBean.MATCH_TYPE_AND, // The type of trigger conditions to match.
-                                new ITuyaResultCallback<SceneBean>() {
-                                    @Override
-                                    public void onSuccess(SceneBean sceneBean) {
-                                        Log.d("SCENE_DND1", "createScene Success");
-                                        TuyaHomeSdk.newSceneInstance(sceneBean.getId()).enableScene(sceneBean.getId(), new
-                                                IResultCallback() {
-                                                    @Override
-                                                    public void onSuccess() {
-                                                        Log.d("SCENE_DND1", "enable Scene Success");
-                                                    }
+            if (!searchScene(SCENES, ROOMS.get(i).RoomNumber + "ServiceSwitchDNDScene2")) {
+                PreCondition pr = new PreCondition();
+                List<PreCondition> lpr = new ArrayList<>();
+                List<SceneCondition> conds = new ArrayList<>();
+                List<SceneTask> tasks = new ArrayList<>();
+                lpr.add(pr);
+                if (ROOMS.get(i).getSERVICE1_B() != null) {
+                    BoolRule rule = BoolRule.newInstance("dp1", true);
+                    SceneCondition cond = SceneCondition.createDevCondition(ROOMS.get(i).getSERVICE1_B(), "1", rule);
+                    conds.add(cond);
+                    HashMap<String, Object> taskMap = new HashMap<>();
+                    taskMap.put("2", false); // Starts a device.
+                    SceneTask task = TuyaHomeSdk.getSceneManagerInstance().createDpTask(ROOMS.get(i).getSERVICE1_B().devId, taskMap);
+                    tasks.add(task);
+                    TuyaHomeSdk.getSceneManagerInstance().createScene(
+                            Login.THEHOME.getHomeId(),
+                            ROOMS.get(i).RoomNumber + "ServiceSwitchDNDScene2", // The name of the scene.
+                            false,
+                            IMAGES.get(0),  // Indicates whether the scene is displayed on the homepage.
+                            conds, // The effective period. This parameter is optional.
+                            tasks, // The conditions.
+                            null,     // The tasks.
+                            SceneBean.MATCH_TYPE_AND, // The type of trigger conditions to match.
+                            new ITuyaResultCallback<SceneBean>() {
+                                @Override
+                                public void onSuccess(SceneBean sceneBean) {
+                                    Log.d("SCENE_DND1", "createScene Success");
+                                    TuyaHomeSdk.newSceneInstance(sceneBean.getId()).enableScene(sceneBean.getId(), new
+                                            IResultCallback() {
+                                                @Override
+                                                public void onSuccess() {
+                                                    Log.d("SCENE_DND1", "enable Scene Success");
+                                                }
 
-                                                    @Override
-                                                    public void onError(String errorCode, String errorMessage) {
-                                                        Log.d("SCENE_DND1", errorMessage + " " + errorCode);
-                                                    }
-                                                });
-                                    }
+                                                @Override
+                                                public void onError(String errorCode, String errorMessage) {
+                                                    Log.d("SCENE_DND1", errorMessage + " " + errorCode);
+                                                }
+                                            });
+                                }
 
-                                    @Override
-                                    public void onError(String errorCode, String errorMessage) {
-                                        Log.d("SCENE_DND1", errorMessage + " " + errorCode);
-                                    }
-                                });
-                    }
-                }
-                if (!searchScene(SCENES, ROOMS.get(i).RoomNumber + "ServiceSwitchDNDScene3")) {
-                    List<SceneCondition> conds = new ArrayList<>();
-                    List<SceneTask> tasks = new ArrayList<>();
-                    if (ROOMS.get(i).getSERVICE1_B() != null) {
-                        BoolRule rule = BoolRule.newInstance("dp1", true);
-                        SceneCondition cond = SceneCondition.createDevCondition(ROOMS.get(i).getSERVICE1_B(), "1", rule);
-                        conds.add(cond);
-                        HashMap<String, Object> taskMap = new HashMap<>();
-                        taskMap.put("3", false); // Starts a device.
-                        SceneTask task = TuyaHomeSdk.getSceneManagerInstance().createDpTask(ROOMS.get(i).getSERVICE1_B().devId, taskMap);
-                        tasks.add(task);
-                        TuyaHomeSdk.getSceneManagerInstance().createScene(
-                                Login.THEHOME.getHomeId(),
-                                ROOMS.get(i).RoomNumber + "ServiceSwitchDNDScene3", // The name of the scene.
-                                false,
-                                IMAGES.get(0),  // Indicates whether the scene is displayed on the homepage.
-                                conds, // The effective period. This parameter is optional.
-                                tasks, // The conditions.
-                                null,     // The tasks.
-                                SceneBean.MATCH_TYPE_AND, // The type of trigger conditions to match.
-                                new ITuyaResultCallback<SceneBean>() {
-                                    @Override
-                                    public void onSuccess(SceneBean sceneBean) {
-                                        Log.d("SCENE_DND2", "createScene Success");
-                                        TuyaHomeSdk.newSceneInstance(sceneBean.getId()).enableScene(sceneBean.getId(), new
-                                                IResultCallback() {
-                                                    @Override
-                                                    public void onSuccess() {
-                                                        Log.d("SCENE_DND2", "enable Scene Success");
-                                                    }
-
-                                                    @Override
-                                                    public void onError(String errorCode, String errorMessage) {
-                                                        Log.d("SCENE_DND2", errorMessage);
-                                                    }
-                                                });
-                                    }
-
-                                    @Override
-                                    public void onError(String errorCode, String errorMessage) {
-                                        Log.d("SCENE_DND2", errorMessage);
-                                    }
-                                });
-                    }
-                }
-                if (!searchScene(SCENES, ROOMS.get(i).RoomNumber + "ServiceSwitchDNDScene4")) {
-                    List<SceneCondition> conds = new ArrayList<>();
-                    List<SceneTask> tasks = new ArrayList<>();
-                    if (ROOMS.get(i).getSERVICE1_B() != null) {
-                        BoolRule rule = BoolRule.newInstance("dp1", true);
-                        SceneCondition cond = SceneCondition.createDevCondition(ROOMS.get(i).getSERVICE1_B(), "1", rule);
-                        conds.add(cond);
-                        HashMap<String, Object> taskMap = new HashMap<>();
-                        taskMap.put("4", false); // Starts a device.
-                        SceneTask task = TuyaHomeSdk.getSceneManagerInstance().createDpTask(ROOMS.get(i).getSERVICE1_B().devId, taskMap);
-                        tasks.add(task);
-                        TuyaHomeSdk.getSceneManagerInstance().createScene(
-                                Login.THEHOME.getHomeId(),
-                                ROOMS.get(i).RoomNumber + "ServiceSwitchDNDScene4", // The name of the scene.
-                                false,
-                                IMAGES.get(0),  // Indicates whether the scene is displayed on the homepage.
-                                conds, // The effective period. This parameter is optional.
-                                tasks, // The conditions.
-                                null,     // The tasks.
-                                SceneBean.MATCH_TYPE_AND, // The type of trigger conditions to match.
-                                new ITuyaResultCallback<SceneBean>() {
-                                    @Override
-                                    public void onSuccess(SceneBean sceneBean) {
-                                        Log.d("SCENE_DND2", "createScene Success");
-                                        TuyaHomeSdk.newSceneInstance(sceneBean.getId()).enableScene(sceneBean.getId(), new
-                                                IResultCallback() {
-                                                    @Override
-                                                    public void onSuccess() {
-                                                        Log.d("SCENE_DND2", "enable Scene Success");
-                                                    }
-
-                                                    @Override
-                                                    public void onError(String errorCode, String errorMessage) {
-                                                        Log.d("SCENE_DND2", errorMessage);
-                                                    }
-                                                });
-                                    }
-
-                                    @Override
-                                    public void onError(String errorCode, String errorMessage) {
-                                        Log.d("SCENE_DND2", errorMessage);
-                                    }
-                                });
-                    }
-                }
-                if (!searchScene(SCENES, ROOMS.get(i).RoomNumber + "ServiceSwitchCleanupScene")) {
-                    List<SceneCondition> conds = new ArrayList<>();
-                    List<SceneTask> tasks = new ArrayList<>();
-                    if (ROOMS.get(i).getSERVICE1_B() != null) {
-                        BoolRule rule = BoolRule.newInstance("dp2", true);
-                        SceneCondition cond = SceneCondition.createDevCondition(ROOMS.get(i).getSERVICE1_B(), "2", rule);
-                        conds.add(cond);
-                        HashMap<String, Object> taskMap = new HashMap<>();
-                        taskMap.put("1", false); // Starts a device.
-                        SceneTask task = TuyaHomeSdk.getSceneManagerInstance().createDpTask(ROOMS.get(i).getSERVICE1_B().devId, taskMap);
-                        tasks.add(task);
-                        TuyaHomeSdk.getSceneManagerInstance().createScene(
-                                Login.THEHOME.getHomeId(),
-                                ROOMS.get(i).RoomNumber + "ServiceSwitchCleanupScene", // The name of the scene.
-                                false,
-                                IMAGES.get(0),  // Indicates whether the scene is displayed on the homepage.
-                                conds, // The effective period. This parameter is optional.
-                                tasks, // The conditions.
-                                null,     // The tasks.
-                                SceneBean.MATCH_TYPE_AND, // The type of trigger conditions to match.
-                                new ITuyaResultCallback<SceneBean>() {
-                                    @Override
-                                    public void onSuccess(SceneBean sceneBean) {
-                                        Log.d("SCENE_Cleanup", "createScene Success");
-                                        TuyaHomeSdk.newSceneInstance(sceneBean.getId()).enableScene(sceneBean.getId(), new
-                                                IResultCallback() {
-                                                    @Override
-                                                    public void onSuccess() {
-                                                        Log.d("SCENE_Cleanup", "enable Scene Success");
-                                                    }
-
-                                                    @Override
-                                                    public void onError(String errorCode, String errorMessage) {
-                                                        Log.d("SCENE_Cleanup", errorMessage);
-                                                    }
-                                                });
-                                    }
-
-                                    @Override
-                                    public void onError(String errorCode, String errorMessage) {
-                                        Log.d("SCENE_Cleanup", errorMessage);
-                                    }
-                                });
-                    }
-                }
-                if (!searchScene(SCENES, ROOMS.get(i).RoomNumber + "ServiceSwitchLaundryScene")) {
-                    List<SceneCondition> conds = new ArrayList<>();
-                    List<SceneTask> tasks = new ArrayList<>();
-                    if (ROOMS.get(i).getSERVICE1_B() != null) {
-                        BoolRule rule = BoolRule.newInstance("dp3", true);
-                        SceneCondition cond = SceneCondition.createDevCondition(ROOMS.get(i).getSERVICE1_B(), "3", rule);
-                        conds.add(cond);
-                        HashMap<String, Object> taskMap = new HashMap<>();
-                        taskMap.put("1", false); // Starts a device.
-                        SceneTask task = TuyaHomeSdk.getSceneManagerInstance().createDpTask(ROOMS.get(i).getSERVICE1_B().devId, taskMap);
-                        tasks.add(task);
-                        TuyaHomeSdk.getSceneManagerInstance().createScene(
-                                Login.THEHOME.getHomeId(),
-                                ROOMS.get(i).RoomNumber + "ServiceSwitchLaundryScene", // The name of the scene.
-                                false,
-                                IMAGES.get(0),  // Indicates whether the scene is displayed on the homepage.
-                                conds, // The effective period. This parameter is optional.
-                                tasks, // The conditions.
-                                null,     // The tasks.
-                                SceneBean.MATCH_TYPE_AND, // The type of trigger conditions to match.
-                                new ITuyaResultCallback<SceneBean>() {
-                                    @Override
-                                    public void onSuccess(SceneBean sceneBean) {
-                                        Log.d("SCENE_Laundry", "createScene Success");
-                                        TuyaHomeSdk.newSceneInstance(sceneBean.getId()).enableScene(sceneBean.getId(), new
-                                                IResultCallback() {
-                                                    @Override
-                                                    public void onSuccess() {
-                                                        Log.d("SCENE_Laundry", "enable Scene Success");
-                                                    }
-
-                                                    @Override
-                                                    public void onError(String errorCode, String errorMessage) {
-                                                        Log.d("SCENE_Laundry", errorMessage);
-                                                    }
-                                                });
-                                    }
-
-                                    @Override
-                                    public void onError(String errorCode, String errorMessage) {
-                                        Log.d("SCENE_Laundry", errorMessage);
-                                    }
-                                });
-                    }
-                }
-                if (!searchScene(SCENES, ROOMS.get(i).RoomNumber + "ServiceSwitchCheckoutScene")) {
-                    List<SceneCondition> conds = new ArrayList<>();
-                    List<SceneTask> tasks = new ArrayList<>();
-                    if (ROOMS.get(i).getSERVICE1_B() != null) {
-                        BoolRule rule = BoolRule.newInstance("dp4", true);
-                        SceneCondition cond = SceneCondition.createDevCondition(ROOMS.get(i).getSERVICE1_B(), "4", rule);
-                        conds.add(cond);
-                        HashMap<String, Object> taskMap = new HashMap<>();
-                        taskMap.put("1", false); // Starts a device.
-                        SceneTask task = TuyaHomeSdk.getSceneManagerInstance().createDpTask(ROOMS.get(i).getSERVICE1_B().devId, taskMap);
-                        tasks.add(task);
-                        TuyaHomeSdk.getSceneManagerInstance().createScene(
-                                Login.THEHOME.getHomeId(),
-                                ROOMS.get(i).RoomNumber + "ServiceSwitchCheckoutScene", // The name of the scene.
-                                false,
-                                IMAGES.get(0),  // Indicates whether the scene is displayed on the homepage.
-                                conds, // The effective period. This parameter is optional.
-                                tasks, // The conditions.
-                                null,     // The tasks.
-                                SceneBean.MATCH_TYPE_AND, // The type of trigger conditions to match.
-                                new ITuyaResultCallback<SceneBean>() {
-                                    @Override
-                                    public void onSuccess(SceneBean sceneBean) {
-                                        Log.d("SCENE_Laundry", "createScene Success");
-                                        TuyaHomeSdk.newSceneInstance(sceneBean.getId()).enableScene(sceneBean.getId(), new
-                                                IResultCallback() {
-                                                    @Override
-                                                    public void onSuccess() {
-                                                        Log.d("SCENE_Laundry", "enable Scene Success");
-                                                    }
-
-                                                    @Override
-                                                    public void onError(String errorCode, String errorMessage) {
-                                                        Log.d("SCENE_Laundry", errorMessage);
-                                                    }
-                                                });
-                                    }
-
-                                    @Override
-                                    public void onError(String errorCode, String errorMessage) {
-                                        Log.d("SCENE_Laundry", errorMessage);
-                                    }
-                                });
-                    }
+                                @Override
+                                public void onError(String errorCode, String errorMessage) {
+                                    Log.d("SCENE_DND1", errorMessage + " " + errorCode);
+                                }
+                            });
                 }
             }
-        }
+            if (!searchScene(SCENES, ROOMS.get(i).RoomNumber + "ServiceSwitchDNDScene3")) {
+                List<SceneCondition> conds = new ArrayList<>();
+                List<SceneTask> tasks = new ArrayList<>();
+                if (ROOMS.get(i).getSERVICE1_B() != null) {
+                    BoolRule rule = BoolRule.newInstance("dp1", true);
+                    SceneCondition cond = SceneCondition.createDevCondition(ROOMS.get(i).getSERVICE1_B(), "1", rule);
+                    conds.add(cond);
+                    HashMap<String, Object> taskMap = new HashMap<>();
+                    taskMap.put("3", false); // Starts a device.
+                    SceneTask task = TuyaHomeSdk.getSceneManagerInstance().createDpTask(ROOMS.get(i).getSERVICE1_B().devId, taskMap);
+                    tasks.add(task);
+                    TuyaHomeSdk.getSceneManagerInstance().createScene(
+                            Login.THEHOME.getHomeId(),
+                            ROOMS.get(i).RoomNumber + "ServiceSwitchDNDScene3", // The name of the scene.
+                            false,
+                            IMAGES.get(0),  // Indicates whether the scene is displayed on the homepage.
+                            conds, // The effective period. This parameter is optional.
+                            tasks, // The conditions.
+                            null,     // The tasks.
+                            SceneBean.MATCH_TYPE_AND, // The type of trigger conditions to match.
+                            new ITuyaResultCallback<SceneBean>() {
+                                @Override
+                                public void onSuccess(SceneBean sceneBean) {
+                                    Log.d("SCENE_DND2", "createScene Success");
+                                    TuyaHomeSdk.newSceneInstance(sceneBean.getId()).enableScene(sceneBean.getId(), new
+                                            IResultCallback() {
+                                                @Override
+                                                public void onSuccess() {
+                                                    Log.d("SCENE_DND2", "enable Scene Success");
+                                                }
+
+                                                @Override
+                                                public void onError(String errorCode, String errorMessage) {
+                                                    Log.d("SCENE_DND2", errorMessage);
+                                                }
+                                            });
+                                }
+
+                                @Override
+                                public void onError(String errorCode, String errorMessage) {
+                                    Log.d("SCENE_DND2", errorMessage);
+                                }
+                            });
+                }
+            }
+            if (!searchScene(SCENES, ROOMS.get(i).RoomNumber + "ServiceSwitchDNDScene4")) {
+                List<SceneCondition> conds = new ArrayList<>();
+                List<SceneTask> tasks = new ArrayList<>();
+                if (ROOMS.get(i).getSERVICE1_B() != null) {
+                    BoolRule rule = BoolRule.newInstance("dp1", true);
+                    SceneCondition cond = SceneCondition.createDevCondition(ROOMS.get(i).getSERVICE1_B(), "1", rule);
+                    conds.add(cond);
+                    HashMap<String, Object> taskMap = new HashMap<>();
+                    taskMap.put("4", false); // Starts a device.
+                    SceneTask task = TuyaHomeSdk.getSceneManagerInstance().createDpTask(ROOMS.get(i).getSERVICE1_B().devId, taskMap);
+                    tasks.add(task);
+                    TuyaHomeSdk.getSceneManagerInstance().createScene(
+                            Login.THEHOME.getHomeId(),
+                            ROOMS.get(i).RoomNumber + "ServiceSwitchDNDScene4", // The name of the scene.
+                            false,
+                            IMAGES.get(0),  // Indicates whether the scene is displayed on the homepage.
+                            conds, // The effective period. This parameter is optional.
+                            tasks, // The conditions.
+                            null,     // The tasks.
+                            SceneBean.MATCH_TYPE_AND, // The type of trigger conditions to match.
+                            new ITuyaResultCallback<SceneBean>() {
+                                @Override
+                                public void onSuccess(SceneBean sceneBean) {
+                                    Log.d("SCENE_DND2", "createScene Success");
+                                    TuyaHomeSdk.newSceneInstance(sceneBean.getId()).enableScene(sceneBean.getId(), new
+                                            IResultCallback() {
+                                                @Override
+                                                public void onSuccess() {
+                                                    Log.d("SCENE_DND2", "enable Scene Success");
+                                                }
+
+                                                @Override
+                                                public void onError(String errorCode, String errorMessage) {
+                                                    Log.d("SCENE_DND2", errorMessage);
+                                                }
+                                            });
+                                }
+
+                                @Override
+                                public void onError(String errorCode, String errorMessage) {
+                                    Log.d("SCENE_DND2", errorMessage);
+                                }
+                            });
+                }
+            }
+            if (!searchScene(SCENES, ROOMS.get(i).RoomNumber + "ServiceSwitchCleanupScene")) {
+                List<SceneCondition> conds = new ArrayList<>();
+                List<SceneTask> tasks = new ArrayList<>();
+                if (ROOMS.get(i).getSERVICE1_B() != null) {
+                    BoolRule rule = BoolRule.newInstance("dp2", true);
+                    SceneCondition cond = SceneCondition.createDevCondition(ROOMS.get(i).getSERVICE1_B(), "2", rule);
+                    conds.add(cond);
+                    HashMap<String, Object> taskMap = new HashMap<>();
+                    taskMap.put("1", false); // Starts a device.
+                    SceneTask task = TuyaHomeSdk.getSceneManagerInstance().createDpTask(ROOMS.get(i).getSERVICE1_B().devId, taskMap);
+                    tasks.add(task);
+                    TuyaHomeSdk.getSceneManagerInstance().createScene(
+                            Login.THEHOME.getHomeId(),
+                            ROOMS.get(i).RoomNumber + "ServiceSwitchCleanupScene", // The name of the scene.
+                            false,
+                            IMAGES.get(0),  // Indicates whether the scene is displayed on the homepage.
+                            conds, // The effective period. This parameter is optional.
+                            tasks, // The conditions.
+                            null,     // The tasks.
+                            SceneBean.MATCH_TYPE_AND, // The type of trigger conditions to match.
+                            new ITuyaResultCallback<SceneBean>() {
+                                @Override
+                                public void onSuccess(SceneBean sceneBean) {
+                                    Log.d("SCENE_Cleanup", "createScene Success");
+                                    TuyaHomeSdk.newSceneInstance(sceneBean.getId()).enableScene(sceneBean.getId(), new
+                                            IResultCallback() {
+                                                @Override
+                                                public void onSuccess() {
+                                                    Log.d("SCENE_Cleanup", "enable Scene Success");
+                                                }
+
+                                                @Override
+                                                public void onError(String errorCode, String errorMessage) {
+                                                    Log.d("SCENE_Cleanup", errorMessage);
+                                                }
+                                            });
+                                }
+
+                                @Override
+                                public void onError(String errorCode, String errorMessage) {
+                                    Log.d("SCENE_Cleanup", errorMessage);
+                                }
+                            });
+                }
+            }
+            if (!searchScene(SCENES, ROOMS.get(i).RoomNumber + "ServiceSwitchLaundryScene")) {
+                List<SceneCondition> conds = new ArrayList<>();
+                List<SceneTask> tasks = new ArrayList<>();
+                if (ROOMS.get(i).getSERVICE1_B() != null) {
+                    BoolRule rule = BoolRule.newInstance("dp3", true);
+                    SceneCondition cond = SceneCondition.createDevCondition(ROOMS.get(i).getSERVICE1_B(), "3", rule);
+                    conds.add(cond);
+                    HashMap<String, Object> taskMap = new HashMap<>();
+                    taskMap.put("1", false); // Starts a device.
+                    SceneTask task = TuyaHomeSdk.getSceneManagerInstance().createDpTask(ROOMS.get(i).getSERVICE1_B().devId, taskMap);
+                    tasks.add(task);
+                    TuyaHomeSdk.getSceneManagerInstance().createScene(
+                            Login.THEHOME.getHomeId(),
+                            ROOMS.get(i).RoomNumber + "ServiceSwitchLaundryScene", // The name of the scene.
+                            false,
+                            IMAGES.get(0),  // Indicates whether the scene is displayed on the homepage.
+                            conds, // The effective period. This parameter is optional.
+                            tasks, // The conditions.
+                            null,     // The tasks.
+                            SceneBean.MATCH_TYPE_AND, // The type of trigger conditions to match.
+                            new ITuyaResultCallback<SceneBean>() {
+                                @Override
+                                public void onSuccess(SceneBean sceneBean) {
+                                    Log.d("SCENE_Laundry", "createScene Success");
+                                    TuyaHomeSdk.newSceneInstance(sceneBean.getId()).enableScene(sceneBean.getId(), new
+                                            IResultCallback() {
+                                                @Override
+                                                public void onSuccess() {
+                                                    Log.d("SCENE_Laundry", "enable Scene Success");
+                                                }
+
+                                                @Override
+                                                public void onError(String errorCode, String errorMessage) {
+                                                    Log.d("SCENE_Laundry", errorMessage);
+                                                }
+                                            });
+                                }
+
+                                @Override
+                                public void onError(String errorCode, String errorMessage) {
+                                    Log.d("SCENE_Laundry", errorMessage);
+                                }
+                            });
+                }
+            }
+            if (!searchScene(SCENES, ROOMS.get(i).RoomNumber + "ServiceSwitchCheckoutScene")) {
+                List<SceneCondition> conds = new ArrayList<>();
+                List<SceneTask> tasks = new ArrayList<>();
+                if (ROOMS.get(i).getSERVICE1_B() != null) {
+                    BoolRule rule = BoolRule.newInstance("dp4", true);
+                    SceneCondition cond = SceneCondition.createDevCondition(ROOMS.get(i).getSERVICE1_B(), "4", rule);
+                    conds.add(cond);
+                    HashMap<String, Object> taskMap = new HashMap<>();
+                    taskMap.put("1", false); // Starts a device.
+                    SceneTask task = TuyaHomeSdk.getSceneManagerInstance().createDpTask(ROOMS.get(i).getSERVICE1_B().devId, taskMap);
+                    tasks.add(task);
+                    TuyaHomeSdk.getSceneManagerInstance().createScene(
+                            Login.THEHOME.getHomeId(),
+                            ROOMS.get(i).RoomNumber + "ServiceSwitchCheckoutScene", // The name of the scene.
+                            false,
+                            IMAGES.get(0),  // Indicates whether the scene is displayed on the homepage.
+                            conds, // The effective period. This parameter is optional.
+                            tasks, // The conditions.
+                            null,     // The tasks.
+                            SceneBean.MATCH_TYPE_AND, // The type of trigger conditions to match.
+                            new ITuyaResultCallback<SceneBean>() {
+                                @Override
+                                public void onSuccess(SceneBean sceneBean) {
+                                    Log.d("SCENE_Laundry", "createScene Success");
+                                    TuyaHomeSdk.newSceneInstance(sceneBean.getId()).enableScene(sceneBean.getId(), new
+                                            IResultCallback() {
+                                                @Override
+                                                public void onSuccess() {
+                                                    Log.d("SCENE_Laundry", "enable Scene Success");
+                                                }
+
+                                                @Override
+                                                public void onError(String errorCode, String errorMessage) {
+                                                    Log.d("SCENE_Laundry", errorMessage);
+                                                }
+                                            });
+                                }
+
+                                @Override
+                                public void onError(String errorCode, String errorMessage) {
+                                    Log.d("SCENE_Laundry", errorMessage);
+                                }
+                            });
+                }
+            }
+            }
     }
 
     void getSceneBGs() {
